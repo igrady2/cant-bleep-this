@@ -19,3 +19,8 @@ export interface ModerationResult {
   flags: CategoryFlag[];
   scores: Record<CategoryId, number>;
 }
+
+/** Text returned by the server is safe for message presentation. */
+export interface ModerationResponse extends ModerationResult {
+  message: string;
+}

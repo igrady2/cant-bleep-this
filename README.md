@@ -79,3 +79,24 @@ Over the limit, the API returns `429` with `Retry-After: 60`, and the chat shows
 - `npm run lint`: ESLint
 
 The TypeSafe agent skill is vendored in `.agents/skills/typesafe-ai` (installed with `npx skills add typesafe-ai/skills --skill typesafe-ai`).
+
+## Message presentation
+
+`src/lib/presentation` masks emails and digit runs before returning text. Set
+`MASK_MIN_DIGITS` to a positive integer (default **7**). Single spaces, hyphens,
+dots and parentheses may separate the digits: `555-0100`, `(787) 555-0100` and
+`+1 787 555 0100` are all masked by the default. Invalid configuration fails
+closed rather than returning raw text. Moderation still checks the original input.
+
+Use `serializePublicMessage`, `serializeReviewerMessage` and `serializeTestCase`
+at their respective output boundaries. They project only known presentation
+fields and re-mask message text, usernames, context and reasons. Public messages
+with a server-confirmed `slipRule` show `█████` and that rule; reviewers and test
+cases retain the policy-violating words with contact details redacted. These
+helpers do not replace off-limits filtering or dataset username anonymization.
+The review queue and permanent dataset exporter are not implemented yet and must
+use these helpers when added. The existing demo uses the masked API response for
+both its message list and blocked-message notice.
+
+Run `npm test` for the synthetic masking, serialization and API-boundary tests
+in the Cloudflare Workers runtime. No test calls the live Jev API.

@@ -1,6 +1,7 @@
 import { moderate } from "@/lib/moderation";
 import { TypeSafeError } from "@/lib/moderation/typesafe";
 import { isRateLimited } from "@/lib/rate-limit";
+import { maskPersonalInformation } from "@/lib/presentation";
 
 const MAX_LENGTH = 1000;
 
@@ -32,7 +33,18 @@ export async function POST(request: Request) {
   }
 
   try {
-    return Response.json(await moderate(text));
+    const message = maskPersonalInformation(text);
+    const result = await moderate(text);
+    return Response.json({
+      ...result,
+      message,
+      model: maskPersonalInformation(result.model),
+      flags: result.flags.map((flag) => ({
+        ...flag,
+        label: maskPersonalInformation(flag.label),
+        explanation: maskPersonalInformation(flag.explanation),
+      })),
+    });
   } catch (err) {
     console.error("[moderate]", err);
     const status = err instanceof TypeSafeError && err.status === 401 ? 502 : 503;
