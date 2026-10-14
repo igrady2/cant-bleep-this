@@ -50,7 +50,7 @@ The goal is to design a better filter from scratch through play. Players supply 
 
 ## Starting point
 
-The game is built in [cant-bleep-this](https://github.com/igrady2/cant-bleep-this) (formerly school-chat-filter), a cleaned-up version of an earlier filter-demo: a Next.js chat app on Cloudflare Workers that asks Jev, TypeSafe AI's classification model, one yes/no question per rule in its Terms of Use and blocks a message when any rule scores 0.5 or higher. It doesn't copy anyone else's filter, and the game keeps it that way. Jev is only the model; the rules, their wording and the thresholds are ours.
+The game is built in [cant-bleep-this](https://github.com/igrady2/cant-bleep-this) (formerly school-chat-filter), a cleaned-up version of an earlier filter-demo: a Next.js chat app on Cloudflare Workers that asks Jev, TypeSafe AI's classification model, one yes/no question per rule in its Terms of Use and blocks a message when any rule scores 0.5 or higher. Its rules today are still the demo's reworded school rules, and milestone 1 replaces them with our own. Jev is only the model; the rules, their wording and the thresholds will be ours, not copied from another filter.
 
 What changes for the game:
 
@@ -130,7 +130,7 @@ Each verdict goes to the maintainer for review, confirmed slips become fixes, an
 4. **Test.** The candidate filter runs against the whole test set: every confirmed slip should now be caught, and every clean message and false positive should still pass. It ships only if catches go up and false positives don't.
 5. **Ship and show.** The new version (v2, v3, and so on) is stamped on every later message. Slips it now catches show "Patched in v3" on the board, and players keep their points.
 
-The test set is the one thing kept past 90 days. Each case keeps the message, its context, its label and the reviewers' reasons, with usernames removed.
+The test set is the one thing kept past 90 days. Each case keeps the message, its context, its label and the reviewers' reasons. It stores only the masked text, so phone numbers and emails never enter it, and usernames are removed.
 
 ## Usernames and impersonation
 
@@ -177,15 +177,16 @@ The test set is the one thing kept past 90 days. Each case keeps the message, it
 
 ```mermaid
 flowchart LR
-  B[Browser at cantbleepthis.com] --> F[Pages Function]
+  B[Browser at cantbleepthis.com] --> F[Cloudflare Worker]
   F --> T[Turnstile: verify name claims]
   F --> J[Jev: one request per post, every rule plus context]
   F --> D[(D1: players, messages, reviews, scores, test cases)]
+  C[Nightly cron] --> D
 ```
 
-The game lives in the cant-bleep-this repo with its own Cloudflare Pages project at cantbleepthis.com, with its own D1 database, so it ships independently of indigogrady.com. A claim verifies Turnstile, checks the name and stores the token hash. A review saves a verdict. A post checks the token and daily caps, loads the last 10 messages, sends one Jev request with every rule and the context, and saves the result. The feed refreshes every 15 seconds while the tab is visible.
+The game lives in the cant-bleep-this repo deployed as its own Cloudflare Worker at cantbleepthis.com, with its own D1 database, so it ships independently of indigogrady.com. A claim verifies Turnstile, checks the name and stores the token hash. A review saves a verdict. A post checks the token and daily caps, loads the last 10 messages, sends one Jev request with every rule and the context, and saves the result. The feed refreshes every 15 seconds while the tab is visible.
 
-**Data model** (everything except the test set is deleted after 90 days; Pages Functions have no scheduler, so each write also runs a cheap indexed delete of expired rows)
+**Data model** (everything except the test set is deleted after 90 days; a nightly Workers cron job deletes expired rows)
 
 | Table | Key fields | Kept for |
 | --- | --- | --- |
@@ -193,7 +194,7 @@ The game lives in the cant-bleep-this repo with its own Cloudflare Pages project
 | messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
 | reviews | message, reviewer, Fine or Not OK, rule, reason, skipped flag, time (one per reviewer per message) | 90 days |
 | scores | player, day, slips (one row per player per day) | 90 days |
-| test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, with usernames removed |
+| test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames removed |
 
 The board is the sum of `scores` over the last 90 days, top 50, cached for 5 minutes. Summing daily rows keeps reads small no matter how many messages there are.
 
@@ -205,7 +206,7 @@ The board is the sum of `scores` over the last 90 days, top 50, cached for 5 min
 | D1 rows read | 5,000,000 | a few dozen (queue, context, feed) | not the constraint |
 | D1 storage | 5 GB total | about 1 KB a message with its reviews | years of data |
 | KV writes (for comparison) | 1,000 | about 4 | about 250 |
-| Function requests | 100,000 per account, shared with other projects | 2 to 3, plus feed refreshes | thousands of player-hours |
+| Worker requests | 100,000 per account, shared with other projects | 2 to 3, plus feed refreshes | about 400 player-hours a day (a refresh every 15 seconds is 240 requests an hour) |
 
 The site-wide cap of 2,000 posts a day (see Risks) trips long before any Cloudflare limit. Jev usage is the one cost Cloudflare doesn't cover. Measured cost is about $0.0002 a check (95 checks cost $0.021), so 100 posts a day is roughly $0.65 a month.
 
@@ -232,9 +233,9 @@ The biggest risks come from players judging players: offensive content shown to 
 
 1. **Rules:** finalize our content rules and their wording, and write about 100 seed messages with known verdicts.
 2. **Filter in context:** change the demo's request to send the last 10 messages and the usernames in the room, swap in our rules, and test on the seed set.
-3. **Build v1:** Pages project for the cant-bleep-this repo, username claim with Turnstile, room feed, review queue with context, posting, verdicts, censoring, board, admin view, test-set runner. Reviewed on a Cloudflare preview deploy.
+3. **Build v1:** Worker deploy for the cant-bleep-this repo with a D1 binding, username claim with Turnstile, room feed, review queue with context, posting, verdicts, censoring, board, admin view, test-set runner. Reviewed on a Cloudflare preview deploy.
 4. **Private beta:** a few friends for a week; check reviewer agreement, slip rate and anything ugly.
-5. **Launch:** point cantbleepthis.com at the Pages project, add a project entry on indigogrady.com that links to it, then run the review, fix and test cycle weekly.
+5. **Launch:** point cantbleepthis.com at the Worker, add a project entry on indigogrady.com that links to it, then run the review, fix and test cycle weekly.
 
 **Decisions made**
 
@@ -248,4 +249,4 @@ The biggest risks come from players judging players: offensive content shown to 
 | Storage | Cloudflare D1 on the free plan |
 | Model cost | About $0.0002 per check (95 checks cost $0.021); not a concern at this scale |
 | Domain | cantbleepthis.com |
-| Hosting | The cant-bleep-this repo with its own Cloudflare Pages project, linked from indigogrady.com |
+| Hosting | The cant-bleep-this repo deployed as its own Cloudflare Worker, linked from indigogrady.com |
