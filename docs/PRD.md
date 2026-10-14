@@ -77,7 +77,7 @@ These are the categories the filter checks and reviewers choose from. They are a
 | Spam and scams | Links, ads, repeated text, fake offers |  |
 | Impersonation | Pretending to be another player or a real person |  |
 
-**Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included. A separate off-limits question in the same Jev request detects them, with a stricter threshold (0.3 to start).
+**Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included. A separate off-limits question in the same Jev request detects them, with its own threshold, 0.5 to start like the other rules, which can be tightened later.
 
 ## Core loop
 
