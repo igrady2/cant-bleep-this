@@ -86,7 +86,9 @@ at their respective output boundaries. They project only known presentation
 fields and re-mask message text, usernames, context and reasons. Public messages
 with a server-confirmed `slipRule` show `█████` and that rule; reviewers and test
 cases retain the policy-violating words with contact details redacted. These
-helpers do not replace off-limits filtering or dataset username anonymization.
+helpers do not replace off-limits filtering or dataset username anonymization
+(tracked in [#22](https://github.com/igrady2/cant-bleep-this/issues/22), including
+consistent Player A/Player B replacements in messages, context and reasons).
 The review queue and permanent dataset exporter are not implemented yet and must
 use these helpers when added. The existing demo uses the masked API response for
 both its message list and blocked-message notice.
