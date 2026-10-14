@@ -28,7 +28,7 @@ const PATTERNS: Record<CategoryId, RegExp[]> = {
   ],
   violence_threats: [
     /\b(i('| a)?m going to|i'?ll|gonna|i will|i wanna) (kill|hurt|beat|punch|stab|shoot|fight)\b/i,
-    /\b(bring(ing)? a (gun|knife|weapon)|bomb (the )?school|shoot up)\b/i,
+    /\b(bring(ing)? a (gun|knife|weapon)|bomb|shoot up)\b/i,
     /\bwatch your back\b/i,
   ],
   self_harm: [
@@ -45,21 +45,16 @@ const PATTERNS: Record<CategoryId, RegExp[]> = {
     /\b(my|her|his) (password|passcode|home address|phone number) is\b/i,
     /\b(snap(chat)?|insta(gram)?|tiktok|discord)\s*(is|:|@)/i,
   ],
-  academic_dishonesty: [
-    /\b(send|give|share|post|copy) (me |us )?(the |your )?(answers?|answer key|homework|essay|test|quiz)\b/i,
-    /\b(answers? (to|for) (the )?(test|quiz|exam)|cheat(ing)?|copy (off|from))\b/i,
-  ],
   spam: [
     /(.)\1{9,}/,
     /\b(\w+)\b(?:\W+\1\b){4,}/i,
     /\b(forward|send) this to \d+\b/i,
-    /(https?:\/\/\S+.*){3,}/i,
-  ],
-  terms_of_use: [
+    /\bhttps?:\/\/\S+|\bwww\.\S+|\b\w+\.(com|net|org|io|gg|ly)\b/i,
     /\b(buy|selling|for sale|discount code|promo code|dm me to buy|venmo me|cash ?app)\b/i,
-    /\b(this is|i'?m|i am) (actually )?(your |the )?(teacher|principal|admin(istrator)?|mr\.?|mrs\.?|ms\.?) .*(account|login|real)\b/i,
-    /\b(hack(ed|ing)?|log ?in(to)? (as|to) (someone|his|her|their)|(his|her|their) (password|login))\b/i,
-    /\b(make a list of|collect) (everyone'?s|all the) (emails?|addresses|numbers)\b/i,
+  ],
+  impersonation: [
+    /\b(i'?m|i am|this is) (actually |really )?the real \w+\b/i,
+    /\b(i'?m|i am) (actually )?(an? )?(admin|moderator|mod)\b/i,
   ],
 };
 

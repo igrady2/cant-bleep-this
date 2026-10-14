@@ -27,14 +27,14 @@ npm run dev                  # http://localhost:4317
 
 `POST /api/moderate` with `{ message }` sends a single request to `https://api.typesafe.ai/v1/systemone`. The request includes:
 
-- **state**: the existing demo context and the message. The author's role is not sent. Issue #4 replaces the rule questions and explanations with the game policy.
-- **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question per category. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
+- **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the message is player data and any instructions inside it are ignored, and the message itself.
+- **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
 The rule is applied in code: if any category reaches the threshold, the message is blocked. The response returns every category's probability, so you can tune the threshold without changing the questions. If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
 
 ### Categories (`src/lib/moderation/categories.ts`)
 
-The current demo categories and explanations remain in `src/lib/moderation/categories.ts`. Issue #4 replaces them with the game policy; this identity rename does not change moderation behavior.
+The nine rules (harassment, hate, sexual content, violence and threats, self-harm encouragement, profanity, personal information, spam and scams, impersonation) and their Jev questions are copied word for word from [docs/CONTENT_RULES.md](docs/CONTENT_RULES.md), policy `v1`. A test fails if the two drift apart, so change the doc and the code together. Rule ids are stable; reword labels and questions freely but never rename an id.
 
 ## Deploy to Cloudflare Workers
 
