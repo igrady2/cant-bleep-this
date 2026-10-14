@@ -77,7 +77,7 @@ These are the categories the filter checks and reviewers choose from. They are a
 | Spam and scams | Links, ads, repeated text, fake offers |  |
 | Impersonation | Pretending to be another player or a real person |  |
 
-**Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included.
+**Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included. A separate off-limits question in the same Jev request detects them, with its own threshold, 0.5 to start like the other rules, which can be tightened later.
 
 ## Core loop
 
@@ -101,8 +101,8 @@ Rules that keep it fair:
 
 - **No self-review.** You never judge your own messages.
 - **Hand-picked reviews are capped.** Messages you pick by hand count, but at most 1 of a message's deciding reviews can be hand-picked; the others come from the randomly assigned queue. This keeps friends from voting each other's slips through.
-- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Reviewers who miss several stop counting toward verdicts.
-- **Skip is allowed.** You can skip a queue item you don't want to judge, and it still satisfies the review requirement.
+- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Reviewers who miss 3 of their last 10 stop counting toward verdicts (both numbers are settings).
+- **Skip is allowed.** You can skip a queue item you don't want to judge, and it still satisfies the review requirement. A skip never counts as one of a message's 3 reviews.
 - **20 posts per player a day.**
 - **Board:** confirmed slips over the last 90 days, as a pure count. The rule each slip broke is saved, so weighting by rule later is easy.
 - **Off-limits messages never reach a reviewer.** Phone numbers and email addresses are masked before anyone sees a message.
@@ -125,12 +125,12 @@ The thresholds live in configuration, so the maintainer can tune them without a 
 Each verdict goes to the maintainer for review, confirmed slips become fixes, and the board shows when a trick has been patched. The reviewers' reasons are what make this work: they say in plain words what the filter missed.
 
 1. **Collect.** Each verdict saves the message, its 10-message context, the filter's score for every rule, the filter version, and each reviewer's rule and reason.
-2. **Review.** The maintainer skims slips and false positives in an admin view, grouped by rule, and tags the trick: spelling (leetspeak, spacing, symbols), sound (homophones), meaning (innuendo, euphemism, new slang), or context (only bad given who is in the room).
+2. **Review.** The maintainer skims slips and false positives in an admin view behind Cloudflare Access (free, email login), grouped by rule, and tags the trick: spelling (leetspeak, spacing, symbols), sound (homophones), meaning (innuendo, euphemism, new slang), or context (only bad given who is in the room).
 3. **Fix.** Reword a rule's question, add an example to it, adjust its threshold, or add a normalization step for spelling tricks.
 4. **Test.** The candidate filter runs against the whole test set: every confirmed slip should now be caught, and every clean message and false positive should still pass. It ships only if catches go up and false positives don't.
 5. **Ship and show.** The new version (v2, v3, and so on) is stamped on every later message. Slips it now catches show "Patched in v3" on the board, and players keep their points.
 
-The test set is the one thing kept past 90 days. Each case keeps the message, its context, its label and the reviewers' reasons. It stores only the masked text, so phone numbers and emails never enter it, and usernames are removed.
+The test set is the one thing kept past 90 days. Each case keeps the message, its context, its label and the reviewers' reasons. It stores only the masked text, so phone numbers and emails never enter it, and usernames are replaced with neutral stand-ins (Player A, Player B) so context like "pro Al" still makes sense.
 
 ## Usernames and impersonation
 
@@ -163,7 +163,7 @@ The test set is the one thing kept past 90 days. Each case keeps the message, it
 
 ## Censoring and false positives
 
-**Censoring.** A message posts first and is censored once players confirm it as a slip. The feed then shows a masked version ("f\*\*\*"), or "█████" with the rule name when the offending part can't be isolated.
+**Censoring.** A message posts first and is censored once players confirm it as a slip. In v1 the feed replaces the whole message with "█████" and the rule name. A later improvement lets reviewers mark the offending words when they judge, so the feed can mask just those words ("f\*\*\*").
 
 - Reviewers see the original, because judging it is their job. Entering the room shows a one-time note: "You'll judge messages other players wrote. Some will be offensive. You can skip any of them."
 - Phone numbers, emails and long digit runs are masked before anyone sees a message, reviewers included.
@@ -194,7 +194,7 @@ The game lives in the cant-bleep-this repo deployed as its own Cloudflare Worker
 | messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
 | reviews | message, reviewer, Fine or Not OK, rule, reason, skipped flag, time (one per reviewer per message) | 90 days |
 | scores | player, day, slips (one row per player per day) | 90 days |
-| test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames removed |
+| test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames replaced by stand-ins |
 
 The board is the sum of `scores` over the last 90 days, top 50, cached for 5 minutes. Summing daily rows keeps reads small no matter how many messages there are.
 
@@ -218,7 +218,7 @@ The biggest risks come from players judging players: offensive content shown to 
 | --- | --- |
 | Reviewers see offensive text | One-time content note, skip allowed, personal info masked, off-limits messages never shown |
 | Friends vote each other's slips through | No self-review, at most 1 hand-picked review per verdict, 3 reviews per message, known-answer checks |
-| Players target each other ("Elon is pro Al") | That's a slip by design and gets censored on verdict; the maintainer can delete any message and ban a username from the admin view |
+| Players target each other ("Elon is pro Al") | That's a slip by design and gets censored on verdict; the maintainer can delete any message and ban a username from the admin view. A deleted message loses its point and never enters the test set; a banned name is hidden from the board, and its anonymized test cases stay |
 | Low traffic leaves messages without verdicts | Seed messages, no review requirement until the queue builds up, and a late verdict still scores the slip |
 | Visitors from indigogrady.com stumble into offensive content | The game lives on its own domain, and indigogrady.com only links to it; the landing page explains the game before anyone enters the room |
 | Players try prompt injection ("ignore your rules") | The message is sent to Jev as data, never as instructions, and players review anything that gets through |
