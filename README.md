@@ -1,6 +1,6 @@
-# school-chat-filter: moderated class forum
+# Can't Bleep This
 
-A generic content filter for school chat, shown as a small chat interface. Users type into the chat box and press **Enter** to send. Before a message is added to the chat log, the server sends it to **Jev**, the flagship System One model from [TypeSafe AI](https://docs.typesafe.ai). Jev decides whether the message would be inappropriate for a student or teacher to post in an online school forum. Allowed messages are posted. Blocked messages are not posted; instead the author sees which categories were flagged and why.
+**Get it past the filter.** A chat game in development, currently built on a small moderated chat demo. Type a message and press **Enter** to send. Before it is added to the chat log, the server sends it to **Jev**, the flagship System One model from [TypeSafe AI](https://docs.typesafe.ai). Allowed messages are posted. Blocked messages are not posted; instead the author sees which categories were flagged and why.
 
 Stack: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and shadcn/ui. Fonts: Familjen Grotesk (headings) and Arimo (body).
 
@@ -27,31 +27,24 @@ npm run dev                  # http://localhost:4317
 
 `POST /api/moderate` with `{ message }` sends a single request to `https://api.typesafe.ai/v1/systemone`. The request includes:
 
-- **state**: the forum context (a K–12 class forum for students and teachers) and the message. Students and teachers are held to the same standard, so the author's role is not sent.
+- **state**: the existing demo context and the message. The author's role is not sent. Issue #4 replaces the rule questions and explanations with the game policy.
 - **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question per category. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
 The rule is applied in code: if any category reaches the threshold, the message is blocked. The response returns every category's probability, so you can tune the threshold without changing the questions. If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
 
 ### Categories (`src/lib/moderation/categories.ts`)
 
-1. Bullying or harassment
-2. Hate speech
-3. Sexual content
-4. Violence or threats
-5. Self-harm (the explanation points the author to a trusted adult and to the 988 crisis line)
-6. Profanity
-7. Personal information (phone numbers, addresses, logins, social handles)
-8. Academic dishonesty
-9. Spam
-10. Terms of Use violation, based on a standard K–12 platform Acceptable Use policy. This covers unlawful activity, defamation, impersonation, unauthorized access, harvesting other users' information, and commercial use without permission.
+The current demo categories and explanations remain in `src/lib/moderation/categories.ts`. Issue #4 replaces them with the game policy; this identity rename does not change moderation behavior.
 
 ## Deploy to Cloudflare Workers
 
-The app runs on Cloudflare Workers through the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). Configuration is in `wrangler.jsonc` and `open-next.config.ts`.
+The app runs on Cloudflare Workers through the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). The Worker name is `cant-bleep-this`. Configuration is in `wrangler.jsonc` and `open-next.config.ts`.
+
+When deploying under the new name, confirm `cant-bleep-this` in your Cloudflare account and re-set `TYPESAFE_API_KEY` and any other existing Worker secrets on that Worker. Secrets do not transfer when the config name changes.
 
 ```bash
 npx wrangler login
-npx wrangler secret put TYPESAFE_API_KEY   # optional: skip to deploy with the Demo mock
+npx wrangler secret put TYPESAFE_API_KEY --name cant-bleep-this   # optional for the current Demo mock
 npm run deploy
 ```
 
