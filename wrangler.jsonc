@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "school-chat-filter",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-06",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Limits on POST /api/moderate, far above what a handful of testers will send.
+  // namespace_id is any integer string, unique per rate limiter within the Cloudflare account.
+  "ratelimits": [
+    {
+      "name": "MODERATE_PER_IP_LIMITER",
+      "namespace_id": "4317",
+      "simple": { "limit": 30, "period": 60 }
+    },
+    {
+      "name": "MODERATE_GLOBAL_LIMITER",
+      "namespace_id": "4318",
+      "simple": { "limit": 120, "period": 60 }
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+  // TYPESAFE_API_KEY is a secret: `npx wrangler secret put TYPESAFE_API_KEY`.
+  // Optional overrides (TYPESAFE_MODEL, MODERATION_THRESHOLD, MODERATION_PROVIDER) go in "vars".
+}
