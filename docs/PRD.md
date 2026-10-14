@@ -100,8 +100,8 @@ Players are the judges. Anyone can judge any message at any time, and a player w
 Rules that keep it fair:
 
 - **No self-review.** You never judge your own messages.
-- **Hand-picked reviews are capped.** Messages you pick by hand count, but at most 1 of a message's deciding reviews can be hand-picked; the others come from the randomly assigned queue. This keeps friends from voting each other's slips through.
-- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Reviewers who miss 3 of their last 10 stop counting toward verdicts (both numbers are settings).
+- **Hand-picked reviews are capped.** Messages you pick by hand count, but at most 1 of a message's deciding reviews can be hand-picked; the others come from the queue the server assigns. This keeps friends from voting each other's slips through.
+- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Of the rest, about half are the most uncertain messages (smallest gap between any rule's score and that rule's current threshold, worked out when the queue is built) and half are random, so confidently wrong calls still surface; the split is a setting. Reviewers who miss 3 of their last 10 stop counting toward verdicts (both numbers are settings).
 - **Skip is allowed.** You can skip a queue item you don't want to judge, and it still satisfies the review requirement. A skip never counts as one of a message's 3 reviews.
 - **20 posts per player a day.**
 - **Board:** confirmed slips over the last 90 days, as a pure count. The rule each slip broke is saved, so weighting by rule later is easy.
