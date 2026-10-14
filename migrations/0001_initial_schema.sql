@@ -16,16 +16,19 @@ CREATE TABLE players (
 CREATE TABLE messages (
   id TEXT PRIMARY KEY NOT NULL,
   author_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
-  text TEXT NOT NULL,
-  masked_text TEXT NOT NULL,
+  text TEXT,
+  masked_text TEXT,
   context_message_ids TEXT NOT NULL CHECK (json_valid(context_message_ids) AND json_type(context_message_ids) = 'array'),
   filter_scores TEXT NOT NULL CHECK (json_valid(filter_scores) AND json_type(filter_scores) = 'object'),
   filter_version TEXT NOT NULL,
   filter_outcome TEXT NOT NULL CHECK (filter_outcome IN ('passed', 'blocked', 'off_limits')),
   status TEXT NOT NULL DEFAULT 'pending'
     CHECK (status IN ('pending', 'slip', 'clean', 'caught', 'false_positive', 'excluded')),
-  top_score REAL NOT NULL CHECK (top_score >= 0 AND top_score <= 1),
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  CHECK (
+    (filter_outcome = 'off_limits' AND text IS NULL AND masked_text IS NULL AND status = 'excluded')
+    OR (filter_outcome <> 'off_limits' AND text IS NOT NULL AND masked_text IS NOT NULL)
+  )
 );
 
 -- A verdict changes status, never the original filter decision.
@@ -93,8 +96,9 @@ CREATE TABLE scores (
 -- Feed: newest passed messages, including censored slips; never excluded rows.
 CREATE INDEX messages_feed ON messages(created_at DESC, id)
   WHERE filter_outcome = 'passed' AND status <> 'excluded';
--- Queue ordering and pending lookup (#15 owns assignment reservations).
-CREATE INDEX messages_queue ON messages(status, top_score DESC, created_at, id);
+-- Pending lookup; #15 computes uncertainty from per-rule scores and current
+-- thresholds at queue time and owns assignment reservations.
+CREATE INDEX messages_queue ON messages(status, created_at, id);
 CREATE INDEX reviews_message ON reviews(message_id);
 CREATE INDEX reviews_player_seed ON reviews(player_id, seed_case_id, created_at DESC);
 -- Recent seed checks across all seed cases, used to recompute standing.

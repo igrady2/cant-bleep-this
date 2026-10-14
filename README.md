@@ -100,10 +100,14 @@ Schema conventions:
 - IDs are server-generated text identifiers; timestamps are UTC Unix seconds,
   and score days are UTC `YYYY-MM-DD`. Only SHA-256 token hashes are stored.
 - Context message IDs and test-case context/reasons are JSON arrays; per-rule
-  filter scores are a JSON object. `top_score` is their highest score.
+  filter scores are a JSON object keyed by rule ID. No precomputed top score is
+  stored: #15 computes uncertainty using each rule's current threshold at queue time.
 - `filter_outcome` is immutable; `status` records the later player verdict or
-  exclusion. Off-limits/deleted messages use `excluded` and must never be
-  returned in feed, queue, context, or test cases.
+  exclusion. Off-limits rows must have NULL `text` and `masked_text` and
+  `status = 'excluded'`; they must never be returned in feed, queue, context,
+  or test cases. Maintainer deletion must hard-delete the message rather than
+  mark it excluded, remove its point, and prevent its entry into the test set.
+  The admin deletion implementation and banned-player field belong to #24.
 - Each review targets exactly one message or seed test case. `seed_correct`
   is nullable and belongs only to seed reviews; skipped reviews have no verdict
   or correctness. `assignment` is set by the server. Reviewer standing is a
