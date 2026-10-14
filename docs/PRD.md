@@ -63,7 +63,7 @@ What changes for the game:
 
 ## Our content rules
 
-These are the categories the filter checks and reviewers choose from. They are a first draft; the wording of each becomes the Jev question.
+These are the categories the filter checks and reviewers choose from. [Content rules and Jev questions](CONTENT_RULES.md) records their wording, stable identifiers, boundary examples and initial thresholds.
 
 | Rule | Covers | Note |
 | --- | --- | --- |
@@ -74,10 +74,12 @@ These are the categories the filter checks and reviewers choose from. They are a
 | Self-harm | Encouraging self-harm | Supportive talk is fine |
 | Profanity | Swearing, including disguised spellings |  |
 | Personal information (PII) | Phone numbers, emails, addresses, full names of private people, account handles, revealing who a player is | New rule for our Terms of Use |
-| Spam and scams | Links, ads, repeated text, fake offers |  |
+| Spam and scams | Every link, ads, repeated text, fake offers | All links are banned for MVP; allowing clean links is deferred |
 | Impersonation | Pretending to be another player or a real person |  |
 
 **Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included. A separate off-limits question in the same Jev request detects them, with its own threshold, 0.5 to start like the other rules, which can be tightened later.
+
+An off-limits threat is a threat of serious harm (killing, shooting, bombing, assault) aimed at a real target: someone in the room, a named real person, or a real place or event. It is stated as intent or a plan, with no clear joke, game or fiction framing. Everything else violent goes to the reviewable violence rule: hyperbole ("I'll kill you if you take my fries"), fiction, games, song lyrics, and threats with no real target. When it is unclear, lean off-limits; losing one message for review costs less than showing a real threat.
 
 ## Core loop
 
