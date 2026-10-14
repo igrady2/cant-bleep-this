@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import type { ModerationResult } from "@/lib/moderation/types";
+import type { ModerationResponse } from "@/lib/moderation/types";
 
 import { Composer } from "./composer";
 import { EmptyState } from "./empty-state";
@@ -33,7 +33,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
         body: JSON.stringify({ message }),
       });
       const data = (await res.json().catch(() => null)) as
-        | (ModerationResult & { error?: undefined })
+        | (ModerationResponse & { error?: undefined })
         | { error: string }
         | null;
 
@@ -49,11 +49,11 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
       }
 
       if (!data.allowed) {
-        setNotice({ kind: "blocked", message, result: data });
+        setNotice({ kind: "blocked", message: data.message, result: data });
         return;
       }
 
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), text: message, sentAt: Date.now() }]);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), text: data.message, sentAt: Date.now() }]);
       setDraft("");
       setNotice({ kind: "idle" });
     } catch {
