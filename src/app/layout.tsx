@@ -13,9 +13,9 @@ const familjen = Familjen_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Class Forum · Moderated chat demo",
+  title: "Can't Bleep This",
   description:
-    "A moderated class forum. Every message is checked by Jev (TypeSafe AI) before it's posted.",
+    "Can't Bleep This — Get it past the filter. Every message is checked before it's posted.",
 };
 
 export const viewport: Viewport = {
