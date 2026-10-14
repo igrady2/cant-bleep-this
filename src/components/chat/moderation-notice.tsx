@@ -68,8 +68,8 @@ export function ModerationNotice({
           “{state.message}”
         </blockquote>
         <p>
-          {provider === "typesafe" ? "Jev" : "The demo filter"} flagged it as inappropriate for a school
-          forum:
+          {provider === "typesafe" ? "Jev" : "The demo filter"} flagged it as breaking a chat
+          rule:
         </p>
         <ul className="w-full space-y-2">
           {flags.map((f) => (

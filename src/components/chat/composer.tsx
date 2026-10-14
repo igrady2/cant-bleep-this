@@ -45,7 +45,7 @@ export function Composer({
       </div>
       <div className="flex items-end gap-2 rounded-2xl border border-input bg-background p-2 shadow-xs focus-within:border-brand-pink focus-within:ring-3 focus-within:ring-ring/25">
         <label htmlFor="chat-input" className="sr-only">
-          Message the class
+          Write a message
         </label>
         <Textarea
           id="chat-input"
@@ -60,7 +60,7 @@ export function Composer({
           }}
           readOnly={busy}
           rows={1}
-          placeholder="Share something kind with your class…"
+          placeholder="Get it past the filter…"
           className="max-h-40 min-h-10 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-base shadow-none focus-visible:ring-0 sm:text-sm dark:bg-transparent"
         />
         <Button

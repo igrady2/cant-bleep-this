@@ -7,17 +7,16 @@ export function EmptyState() {
         <MessagesSquare className="size-6" aria-hidden />
       </span>
       <h1 className="mt-5 font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-        Class forum
+        Can&apos;t Bleep This
       </h1>
       <p className="mt-3 text-pretty text-muted-foreground">
-        Ask a question, cheer on a classmate, or start a conversation. Every message is checked
-        before it&apos;s posted so the forum stays safe for students and teachers.
+        Get it past the filter. Try a message and see whether it makes it into the chat.
       </p>
       <div className="mt-8 w-full rounded-xl border border-border bg-muted/50 px-5 py-4 text-left text-sm">
         <p className="font-heading font-semibold">Test the filter</p>
         <p className="mt-1 text-pretty text-muted-foreground">
           Try messages across the spectrum: something clearly kind, something borderline (like
-          mild teasing or asking a friend for homework help), and something clearly out of line.
+          mild teasing or a double meaning), and something clearly out of line.
           Allowed messages appear in the chat. Blocked ones show which rule they broke and why.
         </p>
       </div>
