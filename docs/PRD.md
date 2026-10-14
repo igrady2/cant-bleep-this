@@ -101,7 +101,7 @@ Rules that keep it fair:
 
 - **No self-review.** You never judge your own messages.
 - **Hand-picked reviews are capped.** Messages you pick by hand count, but at most 1 of a message's deciding reviews can be hand-picked; the others come from the randomly assigned queue. This keeps friends from voting each other's slips through.
-- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Reviewers who miss 3 of their last 10 stop counting toward verdicts (both numbers are settings).
+- **Known answers.** About 1 in 10 queue items is a seed message with a known verdict. Of the rest, about half are the most uncertain messages (top rule score closest to the threshold) and half are random, so confidently wrong calls still surface; the split is a setting. Reviewers who miss 3 of their last 10 stop counting toward verdicts (both numbers are settings).
 - **Skip is allowed.** You can skip a queue item you don't want to judge, and it still satisfies the review requirement. A skip never counts as one of a message's 3 reviews.
 - **20 posts per player a day.**
 - **Board:** confirmed slips over the last 90 days, as a pure count. The rule each slip broke is saved, so weighting by rule later is easy.
@@ -191,7 +191,7 @@ The game lives in the cant-bleep-this repo deployed as its own Cloudflare Worker
 | Table | Key fields | Kept for |
 | --- | --- | --- |
 | players | name, normalized name (unique), token hash, created, last played, reviewer standing | Until 90 days without a post |
-| messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
+| messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, top score (for queue order), filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
 | reviews | message, reviewer, Fine or Not OK, rule, reason, skipped flag, time (one per reviewer per message) | 90 days |
 | scores | player, day, slips (one row per player per day) | 90 days |
 | test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames replaced by stand-ins |
