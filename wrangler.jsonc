@@ -8,6 +8,15 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cant-bleep-this",
+      // Local-only placeholder. Replace with the game's D1 ID before remote use.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
   // Limits on POST /api/moderate, far above what a handful of testers will send.
   // namespace_id is any integer string, unique per rate limiter within the Cloudflare account.
   "ratelimits": [

@@ -59,6 +59,63 @@ To try the Workers build locally, copy `.dev.vars.example` to `.dev.vars` (Wrang
 
 Pages are prerendered at build time only, so the read-only static assets cache is used and no R2 bucket or KV namespace is needed.
 
+### D1 persistence and local preview
+
+The game database is bound as `DB` in `wrangler.jsonc`, with numbered SQL
+migrations in `migrations/`. The checked-in all-zero database ID is a local-only
+placeholder, not a remote database. Local migrations and preview need no
+Cloudflare login:
+
+```bash
+npx wrangler d1 migrations apply cant-bleep-this --local
+npx wrangler d1 migrations list cant-bleep-this --local
+cp .dev.vars.example .dev.vars   # if you have not created it yet
+npm run preview                 # http://localhost:8787
+```
+
+Wrangler migrations and preview share the default `.wrangler/state` local
+database. Keep that persistence path the same for both commands. `npm run dev`
+runs plain Next.js and has no D1 binding. The schema is a persistence foundation;
+game endpoints do not use it yet.
+
+To inspect the local schema:
+
+```bash
+npx wrangler d1 execute cant-bleep-this --local --command="SELECT name, type FROM sqlite_master WHERE type IN ('table', 'index', 'trigger') ORDER BY type, name"
+```
+
+Create future migrations with
+`npx wrangler d1 migrations create cant-bleep-this <short_name>`.
+Never edit a migration already merged to main.
+
+**Remote setup (manual):** create or select the game's D1 database in your
+Cloudflare account, replace `database_id` with its real ID, and confirm the
+intended environment before authorizing
+`npx wrangler d1 migrations apply cant-bleep-this --remote`. If you use a
+separate remote preview database, supply its ID as `preview_database_id`;
+the local preview command above does not need one. Do not deploy the placeholder.
+
+Schema conventions:
+
+- IDs are server-generated text identifiers; timestamps are UTC Unix seconds,
+  and score days are UTC `YYYY-MM-DD`. Only SHA-256 token hashes are stored.
+- Context message IDs and test-case context/reasons are JSON arrays; per-rule
+  filter scores are a JSON object. `top_score` is their highest score.
+- `filter_outcome` is immutable; `status` records the later player verdict or
+  exclusion. Off-limits/deleted messages use `excluded` and must never be
+  returned in feed, queue, context, or test cases.
+- Each review targets exactly one message or seed test case. `seed_correct`
+  is nullable and belongs only to seed reviews; skipped reviews have no verdict
+  or correctness. `assignment` is set by the server. Reviewer standing is a
+  cached `good`/`excluded` value recomputed after seed reviews using settings.
+- Normalized names and player/message review pairs are unique. Daily scores
+  have one row per player/day. Queue, feed, retention, seed-check and board
+  queries have indexes.
+- Permanent test cases have no foreign keys to expiring game rows. Their message,
+  context and reasons must be masked and anonymized before insertion, using the
+  shared masking helper when implemented. The schema does not perform masking.
+  No retention job or assignment reservations are implemented here.
+
 `patches/@opennextjs+cloudflare+1.20.10.patch` (applied by `patch-package` on install) makes the adapter inline Next.js 16.4's `preview-props.json`. Without it every server-rendered request returns a 500. Remove the patch once [opennextjs-cloudflare#1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356) is released.
 
 ### Rate limiting
