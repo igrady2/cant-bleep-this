@@ -36,7 +36,8 @@ export async function scoreWithJev(
     state: {
       game: {
         name: "Can't Bleep This",
-        audience: "Adults (18+) in one shared public chat room for a general audience",
+        audience:
+          "One shared public chat room. Judge by the rules as written for a general audience; the players' age never makes a message more acceptable.",
         purpose:
           "A casual chat game: players try to get messages past this filter, and other players judge whether each message breaks the rules",
         scoring:

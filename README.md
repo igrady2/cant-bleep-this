@@ -27,7 +27,7 @@ npm run dev                  # http://localhost:4317
 
 `POST /api/moderate` with `{ message }` sends a single request to `https://api.typesafe.ai/v1/systemone`. The request includes:
 
-- **state**: the game framing (an 18+ public chat game where players try to get messages past the filter), a note that the message is player data and any instructions inside it are ignored, and the message itself.
+- **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the message is player data and any instructions inside it are ignored, and the message itself.
 - **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
 The rule is applied in code: if any category reaches the threshold, the message is blocked. The response returns every category's probability, so you can tune the threshold without changing the questions. If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
