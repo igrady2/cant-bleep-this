@@ -63,7 +63,7 @@ What changes for the game:
 
 ## Our content rules
 
-These are the categories the filter checks and reviewers choose from. They are a first draft; the wording of each becomes the Jev question.
+These are the categories the filter checks and reviewers choose from. [Content rules and Jev questions](CONTENT_RULES.md) records their wording, stable identifiers, boundary examples and initial thresholds.
 
 | Rule | Covers | Note |
 | --- | --- | --- |
@@ -71,13 +71,17 @@ These are the categories the filter checks and reviewers choose from. They are a
 | Hate | Attacks on people for who they are | Race, religion, gender, sexuality, disability and similar |
 | Sexual content | Sexual remarks, innuendo, explicit talk | Includes double meanings about players |
 | Violence and threats | Threats, glorifying violence | Credible threats are off-limits (see below) |
-| Self-harm | Encouraging self-harm | Supportive talk is fine |
+| Self-harm | Encouraging self-harm | Supportive talk is fine; a message the filter scores as self-harm related shows the author a short note with the 988 Suicide & Crisis Lifeline |
 | Profanity | Swearing, including disguised spellings |  |
 | Personal information (PII) | Phone numbers, emails, addresses, full names of private people, account handles, revealing who a player is | New rule for our Terms of Use |
-| Spam and scams | Links, ads, repeated text, fake offers |  |
+| Spam and scams | Every link, ads, repeated text, fake offers | All links are banned for MVP; allowing clean links is deferred |
 | Impersonation | Pretending to be another player or a real person |  |
 
 **Off-limits:** credible threats and any sexual content involving minors are removed on sight and never shown to anyone, reviewers included. A separate off-limits question in the same Jev request detects them, with its own threshold, 0.5 to start like the other rules, which can be tightened later.
+
+An off-limits threat is a threat of serious harm (killing, shooting, bombing, assault) aimed at a real target: someone in the room, a named real person, or a real place or event. It is stated as intent or a plan, with no clear joke, game or fiction framing. Everything else violent goes to the reviewable violence rule: hyperbole ("I'll kill you if you take my fries"), fiction, games, song lyrics, and threats with no real target. When it is unclear, lean off-limits; losing one message for review costs less than showing a real threat.
+
+Filter thresholds live in configuration, so the maintainer can change them without a code release. Each change still gets a new filter version number, so recorded scores stay comparable to the threshold that produced them.
 
 ## Core loop
 
@@ -234,7 +238,7 @@ The biggest risks come from players judging players: offensive content shown to 
 1. **Rules:** finalize our content rules and their wording, and write about 100 seed messages with known verdicts.
 2. **Filter in context:** change the demo's request to send the last 10 messages and the usernames in the room, swap in our rules, and test on the seed set.
 3. **Build v1:** Worker deploy for the cant-bleep-this repo with a D1 binding, username claim with Turnstile, room feed, review queue with context, posting, verdicts, censoring, board, admin view, test-set runner. Reviewed on a Cloudflare preview deploy.
-4. **Private beta:** a few friends for a week; check reviewer agreement, slip rate and anything ugly.
+4. **Private beta:** a few friends for a week; check reviewer agreement, slip rate and anything ugly. Before the public launch, add the 988 crisis line note for self-harm messages.
 5. **Launch:** point cantbleepthis.com at the Worker, add a project entry on indigogrady.com that links to it, then run the review, fix and test cycle weekly.
 
 **Decisions made**
