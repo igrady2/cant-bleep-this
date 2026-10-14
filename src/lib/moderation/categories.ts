@@ -1,3 +1,8 @@
+/**
+ * The game's nine reviewable rules, worded as in docs/CONTENT_RULES.md
+ * (policy v1). Identifiers are stable: they key filter scores, reviews and
+ * test cases, so change wording freely but never rename an id.
+ */
 export type CategoryId =
   | "bullying_harassment"
   | "hate_speech"
@@ -6,18 +11,20 @@ export type CategoryId =
   | "self_harm"
   | "profanity"
   | "personal_info"
-  | "academic_dishonesty"
   | "spam"
-  | "terms_of_use";
+  | "impersonation";
+
+export const POLICY_VERSION = "v1";
 
 export interface ModerationCategory {
   id: CategoryId;
+  /** Review rule name shown to players and reviewers. */
   label: string;
   /** Shown to the author when their message is blocked. */
   explanation: string;
   /** TypeSafe Noul question: probability that the message falls in this category. */
   question: {
-    instructions: string | Record<string, unknown>;
+    instructions: string;
     criteria: { true: string; false: string };
   };
 }
@@ -25,29 +32,29 @@ export interface ModerationCategory {
 export const CATEGORIES: ModerationCategory[] = [
   {
     id: "bullying_harassment",
-    label: "Bullying or harassment",
+    label: "Harassment",
     explanation:
-      "This reads as putting someone down, mocking, excluding, or intimidating another person. The forum rules prohibit bullying, harassing, or intimidating students, teachers, or staff.",
+      "This reads as insulting, mocking or targeting a player or a real person. Calling it a joke doesn't change that.",
     question: {
       instructions:
-        "Does `message` insult, mock, demean, exclude, intimidate, or pile on a specific person or group of classmates, teachers, or staff?",
+        "Does `message`, understood in the chat context, insult, mock, demean, intimidate or invite others to target a player or a real person?",
       criteria: {
-        true: "Name-calling, ridicule of someone's looks, ability, or identity, telling someone they are not wanted, encouraging others to gang up on someone, or repeated unwanted contact.",
-        false: "Friendly teasing that is clearly mutual and kind, respectful disagreement, constructive feedback, or no target at all.",
+        true: "A personal put-down, ridicule, targeted intimidation or an invitation to pile on someone, including a joke aimed at a player username.",
+        false: "Disagreement with an idea, constructive criticism or a friendly remark without a personal attack.",
       },
     },
   },
   {
     id: "hate_speech",
-    label: "Hate speech",
+    label: "Hate",
     explanation:
-      "This attacks or demeans people based on who they are (such as race, ethnicity, religion, disability, gender, sexual orientation, or national origin).",
+      "This attacks people for who they are, such as their race, religion, gender, sexuality or disability.",
     question: {
       instructions:
-        "Does `message` attack, stereotype, or dehumanize people based on a protected characteristic such as race, ethnicity, nationality, religion, disability, sex, gender identity, or sexual orientation?",
+        "Does `message` attack, demean, dehumanize or call for exclusion of people because of their race, religion, gender, sexuality, disability or a similar identity characteristic?",
       criteria: {
-        true: "Slurs, hateful stereotypes, calls for exclusion, or statements that a group is inferior.",
-        false: "Neutral or respectful mentions of identity, learning about cultures, or calling out prejudice.",
+        true: "An identity-based insult, hateful generalization, slur used as an attack or demand to exclude an identity group.",
+        false: "A neutral identity mention, respectful discussion or opposition to discrimination without attacking that identity group.",
       },
     },
   },
@@ -55,55 +62,52 @@ export const CATEGORIES: ModerationCategory[] = [
     id: "sexual_content",
     label: "Sexual content",
     explanation:
-      "Sexual or sexually suggestive content isn't appropriate in a K–12 school forum.",
+      "This reads as a sexual remark, innuendo or explicit talk, including double meanings about players.",
     question: {
       instructions:
-        "Does `message` contain sexual, sexually suggestive, or explicit content, or a sexual advance, that would be inappropriate in a K–12 school forum?",
+        "Does `message`, interpreted with the player names and preceding chat, make a sexual remark, sexual double meaning or explicit sexual description, including one about a player?",
       criteria: {
-        true: "Sexual descriptions, innuendo, explicit body references, requests for photos, or romantic or sexual advances toward anyone.",
-        false: "Age-appropriate health or biology vocabulary used educationally, or no sexual content.",
+        true: "Sexual comments or propositions, innuendo or explicit sexual talk, including disguised wording and contextual wordplay.",
+        false: "A nonsexual interaction or a neutral health discussion without sexual remarks, innuendo or explicit sexual description.",
       },
     },
   },
   {
     id: "violence_threats",
-    label: "Violence or threats",
-    explanation:
-      "This threatens, glorifies, or encourages harm to people or property. If someone may be in danger, tell a trusted adult right away.",
+    label: "Violence and threats",
+    explanation: "This reads as a threat or as glorifying violence.",
     question: {
       instructions:
-        "Does `message` threaten, encourage, or glorify physical harm to a person, an animal, or the school, or describe weapons with intent to hurt?",
+        "Does `message` contain a threat, violent intent, a violent depiction or glorification of violence, including hyperbole, fiction, games, song lyrics or a threat without a real target?",
       criteria: {
-        true: "Threats (even 'jokes'), plans to fight or hurt someone, praise for violent acts, or bringing weapons to school.",
-        false: "Discussing history, books, or news about violence in an educational way, or sports and games language with no real threat.",
+        true: "Threatening or violent language, a violent depiction or praise for violence, whether literal or clearly framed as a joke, fictional story, game or lyric.",
+        false: "No threat, violent depiction or glorification; ordinary nonviolent competition or disagreement.",
       },
     },
   },
   {
     id: "self_harm",
-    label: "Self-harm",
-    explanation:
-      "This mentions hurting yourself or not wanting to be here. You matter. Please talk to a teacher, counselor, or trusted adult now, or call or text 988 (Suicide & Crisis Lifeline, U.S.).",
+    label: "Self-harm encouragement",
+    explanation: "This reads as encouraging someone to hurt themselves.",
     question: {
       instructions:
-        "Does `message` express intent, desire, or plans to self-harm or die by suicide, or encourage someone else to hurt themselves?",
+        "Does `message` urge, pressure, praise or otherwise encourage someone to hurt themselves or die by suicide, rather than seek help, express distress or offer support?",
       criteria: {
-        true: "Statements like wanting to disappear or die, describing self-injury, or telling someone to hurt or kill themselves.",
-        false: "Everyday figures of speech with no real risk (for example 'this homework is killing me'), or asking how to support a friend.",
+        true: "Encouraging self-injury or suicide, approving it as something someone should do or pressuring someone toward it.",
+        false: "A disclosure of distress, a request for help, recovery discussion or an offer of support without encouragement to self-harm.",
       },
     },
   },
   {
     id: "profanity",
     label: "Profanity",
-    explanation:
-      "This uses swear words or crude language, including disguised spellings. Keep it classroom-friendly.",
+    explanation: "This uses swearing, including disguised spellings.",
     question: {
       instructions:
-        "Does `message` contain swear words, vulgar or crude language, or obscene gestures, including censored or creatively misspelled versions?",
+        "Does `message` use profanity or a disguised form of a swear word, including substitutions, spacing or censorship marks intended to convey the swear word?",
       criteria: {
-        true: "Cursing, vulgar slang, or masked spellings like f*ck or sh1t.",
-        false: "Clean language, or mild words acceptable in a classroom such as 'darn' or 'shoot'.",
+        true: "Swearing in ordinary spelling or an intentionally recognizable disguise, regardless of whether it targets someone.",
+        false: "Clean language or an innocent word whose spelling merely resembles part of a swear word.",
       },
     },
   },
@@ -111,65 +115,39 @@ export const CATEGORIES: ModerationCategory[] = [
     id: "personal_info",
     label: "Personal information",
     explanation:
-      "This shares private details (like a phone number, home address, email, password, or social media handle) about you or someone else. Student privacy matters, so keep these details off the forum.",
+      "This shares personal details, such as contact info, an account handle or who a player really is. That includes your own.",
     question: {
       instructions:
-        "Does `message` share or request private personal information about the author or someone else, such as a phone number, home address, personal email, password, birthday with year, social media handle, or location for meeting up?",
+        "Does `message` reveal personal information about its author or anyone else: a phone number, email, address, full name of a private person, account handle or details that identify the real person behind a player username?",
       criteria: {
-        true: "A real phone number, street address, login credentials, private contact handles, or asking someone for theirs.",
-        false: "First names, the school or class name, or general interests with no contact or location details.",
-      },
-    },
-  },
-  {
-    id: "academic_dishonesty",
-    label: "Academic dishonesty",
-    explanation:
-      "This asks for or offers ways to cheat, such as sharing answers, test questions, or doing someone else's work.",
-    question: {
-      instructions:
-        "Does `message` ask for, offer, or encourage cheating, such as sharing test answers, copying homework, plagiarizing, or having someone else do graded work?",
-      criteria: {
-        true: "Requests or offers to send answers, leaked test content, essays to copy, or tips for getting away with cheating.",
-        false: "Asking for help understanding a concept, forming a study group, or sharing study tips.",
+        true: "Personal details or contact information, including disguised disclosures and linking a player name to their real identity.",
+        false: "A room username by itself, a general interest or a mention of a public figure's name without private details or identifying a player.",
       },
     },
   },
   {
     id: "spam",
-    label: "Spam",
-    explanation:
-      "This looks like spam: repeated or meaningless text, chain messages, or unrelated links.",
+    label: "Spam and scams",
+    explanation: "Links aren't allowed, and neither are ads, repeated text or fake offers.",
     question: {
       instructions:
-        "Is `message` spam, such as repeated characters or words, meaningless filler, chain messages, mass tagging, or unrelated links?",
+        "Does `message` contain any link or web address, including a disguised link, an advertisement, repeated spam text or a deceptive offer? For MVP, count every link even when its destination is clean, relevant or useful.",
       criteria: {
-        true: "Keyboard mashing, the same word over and over, 'forward this to 10 people', or link dumps.",
-        false: "A genuine message to the class, even if short or enthusiastic.",
+        true: "Any link, an ad or promotion, repetitive spam or a scam/fake offer. No clean-link exception applies in MVP.",
+        false: "Ordinary conversation with no link, advertising, spam repetition or deceptive offer.",
       },
     },
   },
   {
-    id: "terms_of_use",
-    label: "Terms of Use violation",
-    explanation:
-      "This conflicts with the forum's Acceptable Use rules: no unlawful activity, defamation, impersonation, attempts to access accounts or systems without permission, collecting other users' information, or commercial use without permission.",
+    id: "impersonation",
+    label: "Impersonation",
+    explanation: "This reads as pretending to be another player or a real person.",
     question: {
-      instructions: {
-        acceptable_use_policy: [
-          "Do not violate any applicable law or regulation.",
-          "Do not post defamatory content (false statements of fact that damage someone's reputation).",
-          "Do not attempt to gain unauthorized access to any part of the Service, other accounts, or related systems or networks.",
-          "Do not use the Service for commercial purposes (selling, advertising, promoting businesses) without written permission.",
-          "Do not impersonate any person or entity or misrepresent your affiliation.",
-          "Do not collect or harvest personal information about other users without authorization.",
-        ],
-        question:
-          "Does `message` violate any rule in `acceptable_use_policy`, the school forum's Terms of Use?",
-      },
+      instructions:
+        "Does `message` present its author as another player or a real person, or pass off a statement as coming from that person?",
       criteria: {
-        true: "Selling or advertising, pretending to be a teacher or another student, sharing or asking for someone's login, hacking attempts, spreading false rumors as fact, gathering classmates' info, or illegal activity.",
-        false: "Ordinary, positive classroom participation consistent with these rules.",
+        true: "A false identity claim or a message presented as someone else's authentic statement.",
+        false: "Mentioning someone, transparently quoting them or clearly labeled fictional roleplay without claiming to actually be that person.",
       },
     },
   },
