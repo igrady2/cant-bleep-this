@@ -47,12 +47,12 @@ Re-run the same command after policy or model changes and diff the JSON to track
 
 ## Policy ambiguities and follow-up issues
 
-Open focused issues before treating the seed baseline as a release gate. Proposed tickets (titles only; file when live results highlight specific ids):
+These four policy ambiguities are **covered by [#58](https://github.com/igrady2/cant-bleep-this/issues/58)** (harder seed benchmark v2 / adversarial variants). Do not file separate issues for them. #58 settles each with v2 fixtures (reviewed expected labels) and a written decision. Filter rules and thresholds are **out of scope** for #58 and must not be changed to resolve them.
 
-1. **Seed eval: multi-rule blocks** — When Jev flags several rules, should the baseline require the top flag to match the seed label, or is “expected rule anywhere in flags” enough for milestone 1?
-2. **Seed eval: off-limits false triggers on reviewable-only seeds** — Seeds exclude off-limits content; document how to count `off_limits_unexpected` on otherwise clean fixtures and whether to tune the off-limits question or threshold first.
-3. **Seed eval: threshold edge cases (0.5 inclusive)** — Several fixtures sit near the default 0.5 threshold; decide whether labels should include expected score bands or the harness should report near-miss scores without failing the run.
-4. **Seed eval: contextual sexual-innuendo pairs** — Review fixtures where `Player E is pro Player B` readings depend on preceding chat; turn systematic live misses into rule-question or example updates (see `seed-sexual_content-*` and related fine controls in `fixtures/seeds.json`).
+1. **Seed eval: multi-rule blocks** — When Jev flags several rules, should the baseline require the top flag to match the seed label, or is “expected rule anywhere in flags” enough? Resolved in #58 via v2 fixtures and a documented decision.
+2. **Seed eval: off-limits false triggers on reviewable-only seeds** — Seeds exclude off-limits content. Define how to count and document `off_limits_unexpected` on otherwise clean fixtures; the convention is fixed in #58 through fixtures and written decision (not by changing the off-limits question or threshold).
+3. **Seed eval: threshold edge cases (0.5 inclusive)** — Several fixtures sit near the default 0.5 threshold. #58 decides whether labels should include expected score bands or the harness should report near-miss scores without failing the run, using v2 fixtures only (no threshold tuning).
+4. **Seed eval: contextual sexual-innuendo pairs** — Fixtures where readings depend on preceding chat (`seed-sexual_content-*` and related fine controls in `fixtures/seeds.json`). Systematic live misses become v2 fixtures and documented rule-question or example updates under #58, not separate tickets or filter changes.
 
 After a cleared live run, replace the “live run pending” note in the PR with the committed `reports/seed-baseline.json` and link any new issues for failing fixture ids.
 
