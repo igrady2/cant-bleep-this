@@ -186,23 +186,3 @@ export async function getConsumableReviewAssignment(
   if (row.expires_at <= now) return null;
   return row;
 }
-
-export async function markReviewAssignmentConsumed(
-  db: ReviewsDatabase,
-  assignmentId: string,
-  playerId: string,
-  now: number,
-): Promise<boolean> {
-  const result = await (
-    db
-      .prepare(
-        `UPDATE review_assignments
-         SET consumed_at = ?
-         WHERE id = ? AND player_id = ? AND consumed_at IS NULL AND expires_at > ?`,
-      )
-      .bind(now, assignmentId, playerId, now) as {
-      run(): Promise<{ meta?: { changes?: number } }>;
-    }
-  ).run();
-  return (result.meta?.changes ?? 0) > 0;
-}

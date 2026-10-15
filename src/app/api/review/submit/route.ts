@@ -7,7 +7,7 @@ import { submitReview } from "@/lib/reviews/submit";
 export async function POST(request: Request) {
   if (await isReviewRateLimited(request)) {
     return Response.json(
-      { error: "You're requesting reviews too quickly. Wait a minute and try again." },
+      { error: "You're submitting reviews too quickly. Wait a minute and try again." },
       { status: 429, headers: { "Retry-After": "60" } },
     );
   }

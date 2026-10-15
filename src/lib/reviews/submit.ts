@@ -1,5 +1,6 @@
 import "server-only";
 
+import { serializeReviewerMessage } from "@/lib/presentation";
 import type { CategoryId } from "@/lib/moderation/categories";
 import { CATEGORY_BY_ID } from "@/lib/moderation/categories";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
@@ -90,6 +91,8 @@ export async function submitReview(
     return { ok: false, status: 404, error: "That message is not available to judge." };
   }
 
+  const reviewedText = serializeReviewerMessage(presentation).text;
+
   let verdict: "fine" | "not_ok" | null = null;
   let rule: string | null = null;
   let reason: string | null = null;
@@ -100,7 +103,7 @@ export async function submitReview(
   if (action === "skip") {
     skipped = 1;
     if (input.flaggedSpans !== undefined && input.flaggedSpans !== null) {
-      const parsed = parseAndValidateFlaggedSpans(input.flaggedSpans, presentation.text.length);
+      const parsed = parseAndValidateFlaggedSpans(input.flaggedSpans, reviewedText.length);
       if (!parsed.ok) return { ok: false, status: 400, error: parsed.error };
       if (parsed.spans.length > 0) {
         return { ok: false, status: 400, error: "Skip cannot include flagged spans." };
@@ -115,7 +118,7 @@ export async function submitReview(
   } else if (action === "fine") {
     verdict = "fine";
     if (input.flaggedSpans !== undefined && input.flaggedSpans !== null) {
-      const parsed = parseAndValidateFlaggedSpans(input.flaggedSpans, presentation.text.length);
+      const parsed = parseAndValidateFlaggedSpans(input.flaggedSpans, reviewedText.length);
       if (!parsed.ok) return { ok: false, status: 400, error: parsed.error };
       if (parsed.spans.length > 0) {
         return { ok: false, status: 400, error: "Fine reviews cannot include flagged spans." };
@@ -156,7 +159,7 @@ export async function submitReview(
     reason = trimmedReason;
     const parsedSpans = parseAndValidateFlaggedSpans(
       input.flaggedSpans,
-      presentation.text.length,
+      reviewedText.length,
     );
     if (!parsedSpans.ok) {
       return { ok: false, status: 400, error: parsedSpans.error };
@@ -187,7 +190,14 @@ export async function submitReview(
        )
        SELECT ?, message_id, seed_case_id, player_id, ?, ?, ?, ?, ?, assignment, ?, ?
        FROM review_assignments
-       WHERE id = ? AND player_id = ? AND consumed_at IS NULL AND expires_at > ?`,
+       WHERE id = ? AND player_id = ? AND consumed_at IS NULL AND expires_at > ?
+         AND (seed_case_id IS NOT NULL OR EXISTS (
+           SELECT 1 FROM messages m
+           WHERE m.id = review_assignments.message_id
+             AND m.status = 'pending'
+             AND m.filter_outcome IN ('passed', 'blocked')
+             AND m.author_id <> review_assignments.player_id
+         ))`,
     )
     .bind(
       reviewId,

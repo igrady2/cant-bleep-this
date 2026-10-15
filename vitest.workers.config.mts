@@ -18,6 +18,7 @@ export default defineConfig({
         // Baseline supported by the pinned test pool's workerd binary.
         d1Databases: ["REVIEWS_TEST_DB"],
         bindings: {
+          FLAGGED_SPANS_SCHEMA: readFileSync(new URL("./migrations/0006_flagged_spans.sql", import.meta.url), "utf8"),
           REVIEW_ASSIGNMENTS_SCHEMA: readFileSync(
             new URL("./migrations/0005_hand_picked_reservations.sql", import.meta.url),
             "utf8",

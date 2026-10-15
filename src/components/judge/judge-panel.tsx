@@ -24,7 +24,7 @@ import { TappableMessage, type TextSpan } from "./tappable-message";
 type PanelState =
   | { kind: "loading" }
   | { kind: "empty"; message: string }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; unavailable?: boolean }
   | { kind: "ready"; assignment: ReviewAssignmentResponse }
   | { kind: "submitted"; skipped: boolean };
 
@@ -51,7 +51,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
           });
           return;
         }
-        setState({ kind: "error", message: result.error });
+        setState({ kind: "error", message: result.error, unavailable: result.status === 409 });
         return;
       }
       setState({ kind: "ready", assignment: result.data });
@@ -59,7 +59,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
     [],
   );
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (fromQueue = false) => {
     setAction(null);
     setRule("");
     setReason("");
@@ -73,7 +73,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
       return;
     }
 
-    const result = messageId
+    const result = messageId && !fromQueue
       ? await fetchHandPickedAssignment(session.token, messageId)
       : await fetchQueueAssignment(session.token);
     applyAssignmentResult(result);
@@ -130,6 +130,10 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
     const result = await submitReviewRequest(session.token, body);
     setSubmitting(false);
     if (!result.ok) {
+      if (result.status === 409) {
+        setState({ kind: "error", message: result.error, unavailable: true });
+        return;
+      }
       setFormError(result.error);
       return;
     }
@@ -151,8 +155,8 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
         <AlertTitle>Could not load a review</AlertTitle>
         <AlertDescription>{state.message}</AlertDescription>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button type="button" variant="outline" onClick={() => void load()}>
-            Try again
+          <Button type="button" variant="outline" onClick={() => void load(Boolean(state.unavailable))}>
+            {state.unavailable ? "Get a new one" : "Try again"}
           </Button>
           <Button variant="outline" render={<Link href="/room" />}>
             Back to the room
@@ -190,7 +194,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
           </AlertDescription>
         </Alert>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={() => void load()}>
+          <Button type="button" onClick={() => void load(true)}>
             Judge next
           </Button>
           <Button variant="outline" render={<Link href="/room" />}>

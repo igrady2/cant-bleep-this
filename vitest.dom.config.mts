@@ -10,7 +10,7 @@ export default defineConfig({
   },
   test: {
     name: "dom",
-    include: ["src/components/chat/chat-room.crisis-note.test.ts"],
+    include: ["src/components/chat/chat-room.crisis-note.test.ts", "src/components/judge/*.test.tsx"],
     environment: "happy-dom",
   },
 });

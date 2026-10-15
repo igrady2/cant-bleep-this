@@ -26,3 +26,13 @@ it("rejects inverted, empty, and out-of-range spans", () => {
   expect(parseAndValidateFlaggedSpans([{ start: -1, end: 2 }], len).ok).toBe(false);
   expect(parseAndValidateFlaggedSpans([{ start: 0, end: len + 1 }], len).ok).toBe(false);
 });
+
+it("rejects extra object fields and excessive span counts", () => {
+  expect(parseAndValidateFlaggedSpans([{ start: 0, end: 2, label: "extra" }], len).ok).toBe(false);
+  expect(parseAndValidateFlaggedSpans(Array.from({ length: 141 }, () => [0, 1]), len).ok).toBe(false);
+});
+it("stores a sorted union of duplicate and overlapping spans", () => {
+  expect(parseAndValidateFlaggedSpans([[5, 9], [0, 3], [2, 6], [0, 3]], len)).toEqual({
+    ok: true, spans: [{ start: 0, end: 9 }],
+  });
+});
