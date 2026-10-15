@@ -25,9 +25,13 @@ describe("D1 migrations", () => {
     expect(sql).toContain("status <> 'excluded'");
   });
 
-  it("reserves at most one hand-picked review slot per message", () => {
+  it("stores server-owned review assignments with expiry and scan indexes", () => {
     const sql = readFileSync(join(import.meta.dirname, "0005_hand_picked_reservations.sql"), "utf8");
-    expect(sql).toContain("hand_picked_review_reservations");
-    expect(sql).toMatch(/message_id TEXT PRIMARY KEY/i);
+    expect(sql).toContain("review_assignments");
+    expect(sql).toContain("player_id");
+    expect(sql).toContain("expires_at");
+    expect(sql).toContain("consumed_at");
+    expect(sql).toContain("review_assignments_hand_picked_slot");
+    expect(sql).toContain("messages_review_queue_scan");
   });
 });

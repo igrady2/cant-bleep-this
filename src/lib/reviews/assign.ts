@@ -3,8 +3,11 @@ import "server-only";
 import { mayEnterReviewQueue } from "@/lib/messages/disposition";
 import { serializeReviewerMessage } from "@/lib/presentation";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
+import {
+  createMessageReviewAssignment,
+  createSeedReviewAssignment,
+} from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
-import { reserveHandPickedSlot } from "./hand-picked";
 import { pickNextQueueTarget } from "./queue";
 import type { ReviewsDatabase } from "./db";
 import type { ReviewAssignmentPayload } from "./types";
@@ -13,12 +16,11 @@ export type ReviewAssignResult =
   | { ok: true; payload: ReviewAssignmentPayload }
   | { ok: false; status: number; error: string; code?: string };
 
-async function loadMessageTarget(
+export async function validateMessageEligibility(
   db: ReviewsDatabase,
   messageId: string,
   player: AuthenticatedPlayer,
-  assignment: ReviewAssignmentPayload["assignment"],
-): Promise<ReviewAssignResult> {
+): Promise<ReviewAssignResult | { ok: true }> {
   const row = await (
     db
       .prepare(
@@ -56,6 +58,27 @@ async function loadMessageTarget(
     return { ok: false, status: 409, error: "You already reviewed that message." };
   }
 
+  return { ok: true };
+}
+
+async function buildMessageAssignmentPayload(
+  db: ReviewsDatabase,
+  player: AuthenticatedPlayer,
+  messageId: string,
+  preferHandPicked: boolean,
+  now: number,
+): Promise<ReviewAssignResult> {
+  const eligibility = await validateMessageEligibility(db, messageId, player);
+  if (!eligibility.ok) return eligibility;
+
+  const created = await createMessageReviewAssignment(
+    db,
+    player.id,
+    messageId,
+    preferHandPicked,
+    now,
+  );
+
   const presentation = await loadMessageReviewPresentation(db, messageId);
   if (!presentation) {
     return { ok: false, status: 404, error: "That message is not available to judge." };
@@ -64,7 +87,8 @@ async function loadMessageTarget(
   return {
     ok: true,
     payload: {
-      assignment,
+      assignmentId: created.id,
+      assignment: created.assignment,
       kind: "message",
       messageId,
       presentation: serializeReviewerMessage(presentation),
@@ -76,6 +100,7 @@ export async function assignNextFromQueue(
   db: ReviewsDatabase,
   player: AuthenticatedPlayer,
 ): Promise<ReviewAssignResult> {
+  const now = Math.floor(Date.now() / 1000);
   const target = await pickNextQueueTarget(db, player);
   if (!target) {
     return {
@@ -96,9 +121,11 @@ export async function assignNextFromQueue(
         code: "queue_empty",
       };
     }
+    const created = await createSeedReviewAssignment(db, player.id, target.seedCaseId, now);
     return {
       ok: true,
       payload: {
+        assignmentId: created.id,
         assignment: "queue",
         kind: "seed",
         seedCaseId: target.seedCaseId,
@@ -107,7 +134,7 @@ export async function assignNextFromQueue(
     };
   }
 
-  return loadMessageTarget(db, target.messageId, player, "queue");
+  return buildMessageAssignmentPayload(db, player, target.messageId, false, now);
 }
 
 export async function assignHandPickedMessage(
@@ -121,7 +148,5 @@ export async function assignHandPickedMessage(
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const reserved = await reserveHandPickedSlot(db, trimmed, now);
-  const assignment = reserved ? "hand_picked" : "queue";
-  return loadMessageTarget(db, trimmed, player, assignment);
+  return buildMessageAssignmentPayload(db, player, trimmed, true, now);
 }

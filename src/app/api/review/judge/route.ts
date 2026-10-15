@@ -1,9 +1,17 @@
 import { getMessagesDatabase } from "@/lib/messages/db";
 import { requireAuthenticatedPlayer } from "@/lib/players/auth";
 import { getPlayersDatabase } from "@/lib/players/db";
+import { isReviewRateLimited } from "@/lib/rate-limit";
 import { assignHandPickedMessage } from "@/lib/reviews/assign";
 
 export async function POST(request: Request) {
+  if (await isReviewRateLimited(request)) {
+    return Response.json(
+      { error: "You're requesting reviews too quickly. Wait a minute and try again." },
+      { status: 429, headers: { "Retry-After": "60" } },
+    );
+  }
+
   const db = getMessagesDatabase() ?? getPlayersDatabase();
   if (!db) {
     return Response.json(
@@ -43,6 +51,7 @@ export async function POST(request: Request) {
 
   const { payload: assignment } = result;
   return Response.json({
+    assignmentId: assignment.assignmentId,
     assignment: assignment.assignment,
     kind: assignment.kind,
     messageId: assignment.messageId,

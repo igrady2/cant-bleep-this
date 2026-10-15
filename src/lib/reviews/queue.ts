@@ -6,7 +6,13 @@ import type { MessageStatus } from "@/lib/messages/disposition";
 import type { FilterScores } from "@/lib/moderation/types";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import { smallestRuleThresholdGap } from "./uncertainty";
-import { pickRandom, queueSeedFraction, queueUncertainFraction, randomUnit } from "./settings";
+import {
+  pickRandom,
+  queueScanLimit,
+  queueSeedFraction,
+  queueUncertainFraction,
+  randomUnit,
+} from "./settings";
 import type { ReviewsDatabase } from "./db";
 
 interface QueueCandidateRow {
@@ -37,9 +43,10 @@ export async function listQueueCandidates(
              SELECT 1 FROM reviews r
              WHERE r.message_id = m.id AND r.player_id = ?
            )
-         ORDER BY m.created_at ASC, m.id ASC`,
+         ORDER BY m.created_at ASC, m.id ASC
+         LIMIT ?`,
       )
-      .bind(player.id, player.id) as { all<T>(): Promise<T[]> }
+      .bind(player.id, player.id, queueScanLimit()) as { all<T>(): Promise<T[]> }
   ).all<QueueCandidateRow>();
 
   return rows.filter((row) => mayEnterReviewQueue(row.filter_outcome, row.status));
@@ -58,9 +65,10 @@ async function listSeedCandidates(
            AND NOT EXISTS (
              SELECT 1 FROM reviews r
              WHERE r.seed_case_id = tc.id AND r.player_id = ?
-           )`,
+           )
+         LIMIT ?`,
       )
-      .bind(playerId) as { all<T>(): Promise<T[]> }
+      .bind(playerId, queueScanLimit()) as { all<T>(): Promise<T[]> }
   ).all<SeedCandidateRow>();
 }
 

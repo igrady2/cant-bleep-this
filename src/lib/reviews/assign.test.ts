@@ -17,41 +17,34 @@ function createDb(options: {
     author_name: string;
   };
   existingReview?: boolean;
-  reservationChanges?: number;
 }): ReviewsDatabase {
   return {
     prepare(sql: string) {
       return {
-        bind: (...args: unknown[]) => {
-          const statement = {
-            sql,
-            args,
-            first: async () => {
-              if (sql.includes("FROM messages m") && sql.includes("author_id")) {
-                if (!options.message || args[0] !== options.message.id) return null;
-                return {
-                  author_id: options.message.author_id,
-                  filter_outcome: options.message.filter_outcome,
-                  status: options.message.status,
-                };
-              }
-              if (sql.includes("FROM reviews") && sql.includes("player_id")) {
-                return options.existingReview ? { found: 1 } : null;
-              }
-              if (sql.includes("loadMessageReviewPresentation")) return null;
-              if (sql.includes("FROM messages m") && sql.includes("context_message_ids")) {
-                if (!options.message || args[0] !== options.message.id) return null;
-                return options.message;
-              }
-              return null;
-            },
-            all: async () => [],
-            run: async () => ({
-              meta: { changes: options.reservationChanges ?? 1 },
-            }),
-          };
-          return statement;
-        },
+        bind: (...args: unknown[]) => ({
+          sql,
+          args,
+          first: async () => {
+            if (sql.includes("FROM messages m") && sql.includes("author_id")) {
+              if (!options.message || args[0] !== options.message.id) return null;
+              return {
+                author_id: options.message.author_id,
+                filter_outcome: options.message.filter_outcome,
+                status: options.message.status,
+              };
+            }
+            if (sql.includes("FROM reviews") && sql.includes("player_id")) {
+              return options.existingReview ? { found: 1 } : null;
+            }
+            if (sql.includes("FROM messages m") && sql.includes("context_message_ids")) {
+              if (!options.message || args[0] !== options.message.id) return null;
+              return options.message;
+            }
+            return null;
+          },
+          all: async () => [],
+          run: async () => ({ meta: { changes: 1 } }),
+        }),
       };
     },
     batch: async () => [],
@@ -59,37 +52,38 @@ function createDb(options: {
 }
 
 describe("assignHandPickedMessage", () => {
-  it("returns queue assignment when the hand-picked slot is already reserved", async () => {
+  it("rejects judging your own message before creating an assignment", async () => {
     const message = {
-      id: "msg-1",
-      author_id: "author-1",
+      id: "msg-own",
+      author_id: player.id,
       filter_outcome: "passed" as const,
       status: "pending" as const,
-      text: "hello",
-      masked_text: "hello",
+      text: "mine",
+      masked_text: "mine",
       context_message_ids: "[]",
-      author_name: "alice",
+      author_name: "judge",
     };
 
-    const db = createDb({ message, reservationChanges: 0 });
-    const loadSpy = vi.spyOn(await import("./context"), "loadMessageReviewPresentation");
-    loadSpy.mockResolvedValue({
-      username: "alice",
-      text: "hello",
-      filterOutcome: "passed",
-      status: "pending",
-      reasons: [],
-      context: [],
-    });
+    const createSpy = vi.spyOn(await import("./assignments"), "createMessageReviewAssignment");
+    const result = await assignHandPickedMessage(createDb({ message }), player, message.id);
 
-    const result = await assignHandPickedMessage(db, player, message.id);
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.payload.assignment).toBe("queue");
-
-    loadSpy.mockRestore();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(403);
+    expect(createSpy).not.toHaveBeenCalled();
+    createSpy.mockRestore();
   });
 
-  it("returns hand_picked when the reservation insert succeeds", async () => {
+  it("returns 404 for a missing message without reserving a slot", async () => {
+    const createSpy = vi.spyOn(await import("./assignments"), "createMessageReviewAssignment");
+    const result = await assignHandPickedMessage(createDb({}), player, "missing-id");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(404);
+    expect(createSpy).not.toHaveBeenCalled();
+    createSpy.mockRestore();
+  });
+
+  it("returns hand_picked when the hand-picked slot is available", async () => {
     const message = {
       id: "msg-2",
       author_id: "author-2",
@@ -101,7 +95,9 @@ describe("assignHandPickedMessage", () => {
       author_name: "bob",
     };
 
-    const db = createDb({ message, reservationChanges: 1 });
+    const createSpy = vi.spyOn(await import("./assignments"), "createMessageReviewAssignment");
+    createSpy.mockResolvedValue({ id: "assign-1", assignment: "hand_picked" });
+
     const loadSpy = vi.spyOn(await import("./context"), "loadMessageReviewPresentation");
     loadSpy.mockResolvedValue({
       username: "bob",
@@ -112,10 +108,14 @@ describe("assignHandPickedMessage", () => {
       context: [],
     });
 
-    const result = await assignHandPickedMessage(db, player, message.id);
+    const result = await assignHandPickedMessage(createDb({ message }), player, message.id);
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.payload.assignment).toBe("hand_picked");
+    if (result.ok) {
+      expect(result.payload.assignment).toBe("hand_picked");
+      expect(result.payload.assignmentId).toBe("assign-1");
+    }
 
+    createSpy.mockRestore();
     loadSpy.mockRestore();
   });
 });
