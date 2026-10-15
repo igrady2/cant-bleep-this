@@ -1,10 +1,12 @@
 import "server-only";
 
+import { mayEnterReviewQueue } from "@/lib/messages/disposition";
 import { serializeReviewerMessage } from "@/lib/presentation";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import {
   createMessageReviewAssignment,
   createSeedReviewAssignment,
+  consumeReviewAssignment,
   findOpenReviewAssignment,
 } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
@@ -47,11 +49,16 @@ export async function assignNextFromQueue(
   player: AuthenticatedPlayer,
 ): Promise<ReviewAssignResult> {
   const now = Math.floor(Date.now() / 1000);
-  const open = await findOpenReviewAssignment(db, player.id, now);
-  if (open) {
+  let open = await findOpenReviewAssignment(db, player.id, now);
+  while (open) {
     const presentation = open.message_id
       ? await loadMessageReviewPresentation(db, open.message_id)
       : await loadSeedReviewPresentation(db, open.seed_case_id!);
+    if (open.message_id && (!presentation || !mayEnterReviewQueue(presentation.filterOutcome, presentation.status))) {
+      await consumeReviewAssignment(db, open.id, player.id, now);
+      open = await findOpenReviewAssignment(db, player.id, now);
+      continue;
+    }
     if (!presentation) {
       return { ok: false, status: 404, error: "That message is not available to judge." };
     }

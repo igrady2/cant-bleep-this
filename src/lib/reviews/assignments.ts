@@ -9,6 +9,18 @@ export interface CreatedReviewAssignment {
   assignment: ReviewAssignment;
 }
 
+export async function consumeReviewAssignment(
+  db: ReviewsDatabase,
+  assignmentId: string,
+  playerId: string,
+  now: number,
+): Promise<void> {
+  await (db.prepare(
+    `UPDATE review_assignments SET consumed_at = ?
+     WHERE id = ? AND player_id = ? AND consumed_at IS NULL`,
+  ).bind(now, assignmentId, playerId) as { run(): Promise<unknown> }).run();
+}
+
 export async function releaseExpiredReviewAssignments(
   db: ReviewsDatabase,
   now: number,

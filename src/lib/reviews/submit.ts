@@ -5,7 +5,7 @@ import { serializeReviewerMessage } from "@/lib/presentation";
 import type { CategoryId } from "@/lib/moderation/categories";
 import { CATEGORY_BY_ID } from "@/lib/moderation/categories";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
-import { getConsumableReviewAssignment } from "./assignments";
+import { consumeReviewAssignment, getConsumableReviewAssignment } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
 import type { ReviewsDatabase } from "./db";
 import {
@@ -89,6 +89,7 @@ export async function submitReview(
     ? await loadMessageReviewPresentation(db, assignment.message_id)
     : await loadSeedReviewPresentation(db, assignment.seed_case_id!);
   if (assignment.message_id && (!presentation || !mayEnterReviewQueue(presentation.filterOutcome, presentation.status))) {
+    await consumeReviewAssignment(db, assignment.id, player.id, now);
     return { ok: false, status: 409, error: "That message is no longer available to judge. Get a new one.", code: "message_unavailable" };
   }
   if (!presentation) {
