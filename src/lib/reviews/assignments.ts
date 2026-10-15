@@ -139,3 +139,20 @@ export async function createSeedReviewAssignment(
   ).run();
   return { id, assignment: "queue" };
 }
+
+export interface OpenReviewAssignment extends CreatedReviewAssignment {
+  message_id: string | null;
+  seed_case_id: string | null;
+}
+
+export async function findOpenReviewAssignment(
+  db: ReviewsDatabase,
+  playerId: string,
+  now: number,
+): Promise<OpenReviewAssignment | null> {
+  return (db.prepare(
+    `SELECT id, assignment, message_id, seed_case_id FROM review_assignments
+     WHERE player_id = ? AND consumed_at IS NULL AND expires_at > ?
+     ORDER BY created_at, id LIMIT 1`,
+  ).bind(playerId, now) as { first<T>(): Promise<T | null> }).first<OpenReviewAssignment>();
+}

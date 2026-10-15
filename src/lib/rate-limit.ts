@@ -44,6 +44,7 @@ export async function isRateLimited(request: Request): Promise<boolean> {
   }
 }
 
+// Follow-up: add a per-player limit after authentication in queue and judge routes.
 export async function isReviewRateLimited(request: Request): Promise<boolean> {
   try {
     const { env } = getCloudflareContext();
