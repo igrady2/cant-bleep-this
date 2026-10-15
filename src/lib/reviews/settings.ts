@@ -1,5 +1,27 @@
 import "server-only";
 
+export interface ReviewRequirementTier { queueSize: number; posts: number }
+
+/** Runtime env override, editable in Worker settings without a code release. */
+export function reviewRequirementTiers(): ReviewRequirementTier[] {
+  const defaults = [
+    { queueSize: 10, posts: 5 },
+    { queueSize: 50, posts: 3 },
+    { queueSize: 200, posts: 1 },
+  ];
+  try {
+    const value: unknown = JSON.parse(process.env.REVIEW_REQUIREMENT_TIERS ?? "null");
+    if (!Array.isArray(value) || value.length === 0 || !value.every((tier, i) =>
+      tier && Number.isSafeInteger(tier.queueSize) && tier.queueSize >= 0 &&
+      Number.isSafeInteger(tier.posts) && tier.posts > 0 &&
+      (i === 0 || tier.queueSize > value[i - 1].queueSize),
+    )) return defaults;
+    return value;
+  } catch {
+    return defaults;
+  }
+}
+
 function readFraction(envName: string, defaultValue: number): number {
   const parsed = Number(process.env[envName]);
   if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) return defaultValue;

@@ -16,6 +16,13 @@ beforeEach(() => {
   mocks.submit.mockResolvedValue({ ok: true, skipped: false });
 });
 afterEach(cleanup);
+it.each([false, true])("offers a return to the saved draft after a review or skip (%s)", async (skipped) => {
+  mocks.submit.mockResolvedValue({ ok: true, skipped });
+  render(<JudgePanel returnToDraft />);
+  fireEvent.click(await screen.findByRole("button", { name: skipped ? "Skip" : "Fine" }));
+  fireEvent.click(screen.getByRole("button", { name: "Submit review" }));
+  expect((await screen.findByRole("link", { name: "Back to your draft" })).getAttribute("href")).toBe("/room");
+});
 it("Judge next switches a hand-picked review to the queue", async () => {
   render(<JudgePanel messageId="m" />);
   fireEvent.click(await screen.findByRole("button", { name: "Fine" }));

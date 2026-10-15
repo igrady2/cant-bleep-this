@@ -50,7 +50,10 @@ it("returns auth errors from requireAuthenticatedPlayer", async () => {
   expect(response.status).toBe(401);
 });
 
-it("returns machine-readable code on post failures", async () => {
+it.each([
+  [429, "player_cap", "You have reached today's posting limit. Try again tomorrow."],
+  [409, "review_required", "Review or skip one message from the queue before posting again."],
+])("returns status %i and machine-readable code %s on post failures", async (status, code, error) => {
   isRateLimited.mockResolvedValue(false);
   getMessagesDatabase.mockReturnValue({});
   requireAuthenticatedPlayer.mockResolvedValue({
@@ -59,9 +62,9 @@ it("returns machine-readable code on post failures", async () => {
   });
   postMessage.mockResolvedValue({
     ok: false,
-    status: 429,
-    error: "You have reached today's posting limit. Try again tomorrow.",
-    code: "player_cap",
+    status,
+    error,
+    code,
   });
   const response = await POST(
     new Request("https://example.test/api/post", {
@@ -70,10 +73,10 @@ it("returns machine-readable code on post failures", async () => {
       body: JSON.stringify({ message: "hello" }),
     }),
   );
-  expect(response.status).toBe(429);
+  expect(response.status).toBe(status);
   const body = await response.json();
-  expect(body.code).toBe("player_cap");
-  expect(body.error).toMatch(/posting limit/);
+  expect(body.code).toBe(code);
+  expect(body.error).toBe(error);
 });
 
 it("returns persisted moderation body with message id", async () => {

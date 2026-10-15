@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AlertTriangle, Loader2, RotateCcw } from "lucide-react";
 
@@ -12,6 +13,7 @@ import {
   type PostMessageApiBody,
 } from "@/lib/player-session/client";
 import { readStoredSession } from "@/lib/player-session/storage";
+import { readPendingDraft, savePendingDraft } from "@/lib/player-session/pending-draft";
 import type { ModerationResult } from "@/lib/moderation/types";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -51,7 +53,8 @@ function moderationResultFromPost(body: PostMessageApiBody): ModerationResult | 
 export function ChatRoom({ status }: { status?: ReactNode }) {
   const [playerName] = useState(() => readStoredSession()?.name ?? null);
   const [messages, setMessages] = useState<ReturnType<typeof toChatMessages>>([]);
-  const [draft, setDraft] = useState("");
+  const [draft, setDraft] = useState(readPendingDraft);
+  const [reviewRequired, setReviewRequired] = useState(false);
   const [notice, setNotice] = useState<NoticeState>({ kind: "idle" });
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
@@ -158,6 +161,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
     try {
       const result = await postMessageRequest(session.token, message, idempotencyKey);
       if (!result.ok) {
+        if (result.code === "review_required") setReviewRequired(true);
         setNotice({
           kind: "error",
           message,
@@ -196,6 +200,8 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
 
       clearPostAttempt();
       setDraft("");
+      savePendingDraft("");
+      setReviewRequired(false);
       setNotice({ kind: "idle" });
       refreshFeed();
     } catch {
@@ -266,6 +272,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
             value={draft}
             onChange={(value) => {
               setDraft(value);
+              savePendingDraft(value);
               if (notice.kind === "blocked" || notice.kind === "error") {
                 setNotice({ kind: "idle" });
                 clearPostAttempt();
@@ -275,6 +282,13 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
             busy={checking}
             onSubmit={() => send(draft)}
           />
+          {reviewRequired ? (
+            <Alert>
+              <AlertTitle>Review before your next post</AlertTitle>
+              <AlertDescription>Your draft is saved. Review or skip one queue message, then return to send it.</AlertDescription>
+              <Button render={<Link href="/judge?returnTo=draft" />}>Go to review queue</Button>
+            </Alert>
+          ) : null}
         </div>
       </footer>
     </div>

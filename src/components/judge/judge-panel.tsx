@@ -26,9 +26,9 @@ type PanelState =
   | { kind: "empty"; message: string }
   | { kind: "error"; message: string; unavailable?: boolean }
   | { kind: "ready"; assignment: ReviewAssignmentResponse }
-  | { kind: "submitted"; skipped: boolean };
+  | { kind: "submitted"; skipped: boolean; queueAssignment: boolean };
 
-export function JudgePanel({ messageId }: { messageId?: string | null }) {
+export function JudgePanel({ messageId, returnToDraft = false }: { messageId?: string | null; returnToDraft?: boolean }) {
   const [state, setState] = useState<PanelState>({ kind: "loading" });
   const [action, setAction] = useState<ReviewSubmitAction | null>(null);
   const [rule, setRule] = useState<CategoryId | "">("");
@@ -137,7 +137,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
       setFormError(result.error);
       return;
     }
-    setState({ kind: "submitted", skipped: result.skipped });
+    setState({ kind: "submitted", skipped: result.skipped, queueAssignment: state.assignment.assignment === "queue" });
   }
 
   if (state.kind === "loading") {
@@ -159,7 +159,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
             {state.unavailable ? "Get a new one" : "Try again"}
           </Button>
           <Button variant="outline" render={<Link href="/room" />}>
-            Back to the room
+            {returnToDraft ? "Back to your draft" : "Back to the room"}
           </Button>
         </div>
       </Alert>
@@ -175,7 +175,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
             Check again
           </Button>
           <Button variant="outline" render={<Link href="/room" />}>
-            Back to the room
+            {returnToDraft ? "Back to your draft" : "Back to the room"}
           </Button>
         </div>
       </div>
@@ -189,7 +189,9 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
           <AlertTitle>{state.skipped ? "Skipped" : "Review saved"}</AlertTitle>
           <AlertDescription>
             {state.skipped
-              ? "That skip counts toward your review requirement, but not toward the message’s three reviews."
+              ? state.queueAssignment
+                ? "That skip counts toward your review requirement, but not toward the message’s three reviews."
+                : "Skipped. To satisfy a review requirement, judge a message or skip one assigned by the queue."
               : "Thanks — your judgment is in."}
           </AlertDescription>
         </Alert>
@@ -198,7 +200,7 @@ export function JudgePanel({ messageId }: { messageId?: string | null }) {
             Judge next
           </Button>
           <Button variant="outline" render={<Link href="/room" />}>
-            Back to the room
+            {returnToDraft ? "Back to your draft" : "Back to the room"}
           </Button>
         </div>
       </div>
