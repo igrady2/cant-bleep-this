@@ -72,7 +72,7 @@ export function ModerationNotice({
     );
   }
 
-  const { flags, provider } = state.result;
+  const { flags } = state.result;
   return (
     <Alert
       variant="destructive"
@@ -86,10 +86,7 @@ export function ModerationNotice({
         <blockquote className="border-l-2 border-destructive/40 pl-3 text-foreground/80 italic break-words">
           “{state.message}”
         </blockquote>
-        <p>
-          {provider === "typesafe" ? "Jev" : "The demo filter"} flagged it as breaking a chat
-          rule:
-        </p>
+        <p>Jev flagged it as breaking a chat rule:</p>
         <ul className="w-full space-y-2">
           {flags.map((f) => (
             <li key={f.category} className="rounded-lg bg-background/80 p-3 text-foreground">

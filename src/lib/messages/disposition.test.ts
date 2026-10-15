@@ -13,8 +13,8 @@ import {
 const baseResult = (overrides: Partial<ModerationResult>): ModerationResult => ({
   outcome: "passed",
   allowed: true,
-  provider: "mock",
-  model: "local-mock",
+  provider: "typesafe",
+  model: "jev-test",
   threshold: 0.5,
   offLimitsThreshold: 0.5,
   flags: [],

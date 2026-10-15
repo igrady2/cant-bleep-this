@@ -1,7 +1,7 @@
 import type { CategoryId } from "./categories";
 import type { OFF_LIMITS_ID } from "./off-limits";
 
-export type ModerationProvider = "typesafe" | "mock";
+export type ModerationProvider = "typesafe";
 
 export type FilterOutcome = "passed" | "blocked" | "off_limits";
 

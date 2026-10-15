@@ -8,21 +8,20 @@ Stack: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and shadcn/ui. Font
 
 ```bash
 npm install
-cp .env.example .env.local   # optional: add your TypeSafe key
+cp .env.example .env.local   # add TYPESAFE_API_KEY to post messages
 npm run dev                  # http://localhost:4317
 ```
 
-### Moderation provider
+### Moderation
 
 | Env var | Purpose |
 | --- | --- |
-| `TYPESAFE_API_KEY` | TypeSafe API key ([docs](https://docs.typesafe.ai/api)). When set, every message is scored by Jev. |
+| `TYPESAFE_API_KEY` | **Required** to post messages. TypeSafe API key ([docs](https://docs.typesafe.ai/api)); every check goes to Jev. |
 | `TYPESAFE_MODEL` | Optional. Defaults to `jev-latest`. |
 | `MODERATION_THRESHOLD` | Optional. Probability at which a reviewable category blocks a message. Defaults to `0.5`. |
 | `MODERATION_THRESHOLD_OFF_LIMITS` | Optional. Independent threshold for the off-limits exclusion question. Defaults to `0.5`. |
-| `MODERATION_PROVIDER` | Optional. Set to `mock` to force the local mock even when a key is set. |
 
-**Without `TYPESAFE_API_KEY`, the app uses a local keyword mock** (`src/lib/moderation/mock.ts`) so the demo still works offline. A "Demo" badge above the chat box shows while the mock is active. The mock is only a stand-in and is not real moderation.
+If the key is missing, Jev returns an error, or the response is invalid, the message is **not** posted and the UI shows a retryable error. There is no offline keyword fallback.
 
 ## How moderation works
 
@@ -45,7 +44,7 @@ When deploying under the new name, confirm `cant-bleep-this` in your Cloudflare 
 
 ```bash
 npx wrangler login
-npx wrangler secret put TYPESAFE_API_KEY --name cant-bleep-this   # optional for the current Demo mock
+npx wrangler secret put TYPESAFE_API_KEY --name cant-bleep-this
 npm run deploy
 ```
 

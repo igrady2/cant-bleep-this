@@ -86,6 +86,24 @@ it("returns an error without echoing the message when Jev returns an invalid Nou
   }
 });
 
+it("returns a retryable error when Jev is unavailable", async () => {
+  moderate.mockRejectedValue(new TypeSafeError("TypeSafe responded 529", 529));
+  const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const response = await POST(new Request("https://example.test/api/moderate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: "hello" }),
+    }));
+    expect(response.status).toBe(503);
+    const body = (await response.json()) as { error: string; allowed?: boolean };
+    expect(body.error).toMatch(/unavailable/i);
+    expect(body.allowed).toBeUndefined();
+  } finally {
+    log.mockRestore();
+  }
+});
+
 it("fails closed when the masking setting is invalid", async () => {
   vi.stubEnv("MASK_MIN_DIGITS", "invalid");
   moderate.mockResolvedValue({

@@ -9,8 +9,8 @@ const scores = Object.fromEntries(CATEGORIES.map((c) => [c.id, 0.03])) as Modera
 const base: ModerationResult = {
   outcome: "passed",
   allowed: true,
-  provider: "mock",
-  model: "local-mock",
+  provider: "typesafe",
+  model: "jev-test",
   threshold: 0.5,
   offLimitsThreshold: 0.5,
   flags: [],
@@ -24,7 +24,7 @@ describe("buildModerationApiBody", () => {
       { ...base, outcome: "off_limits", allowed: false, offLimitsScore: 0.95 },
       "secret threat text",
     );
-    expect(body).toEqual({ outcome: "off_limits", allowed: false, provider: "mock" });
+    expect(body).toEqual({ outcome: "off_limits", allowed: false, provider: "typesafe" });
     expect(JSON.stringify(body)).not.toContain("secret");
     expect(JSON.stringify(body)).not.toContain("scores");
     expect(JSON.stringify(body)).not.toContain("threshold");
