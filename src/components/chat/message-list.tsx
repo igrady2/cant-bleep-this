@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { MessageStatus } from "@/lib/messages/disposition";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ export interface ChatMessage {
   text: string;
   sentAt: number;
   slipRule?: string;
+  status?: MessageStatus;
 }
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
@@ -59,7 +61,7 @@ export function MessageList({
                 >
                   {timeFormat.format(m.sentAt)}
                 </time>
-                {showJudgeActions && !isSelf ? (
+                {showJudgeActions && !isSelf && m.status === "pending" ? (
                   <Button
                     variant="link"
                     size="xs"

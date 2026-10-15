@@ -1,3 +1,4 @@
+import type { MessageStatus } from "@/lib/messages/disposition";
 import type { ModerationResponse } from "@/lib/moderation/types";
 
 export interface ClaimSuccess {
@@ -46,7 +47,7 @@ export interface FeedMessage {
   author: string;
   text: string;
   createdAt: number;
-  status: string;
+  status: MessageStatus;
   slipRule?: string;
 }
 
@@ -60,7 +61,7 @@ export type PostMessageApiBody =
   | (ModerationResponse & {
       message: string;
       filterOutcome: "passed" | "blocked";
-      status: string;
+      status: MessageStatus;
     });
 
 export async function fetchRoomFeed(): Promise<
@@ -149,11 +150,11 @@ export interface ReviewPresentation {
     text: string;
     slipRule?: string;
     filterOutcome: string;
-    status: string;
+    status: MessageStatus;
   }>;
   reasons: string[];
   filterOutcome: string;
-  status: string;
+  status: MessageStatus;
 }
 
 export interface ReviewAssignmentResponse {

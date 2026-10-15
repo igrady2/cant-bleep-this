@@ -25,7 +25,7 @@ it("Judge next switches a hand-picked review to the queue", async () => {
   expect(mocks.hand).toHaveBeenCalledTimes(1);
   expect(mocks.queue).toHaveBeenCalledTimes(1);
 });
-it.each(["assignment_unavailable", "already_reviewed"])("removes the form after %s and offers a new queue item", async (code) => {
+it.each(["assignment_unavailable", "already_reviewed", "message_unavailable"])("removes the form after %s and offers a new queue item", async (code) => {
   mocks.submit.mockResolvedValue({ ok: false, status: 409, code, error: "Get a new review." });
   render(<JudgePanel messageId="m" />);
   fireEvent.click(await screen.findByRole("button", { name: "Fine" }));

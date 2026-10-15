@@ -1,5 +1,6 @@
 import "server-only";
 
+import { mayEnterReviewQueue } from "@/lib/messages/disposition";
 import { serializeReviewerMessage } from "@/lib/presentation";
 import type { CategoryId } from "@/lib/moderation/categories";
 import { CATEGORY_BY_ID } from "@/lib/moderation/categories";
@@ -87,6 +88,9 @@ export async function submitReview(
   const presentation = assignment.message_id
     ? await loadMessageReviewPresentation(db, assignment.message_id)
     : await loadSeedReviewPresentation(db, assignment.seed_case_id!);
+  if (assignment.message_id && (!presentation || !mayEnterReviewQueue(presentation.filterOutcome, presentation.status))) {
+    return { ok: false, status: 409, error: "That message is no longer available to judge. Get a new one.", code: "message_unavailable" };
+  }
   if (!presentation) {
     return { ok: false, status: 404, error: "That message is not available to judge." };
   }
@@ -248,6 +252,12 @@ export async function submitReview(
     }
   ).first<{ id: string }>();
   if (!saved) {
+    if (assignment.message_id) {
+      const current = await loadMessageReviewPresentation(db, assignment.message_id);
+      if (!current || !mayEnterReviewQueue(current.filterOutcome, current.status)) {
+        return { ok: false, status: 409, error: "That message is no longer available to judge. Get a new one.", code: "message_unavailable" };
+      }
+    }
     return {
       ok: false,
       status: 409,

@@ -44,7 +44,7 @@ it("stores UTF-16 offsets into the serialized text after a seven-digit run", asy
 });
 it.each(["clean", "slip", "caught", "false_positive", "excluded"])("rejects a message decided as %s while its assignment was open", async (status) => {
   await d1.prepare("UPDATE messages SET status = ?").bind(status).run();
-  expect((await submitReview(db, player, { assignmentId: "a", action: "fine" })).ok).toBe(false);
+  expect(await submitReview(db, player, { assignmentId: "a", action: "fine" })).toMatchObject({ ok: false, status: 409, code: "message_unavailable" });
   expect((await d1.prepare("SELECT COUNT(*) AS n FROM reviews").first<{ n: number }>())!.n).toBe(0);
 });
 it("rejects self-review at insertion", async () => {

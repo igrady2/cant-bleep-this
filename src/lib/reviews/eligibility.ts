@@ -1,6 +1,7 @@
 import "server-only";
 
-import { mayEnterReviewQueue } from "@/lib/messages/disposition";
+import { mayEnterReviewQueue, type MessageStatus } from "@/lib/messages/disposition";
+import type { FilterOutcome } from "@/lib/moderation/types";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import type { ReviewsDatabase } from "./db";
 import type { ReviewAssignResult } from "./types";
@@ -21,7 +22,7 @@ export async function validateMessageEligibility(
       .bind(messageId) as {
       first<T>(): Promise<T | null>;
     }
-  ).first<{ author_id: string; filter_outcome: string; status: string }>();
+  ).first<{ author_id: string; filter_outcome: FilterOutcome; status: MessageStatus }>();
 
   if (!row) {
     return { ok: false, status: 404, error: "That message is not available to judge." };
@@ -29,7 +30,7 @@ export async function validateMessageEligibility(
   if (row.author_id === player.id) {
     return { ok: false, status: 403, error: "You cannot judge your own messages." };
   }
-  if (!mayEnterReviewQueue(row.filter_outcome as "passed" | "blocked", row.status as "pending")) {
+  if (!mayEnterReviewQueue(row.filter_outcome, row.status)) {
     return { ok: false, status: 404, error: "That message is not available to judge." };
   }
 

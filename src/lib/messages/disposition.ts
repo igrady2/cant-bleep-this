@@ -61,13 +61,13 @@ export function mayAppearInFeed(
   return filterOutcome === "passed" && status !== "excluded";
 }
 
-/** Blocked reviewable messages stay in the queue; off-limits and excluded rows do not. */
+/** Only pending, reviewable messages may receive another review. */
 export function mayEnterReviewQueue(
   filterOutcome: FilterOutcome,
   status: MessageStatus,
 ): boolean {
   return (
-    (filterOutcome === "passed" || filterOutcome === "blocked") && status !== "excluded"
+    (filterOutcome === "passed" || filterOutcome === "blocked") && status === "pending"
   );
 }
 
