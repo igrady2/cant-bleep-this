@@ -15,19 +15,21 @@ The M1 issues were created Oct 14 between 2:46 and 2:47 PM, and the milestone it
 | #8 | Username validation | PR #51 | Oct 15, 11:50 AM |
 | #12 | Off-limits exclusion | PR #50 | Oct 15, 11:53 AM |
 
-- **Result:** 4 of 4 planned issues shipped. None were dropped or deferred.
+- **Result:** 4 of 4 planned M1 issues shipped. None were dropped or deferred.
 - **Scope changes after start:** unknown. GitHub keeps no history of milestone membership.
 - **Not part of M1:** #1 is the PRD PR (merged Oct 14, 2:38 PM, before the milestone existed) and isn't on the M1 milestone.
+- **Related but not shipped as code:** #49 (vowel-mask censoring and word flagging) was filed in M3 after PRs #48 and #53 documented the PRD decision. It was originally **closed without any code merging**. On main, `presentText` still returns `█████` until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20** (judging UI / word tapping, and censor in feed / vowel masking). Do not read #49's closed state as delivery.
 
 ## 2. Changes and why
 
 These PRs changed the PRD or delivered M1 scope. Reasons come from PR bodies. Where a deeper reason isn't written down, it's unknown.
 
-- **PR #37: PRD records decisions from issue review.** Open decisions the issues depended on were written into the PRD: off-limits as a 10th Jev question at 0.5 (#12); reviewer standing after missing 3 of last 10 seeds (#19); skip meets the review requirement but is not one of a message's 3 reviews (#16, #17); admin behind Cloudflare Access (#23); neutral stand-in names in test cases (#22); and v1 censoring as whole-message "█████" (later replaced by #48).
+- **PR #37: PRD records decisions from issue review.** Open decisions the issues depended on were written into the PRD: off-limits as a 10th Jev question at 0.5 (#12); reviewer standing after missing 3 of last 10 seeds (#19); skip meets the review requirement but is not one of a message's 3 reviews (#16, #17); admin behind Cloudflare Access (#23); neutral stand-in names in test cases (#22); and v1 censoring as whole-message "█████" (later replaced in the PRD by #48).
 - **PR #39: The review queue mixes uncertain and random picks.** Apart from ~1 in 10 seed checks, the queue had been random. Non-seed picks are now about half the messages the filter was least sure of and half random, so confident mistakes still surface. The split is a setting (50/50 to start). Issues #15 and #7 were updated to match.
 - **PR #43 (closes #2): CONTENT_RULES.md and general-audience policy.** Adds nine Jev questions with stable IDs, 0.5 thresholds, boundary examples, plus a separate off_limits question; removes school framing and academic dishonesty.
-- **PR #48: Slips are censored by masking the vowels in flagged words.** Replaces whole-message "█████" (Indigo decided 2026-10-15) so slips stay readable ("f\*ck"). Word marking moves into Build v1. Docs only; follow-ups are #20, presentation code still using █████, and a schema migration.
-- **PR #53: Clarifies v1 word tapping and vowel masking.** Records edge cases from the #48 review (union of deciding spans; whole-message mask only if neither marked; y is not a vowel; no-vowel middle-character mask). With #48, produced #49 (M3, closed Oct 15 11:44 AM BOT). Docs only; closes neither #49 nor #20.
+- **PR #48: PRD censors slips by masking vowels in flagged words.** Docs-only decision: replaces whole-message "█████" in the PRD (Indigo decided 2026-10-15) so slips stay readable ("f\*ck"). Word marking moves into Build v1 scope. **Code did not change.** Follow-ups named at the time were #20, presentation code still using █████, and a schema migration.
+- **PR #53: Clarifies v1 word tapping and vowel masking in the PRD.** Docs only. Records edge cases from the #48 review (union of deciding spans; whole-message mask only if neither marked; y is not a vowel; no-vowel middle-character mask). With #48, it produced issue #49. PR #53 closes neither #49 nor #20.
+- **#49 closed without merged code, then re-closed as superseded by #16 and #20 (process gap).** #49 asked for the Build v1 implementation: word tapping, spans migration, and vowel masking so `presentText` no longer returns █████. It was originally closed Oct 15 at 11:44 AM BOT, but no implementation PR merged. Main still returns █████ until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20**, which remain open. Closing an issue without a merge is a process gap this review must not repeat: closed ≠ shipped.
 - **PR #44 and the crisis note:** The 988 Suicide & Crisis Lifeline rule came out of #2. The crisis-note issue was added Oct 14 at 4:07 PM BOT, one minute after #2 closed.
 - **PR #50 (closes #12), #51 (closes #8), #52 (closes #3):** shipped the remaining M1 deliverables (off-limits plumbing, username policy helper, ~100 seed messages). Note: issue bodies for #8 and #12 still say "Milestone: 3 — Build v1" in their text, while GitHub lists them under Milestone 1 (Rules).
 
@@ -35,15 +37,16 @@ These PRs changed the PRD or delivered M1 scope. Reasons come from PR bodies. Wh
 
 Each open issue and PRD section touched by these changes is flagged **needs update** when the shipped decision likely differs from what it still says. Otherwise it's flagged **not**.
 
-### Masking and word tapping (PRs #48, #53)
+### Masking and word tapping (PRs #48, #53; code still outstanding)
 
 | Item | Flag | Reason |
 |---|---|---|
-| #16 Judging UI | **Needs update** | Optional word tapping on a Not OK review now ships in Build v1, so the judging UI must capture spans. |
-| #20 Censor in feed | **Needs update** | PR #48 names it as a follow-up. Feed censoring changes from whole-message "█████" to vowel masking of flagged spans. |
+| #16 Judging UI | **Needs update** | Owns optional word tapping / span capture. #49 was originally closed without code and is superseded by #16 and #20. Must match the PRD edge cases from #48/#53. |
+| #20 Censor in feed | **Needs update** | Owns vowel masking of flagged spans. #49 was originally closed without code and is superseded by #16 and #20. `presentText` still returns █████ on main until #16 and #20 ship. |
 | #22 Anonymized test cases | Not | It covers PII masking with the shared helper (#11), which vowel masking doesn't change. |
-| PRD: Censoring and false positives | Not | PR #48 already rewrote it. |
-| PRD: Censoring edge cases | Not | PRs #48 and #53 already added the vowel, no-vowel and span rules. |
+| #49 Vowel-mask / word flagging | Not | Originally closed without merged code; being re-closed as superseded by #16 and #20. Do not reopen as delivered. |
+| PRD: Censoring and false positives | Not | PR #48 already rewrote the PRD. Code has not caught up. |
+| PRD: Censoring edge cases | Not | PRs #48 and #53 already added the vowel, no-vowel and span rules to the PRD. |
 | PRD: Core loop step 4 | Not | It already describes optional tapping and says tapping ships in Build v1. |
 | PRD: Milestone 3 Build v1 | Not | It already lists word tapping and vowel masking. |
 
@@ -102,7 +105,10 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 - QA failures labeled as such: none recorded
 - Earlier failed CI runs: unknown
 
-The process gap is missing formal GitHub reviews on the board, even though #50–#52 did get a different-model review pass through Codex comments.
+**Process gaps**
+
+1. Missing formal GitHub reviews on the board, even though #50–#52 did get a different-model review pass through Codex comments.
+2. **#49 was originally closed without its code merging.** Word tapping, the spans migration, and vowel masking never landed; `presentText` still returns █████ until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20**. Closed issues must not be treated as shipped unless a merge (or an explicit "docs-only / superseded" note) is on the record.
 
 ## 5. Next: risks and adjustments
 
@@ -111,10 +117,12 @@ The process gap is missing formal GitHub reviews on the board, even though #50�
 - **#35 could hold M2 open.** M2 ("2 – Filter in context") is done when #35 closes, and #35 is the last open issue there. Its harness PRs (#56, #57) have already merged, but the issue may still be open. Check its acceptance criteria before calling M2 done.
 - **The seed set may be too easy.** #58 (adversarial seed benchmark v2, opened Oct 15) suggests the ~100 seed messages from #3 may not stress the filter enough.
 - **The board doesn't match reality.** The M1 milestone still shows as open even though it has 0 open issues.
+- **PRD and code diverge on censoring.** The PRD describes vowel masking; main still shows █████ until #16 and #20 ship.
 
 **Adjustments**
 
 - Close the M1 milestone on GitHub.
-- Update #15, #16 and #20 to match PRs #39, #48 and #53 before work on them starts.
+- Update #15, #16 and #20 to match PRs #39, #48 and #53 before work on them starts; #49 is superseded by #16 and #20, which still carry that unfinished code.
 - Confirm #35's acceptance criteria against #56 and #57, then close it or list what's missing.
 - Note: #9 is in M3 and is already closed, so it doesn't affect the M2 gate.
+- Do not change the README's █████ description while it still matches `presentText` on main.
