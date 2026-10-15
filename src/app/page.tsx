@@ -1,6 +1,5 @@
-import { ChatRoom } from "@/components/chat/chat-room";
-import { ProviderBadge } from "@/components/chat/provider-badge";
+import { OnboardingFlow } from "@/components/onboarding/onboarding-flow";
 
 export default function Home() {
-  return <ChatRoom status={<ProviderBadge />} />;
+  return <OnboardingFlow />;
 }

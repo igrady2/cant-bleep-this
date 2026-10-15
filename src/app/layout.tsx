@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import type { ReactNode } from "react";
 import { Arimo, Familjen_Grotesk } from "next/font/google";
 import "./globals.css";
 
@@ -22,7 +23,7 @@ export const viewport: Viewport = {
   themeColor: "#ffffff",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${arimo.variable} ${familjen.variable} h-full antialiased`}>
       <body className="flex h-dvh flex-col overflow-hidden">{children}</body>
