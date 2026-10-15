@@ -203,6 +203,21 @@ describe("Jev request", () => {
 });
 
 describe("rule mapping", () => {
+  it("returns the post-#50 moderation result shape from live Jev scores", async () => {
+    stubJev({ profanity: 0.1 });
+    const result = await moderate("hello");
+    expect(result).toMatchObject({
+      outcome: "passed",
+      allowed: true,
+      provider: "typesafe",
+      threshold: 0.5,
+      offLimitsThreshold: 0.5,
+      offLimitsScore: 0.02,
+    });
+    expect(result.flags).toEqual([]);
+    expect(Object.keys(result.scores).sort()).toEqual([...IDS].sort());
+  });
+
   it("returns a probability for every rule", async () => {
     stubJev({ profanity: 0.7 });
     const result = await moderate("this is sh1t");

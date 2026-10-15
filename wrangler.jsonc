@@ -35,5 +35,5 @@
     "enabled": true
   }
   // TYPESAFE_API_KEY is a secret: `npx wrangler secret put TYPESAFE_API_KEY`.
-  // Optional overrides (TYPESAFE_MODEL, MODERATION_THRESHOLD) go in "vars".
+  // Optional overrides (TYPESAFE_MODEL, MODERATION_THRESHOLD, MODERATION_THRESHOLD_OFF_LIMITS) go in "vars".
 }
