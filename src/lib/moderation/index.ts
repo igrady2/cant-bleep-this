@@ -1,31 +1,29 @@
 import "server-only";
 
 import { CATEGORIES } from "./categories";
-import { scoreWithMock } from "./mock";
 import { offLimitsThreshold, reviewableThreshold } from "./thresholds";
-import { scoreWithJev } from "./typesafe";
+import { TypeSafeError, scoreWithJev } from "./typesafe";
 import type { FilterOutcome, ModerationResult } from "./types";
 
 const DEFAULT_MODEL = "jev-latest";
 
-export function activeProvider(): "typesafe" | "mock" {
-  if (process.env.MODERATION_PROVIDER === "mock") return "mock";
-  return process.env.TYPESAFE_API_KEY ? "typesafe" : "mock";
+function apiKey(): string {
+  const key = process.env.TYPESAFE_API_KEY?.trim();
+  if (!key) {
+    throw new TypeSafeError("TYPESAFE_API_KEY is not configured");
+  }
+  return key;
 }
 
 export async function moderate(message: string): Promise<ModerationResult> {
-  const provider = activeProvider();
   const limit = reviewableThreshold();
   const offLimit = offLimitsThreshold();
 
-  const { model, scores, offLimitsScore } =
-    provider === "typesafe"
-      ? await scoreWithJev(
-          message,
-          process.env.TYPESAFE_API_KEY!,
-          process.env.TYPESAFE_MODEL || DEFAULT_MODEL,
-        )
-      : { model: "local-mock", ...scoreWithMock(message) };
+  const { model, scores, offLimitsScore } = await scoreWithJev(
+    message,
+    apiKey(),
+    process.env.TYPESAFE_MODEL || DEFAULT_MODEL,
+  );
 
   let outcome: FilterOutcome = "passed";
 
@@ -49,7 +47,7 @@ export async function moderate(message: string): Promise<ModerationResult> {
   return {
     outcome,
     allowed: outcome === "passed",
-    provider,
+    provider: "typesafe",
     model,
     threshold: limit,
     offLimitsThreshold: offLimit,

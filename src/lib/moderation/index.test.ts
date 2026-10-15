@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CATEGORIES, type CategoryId } from "./categories";
 import { moderate } from "./index";
 import { OFF_LIMITS_ID } from "./off-limits";
-import { scoreWithJev } from "./typesafe";
+import { TypeSafeError, scoreWithJev } from "./typesafe";
 import policy from "../../../docs/CONTENT_RULES.md?raw";
 
 const IDS = CATEGORIES.map((c) => c.id);
@@ -18,7 +18,6 @@ function stubJev(scores: Partial<Record<CategoryId, number>>, offLimits = 0.02) 
   const fetchMock = vi.fn(async () => jevResponse(scores, offLimits));
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("TYPESAFE_API_KEY", "test-key");
-  vi.stubEnv("MODERATION_PROVIDER", "");
   return fetchMock;
 }
 
@@ -34,7 +33,6 @@ function stubJevParsedAnswers(
     })) as unknown as typeof fetch,
   );
   vi.stubEnv("TYPESAFE_API_KEY", "test-key");
-  vi.stubEnv("MODERATION_PROVIDER", "");
 }
 
 function validJevAnswers(
@@ -80,6 +78,19 @@ describe("game policy", () => {
     for (const word of ["school", "student", "teacher", "classroom", "k–12", "academic", "forum"]) {
       expect(text).not.toContain(word);
     }
+  });
+});
+
+describe("credentials", () => {
+  it("fails closed when TYPESAFE_API_KEY is missing", async () => {
+    vi.stubEnv("TYPESAFE_API_KEY", "");
+    await expect(moderate("hello")).rejects.toBeInstanceOf(TypeSafeError);
+  });
+
+  it("fails closed when MODERATION_PROVIDER was mock (no offline path)", async () => {
+    vi.stubEnv("TYPESAFE_API_KEY", "");
+    vi.stubEnv("MODERATION_PROVIDER", "mock");
+    await expect(moderate("hello")).rejects.toBeInstanceOf(TypeSafeError);
   });
 });
 
@@ -168,6 +179,27 @@ describe("Jev request", () => {
       );
     },
   );
+
+  it("does not return scores until Jev responds successfully after retries", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response("busy", { status: 529 }))
+      .mockResolvedValueOnce(new Response("busy", { status: 529 }))
+      .mockResolvedValueOnce(
+        jevResponse({ profanity: 0.02 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await scoreWithJev("retry me", "key", "jev-test");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(result.scores.profanity).toBe(0.02);
+  });
+
+  it("throws after retryable errors are exhausted without a valid response", async () => {
+    const fetchMock = vi.fn(async () => new Response("unavailable", { status: 529 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(scoreWithJev("hello", "key", "jev-test")).rejects.toBeInstanceOf(TypeSafeError);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
 });
 
 describe("rule mapping", () => {
