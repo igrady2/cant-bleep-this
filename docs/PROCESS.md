@@ -24,7 +24,7 @@ Routing follows **Built by LLM**. The reviewer LLM is never that LLM. Cursor is 
 | --- | --- |
 | Grok | Codex or Claude |
 | Codex | Grok or Claude |
-| Claude | Grok or ChatGPT |
+| Claude | Grok or ChatGPT (Codex) |
 | Composer | Grok, Codex, or Claude |
 
 When Grok is an allowed reviewer, Grok via Steward counts.

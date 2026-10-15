@@ -4,11 +4,19 @@ Closes #
 
 ## Built by model
 
+Tool: Cursor / Codex / Claude Code / Grok Bot / Other
+
 ## Built by LLM
+
+Concrete model name.
 
 ## Reviewed by model
 
+Tool: Cursor / Codex / Claude Code / Grok Bot / Other
+
 ## Reviewed by LLM
+
+Concrete model name.
 
 The reviewer LLM must differ from the Built by LLM.
 
