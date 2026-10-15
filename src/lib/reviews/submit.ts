@@ -8,7 +8,8 @@ import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import { consumeReviewAssignment, getConsumableReviewAssignment } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
 import type { ReviewsDatabase } from "./db";
-import { computeConsensus } from "./verdicts";
+import { consensusStatement } from "./verdicts";
+import { resetReviewRequirement } from "./review-requirement";
 import {
   parseAndValidateFlaggedSpans,
   serializeFlaggedSpans,
@@ -228,7 +229,12 @@ export async function submitReview(
     .bind(now, assignment.id, player.id, now);
 
   try {
-    await db.batch([insertReview, consumeAssignment]);
+    await db.batch([
+      insertReview, consumeAssignment,
+      resetReviewRequirement(db, player.id, reviewId),
+      ...(assignment.message_id && skipped === 0
+        ? [consensusStatement(db, assignment.message_id, reviewId)] : []),
+    ]);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (/UNIQUE|unique/i.test(message)) {
@@ -268,8 +274,5 @@ export async function submitReview(
     };
   }
 
-  if (assignment.message_id && skipped === 0) {
-    await computeConsensus(db, assignment.message_id);
-  }
   return { ok: true, reviewId, skipped: skipped === 1 };
 }

@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  findReviewRequirementBlock,
+  recordPostForReviewRequirement,
+  isReviewRequirementError,
+  reviewRequiredFailure,
+} from "@/lib/reviews/review-requirement";
 import { CATEGORIES } from "@/lib/moderation/categories";
 import { moderate } from "@/lib/moderation";
 import { offLimitsThreshold, reviewableThreshold } from "@/lib/moderation/thresholds";
@@ -174,6 +180,9 @@ export async function postMessage(
     return capBlock;
   }
 
+  const reviewBlock = await findReviewRequirementBlock(db, player.id);
+  if (reviewBlock) return reviewBlock;
+
   const { contextMessageIds, context, roomUsernames } = await loadPostRoomContext(db);
 
   let result: ModerationResult;
@@ -244,8 +253,15 @@ export async function postMessage(
     .bind(now, player.id);
 
   try {
-    await db.batch([bumpPlayer, bumpSite, insertMessage, touchPlayer]);
+    await db.batch([
+      recordPostForReviewRequirement(db, player.id),
+      bumpPlayer, bumpSite, insertMessage, touchPlayer,
+    ]);
   } catch (err) {
+    if (isReviewRequirementError(err)) {
+      const raced = await loadIdempotentPost(db, messageId, player.id);
+      return raced ? { ok: true, messageId, body: raced } : reviewRequiredFailure();
+    }
     console.error("[post]", err);
     const cap = parseDailyCapCheckError(err);
     if (cap) return cap;

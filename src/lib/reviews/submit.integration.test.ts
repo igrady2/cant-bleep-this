@@ -13,11 +13,11 @@ interface TestStatement {
   run(): Promise<unknown>;
   first<T>(): Promise<T | null>;
 }
-const { REVIEWS_TEST_DB: d1, FLAGGED_SPANS_SCHEMA: schema } = env as unknown as {
+const { REVIEWS_TEST_DB: d1, FLAGGED_SPANS_SCHEMA: schema, REVIEW_REQUIREMENT_SCHEMA: progressSchema } = env as unknown as {
   REVIEWS_TEST_DB: {
     exec(sql: string): Promise<unknown>;
     prepare(sql: string): TestStatement;
-  }; FLAGGED_SPANS_SCHEMA: string;
+  }; FLAGGED_SPANS_SCHEMA: string; REVIEW_REQUIREMENT_SCHEMA: string;
 };
 const db = d1 as unknown as ReviewsDatabase;
 const player = { id: "reviewer", name: "sam", normalizedName: "sam" };
@@ -27,15 +27,18 @@ beforeAll(async () => {
     CREATE TABLE review_assignments (id TEXT PRIMARY KEY, message_id TEXT, seed_case_id TEXT, player_id TEXT, assignment TEXT, consumed_at INTEGER, expires_at INTEGER, created_at INTEGER DEFAULT 0);
     CREATE TABLE test_cases (id TEXT PRIMARY KEY, source TEXT);
     CREATE TABLE reviews (id TEXT PRIMARY KEY, message_id TEXT, seed_case_id TEXT, player_id TEXT, verdict TEXT, rule TEXT, reason TEXT, skipped INTEGER, seed_correct INTEGER, assignment TEXT, created_at INTEGER);`);
+  await d1.exec(progressSchema.replace(/--[^\n]*/g, "").replace(/\s+/g, " "));
   for (const sql of schema.replace(/--[^\n]*/g, "").split(";")) {
     if (sql.trim()) await d1.prepare(sql).run();
   }
   await d1.exec("INSERT INTO players (id, name) VALUES ('author', 'kai');");
 });
 beforeEach(async () => {
+  await d1.exec("DELETE FROM player_review_progress; DELETE FROM players WHERE id = 'reviewer';");
   await d1.exec(`DELETE FROM reviews; DELETE FROM review_assignments; DELETE FROM messages;
     INSERT INTO messages (id, author_id, text, masked_text, filter_outcome, status, context_message_ids) VALUES ('m', 'author', '1234567 rude', NULL, 'passed', 'pending', '[]');
     INSERT INTO review_assignments (id, message_id, seed_case_id, player_id, assignment, consumed_at, expires_at) VALUES ('a', 'm', NULL, 'reviewer', 'queue', NULL, 9999999999);`);
+  await d1.exec("INSERT INTO players (id, name) VALUES ('reviewer', 'sam');");
 });
 it("stores UTF-16 offsets into the serialized text after a seven-digit run", async () => {
   const result = await submitReview(db, player, {
@@ -62,7 +65,7 @@ it("consumes every stale open message assignment on a direct queue refresh", asy
   expect((await d1.prepare("SELECT COUNT(*) AS n FROM reviews").first<{ n: number }>())!.n).toBe(0);
 });
 it("rejects self-review at insertion", async () => {
-  await d1.exec("UPDATE messages SET author_id = 'reviewer'; INSERT INTO players (id, name) VALUES ('reviewer', 'sam');");
+  await d1.exec("UPDATE messages SET author_id = 'reviewer';");
   expect(await submitReview(db, player, { assignmentId: "a", action: "fine" })).toMatchObject({ ok: false, status: 409 });
 });
 it.each(["fine", null])("database rejects spans with verdict %s even when bypassing validation", async (verdict) => {

@@ -143,3 +143,27 @@ it("concurrent and duplicate submissions cannot double score", async () => {
   expect((await submit("b")).ok).toBe(false);
   await computeConsensus(db, "m"); expect(await points()).toBe(1);
 });
+
+it("rolls review, assignment, progress and verdict back together when consensus fails", async () => {
+  await vote("a", "not_ok");
+  await d1.exec(`INSERT INTO player_review_progress VALUES ('b', 5);
+    INSERT INTO review_assignments (id, player_id, message_id, assignment, created_at, expires_at)
+      VALUES ('b', 'b', 'm', 'queue', 0, 9999999999);
+    CREATE TRIGGER fail_submission_score BEFORE INSERT ON scores BEGIN SELECT RAISE(ABORT, 'test consensus failure'); END;`.replace(/\s+/g, " "));
+  const submit = () => submitReview(db, { id: "b", name: "b", normalizedName: "b" }, {
+    assignmentId: "b", action: "not_ok", rule: "profanity", reason: "Synthetic reason",
+  });
+  try {
+    expect(await submit()).toMatchObject({ ok: false, status: 500 });
+    expect(await d1.prepare("SELECT id FROM reviews WHERE player_id = ?").bind("b").first()).toBeNull();
+    expect(await d1.prepare("SELECT consumed_at FROM review_assignments WHERE id = ?").bind("b").first())
+      .toEqual({ consumed_at: null });
+    expect(await d1.prepare("SELECT posts_since_review FROM player_review_progress WHERE player_id = ?").bind("b").first())
+      .toEqual({ posts_since_review: 5 });
+    expect(await status()).toBe("pending");
+    expect(await points()).toBe(0);
+  } finally { await d1.exec("DROP TRIGGER fail_submission_score"); }
+  expect(await submit()).toMatchObject({ ok: true });
+  expect(await status()).toBe("slip");
+  expect(await points()).toBe(1);
+});

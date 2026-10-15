@@ -44,6 +44,8 @@ function createDb(options: {
   roomNames?: string[];
   playerPostCount?: number;
   sitePostCount?: number;
+  queueSize?: number;
+  postsSinceReview?: number;
 }): MessagesDatabase & { batched: MessagesStatement[][] } {
   const batched: MessagesStatement[][] = [];
   return {
@@ -65,6 +67,9 @@ function createDb(options: {
             args,
             all: baseAll as MessagesStatement["all"],
           };
+          if (sql.includes("AS queue_size")) {
+            statement.first = (async () => ({ queue_size: options.queueSize ?? 0, posts: options.postsSinceReview ?? 0 })) as MessagesStatement["first"];
+          }
           if (sql.includes("FROM player_daily_posts")) {
             statement.first = (async () => ({
               post_count: options.playerPostCount ?? 0,
@@ -100,6 +105,11 @@ function createDb(options: {
 }
 
 describe("postMessage", () => {
+  it.each([[10, 5], [49, 5], [50, 3], [199, 3], [200, 1]])("requires a review at queue size %i after %i posts before Jev", async (queueSize, postsSinceReview) => {
+    expect(await postMessage(createDb({ queueSize, postsSinceReview }), player, { text: "pending draft" }))
+      .toMatchObject({ ok: false, status: 409, code: "review_required" });
+    expect(moderate).not.toHaveBeenCalled();
+  });
   it("rejects messages over the PRD length limit", async () => {
     const db = createDb({});
     const result = await postMessage(db, player, {
@@ -143,10 +153,10 @@ describe("postMessage", () => {
     });
     expect(db.batched).toHaveLength(1);
     const batch = db.batched[0]!;
-    expect(batch).toHaveLength(4);
-    expect(batch[0]?.sql).toContain("player_daily_posts");
-    expect(batch[1]?.sql).toContain("site_daily_posts");
-    const insert = batch[2];
+    expect(batch).toHaveLength(5);
+    expect(batch[1]?.sql).toContain("player_daily_posts");
+    expect(batch[2]?.sql).toContain("site_daily_posts");
+    const insert = batch[3];
     expect(insert?.sql).toContain("INSERT INTO messages");
     expect(insert?.args).toContain(ACTIVE_FILTER_VERSION_ID);
     expect(insert?.args).toContain(JSON.stringify(["ctx-1"]));

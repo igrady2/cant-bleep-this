@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SELF_HARM_CRISIS_NOTE } from "@/lib/content/self-harm-crisis-note";
@@ -77,7 +77,9 @@ describe("ChatRoom crisis note", () => {
   });
 
   afterEach(() => {
+    cleanup();
     window.localStorage.clear();
+    window.sessionStorage.clear();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -100,5 +102,26 @@ describe("ChatRoom crisis note", () => {
     expect(screen.getByText(SELF_HARM_CRISIS_NOTE.message)).toBeTruthy();
     expect(screen.getByRole("link", { name: SELF_HARM_CRISIS_NOTE.phone })).toBeTruthy();
     expect(screen.getByRole("link", { name: SELF_HARM_CRISIS_NOTE.websiteLabel })).toBeTruthy();
+  });
+
+  it("links a paused post to the queue and restores the exact draft after returning", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => ({
+      ok: !url.includes("/api/post"), status: url.includes("/api/post") ? 409 : 200,
+      json: async () => url.includes("/api/post")
+        ? { code: "review_required", error: "Review or skip a message first." }
+        : { messages: [] },
+    })));
+    const user = userEvent.setup();
+    const view = render(createElement(ChatRoom));
+    const input = screen.getByLabelText(/Write a message/i);
+    const text = "  My pending draft!  ";
+    await user.type(input, text);
+    await user.click(screen.getByRole("button", { name: /Send message/i }));
+    const link = await screen.findByRole("link", { name: "Go to review queue" });
+    expect(link.getAttribute("href")).toBe("/judge?returnTo=draft");
+    expect((input as HTMLTextAreaElement).value).toBe(text);
+    view.unmount();
+    render(createElement(ChatRoom));
+    expect((screen.getByLabelText(/Write a message/i) as HTMLTextAreaElement).value).toBe(text);
   });
 });
