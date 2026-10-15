@@ -156,3 +156,53 @@ export async function findOpenReviewAssignment(
      ORDER BY created_at, id LIMIT 1`,
   ).bind(playerId, now) as { first<T>(): Promise<T | null> }).first<OpenReviewAssignment>();
 }
+
+export interface ConsumableReviewAssignment extends OpenReviewAssignment {
+  player_id: string;
+  expires_at: number;
+  consumed_at: number | null;
+}
+
+/** Load an assignment the player still owns and may submit against. */
+export async function getConsumableReviewAssignment(
+  db: ReviewsDatabase,
+  assignmentId: string,
+  playerId: string,
+  now: number,
+): Promise<ConsumableReviewAssignment | null> {
+  const row = await (
+    db
+      .prepare(
+        `SELECT id, assignment, message_id, seed_case_id, player_id, expires_at, consumed_at
+         FROM review_assignments
+         WHERE id = ? AND player_id = ?
+         LIMIT 1`,
+      )
+      .bind(assignmentId, playerId) as { first<T>(): Promise<T | null> }
+  ).first<ConsumableReviewAssignment>();
+
+  if (!row) return null;
+  if (row.consumed_at != null) return null;
+  if (row.expires_at <= now) return null;
+  return row;
+}
+
+export async function markReviewAssignmentConsumed(
+  db: ReviewsDatabase,
+  assignmentId: string,
+  playerId: string,
+  now: number,
+): Promise<boolean> {
+  const result = await (
+    db
+      .prepare(
+        `UPDATE review_assignments
+         SET consumed_at = ?
+         WHERE id = ? AND player_id = ? AND consumed_at IS NULL AND expires_at > ?`,
+      )
+      .bind(now, assignmentId, playerId, now) as {
+      run(): Promise<{ meta?: { changes?: number } }>;
+    }
+  ).run();
+  return (result.meta?.changes ?? 0) > 0;
+}

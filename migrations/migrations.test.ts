@@ -35,3 +35,12 @@ describe("D1 migrations", () => {
     expect(sql).toContain("messages_review_queue_scan");
   });
 });
+
+  it("stores flagged character spans on reviews as a JSON array", () => {
+    const sql = readFileSync(join(import.meta.dirname, "0006_flagged_spans.sql"), "utf8");
+    expect(sql).toContain("flagged_spans");
+    expect(sql).toContain("json_valid(flagged_spans)");
+    expect(sql).toContain("json_type(flagged_spans) = 'array'");
+    expect(sql).not.toMatch(/0002_/);
+  });
+

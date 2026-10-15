@@ -162,7 +162,7 @@ cases retain the policy-violating words with contact details redacted. These
 helpers do not replace off-limits filtering or dataset username anonymization
 (tracked in [#22](https://github.com/igrady2/cant-bleep-this/issues/22), including
 consistent Player A/Player B replacements in messages, context and reasons).
-Queue assignment (`POST /api/review/queue`, `POST /api/review/judge`) is implemented; review submission UI and the permanent dataset exporter are not implemented yet and must
+Queue assignment (`POST /api/review/queue`, `POST /api/review/judge`) and review submission (`POST /api/review/submit` with the `/judge` UI) are implemented; the permanent dataset exporter is not implemented yet and must
 use these helpers when added. The existing demo uses the masked API response for
 both its message list and blocked-message notice.
 
