@@ -8,6 +8,7 @@
     "start": "next start -p 4317",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
+    "typegen": "next typegen",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",

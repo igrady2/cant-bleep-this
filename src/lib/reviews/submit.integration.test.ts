@@ -22,7 +22,7 @@ const { REVIEWS_TEST_DB: d1, FLAGGED_SPANS_SCHEMA: schema } = env as unknown as 
 const db = d1 as unknown as ReviewsDatabase;
 const player = { id: "reviewer", name: "sam", normalizedName: "sam" };
 beforeAll(async () => {
-  await d1.exec(`CREATE TABLE players (id TEXT PRIMARY KEY, name TEXT);
+  await d1.exec(`CREATE TABLE players (id TEXT PRIMARY KEY, name TEXT, reviewer_standing TEXT DEFAULT 'good');
     CREATE TABLE messages (id TEXT PRIMARY KEY, author_id TEXT, text TEXT, masked_text TEXT, filter_outcome TEXT, status TEXT, context_message_ids TEXT, filter_scores TEXT DEFAULT '{}', created_at INTEGER DEFAULT 0);
     CREATE TABLE review_assignments (id TEXT PRIMARY KEY, message_id TEXT, seed_case_id TEXT, player_id TEXT, assignment TEXT, consumed_at INTEGER, expires_at INTEGER, created_at INTEGER DEFAULT 0);
     CREATE TABLE test_cases (id TEXT PRIMARY KEY, source TEXT);
@@ -30,7 +30,7 @@ beforeAll(async () => {
   for (const sql of schema.replace(/--[^\n]*/g, "").split(";")) {
     if (sql.trim()) await d1.prepare(sql).run();
   }
-  await d1.exec("INSERT INTO players VALUES ('author', 'kai');");
+  await d1.exec("INSERT INTO players (id, name) VALUES ('author', 'kai');");
 });
 beforeEach(async () => {
   await d1.exec(`DELETE FROM reviews; DELETE FROM review_assignments; DELETE FROM messages;
@@ -62,7 +62,7 @@ it("consumes every stale open message assignment on a direct queue refresh", asy
   expect((await d1.prepare("SELECT COUNT(*) AS n FROM reviews").first<{ n: number }>())!.n).toBe(0);
 });
 it("rejects self-review at insertion", async () => {
-  await d1.exec("UPDATE messages SET author_id = 'reviewer'; INSERT INTO players VALUES ('reviewer', 'sam');");
+  await d1.exec("UPDATE messages SET author_id = 'reviewer'; INSERT INTO players (id, name) VALUES ('reviewer', 'sam');");
   expect(await submitReview(db, player, { assignmentId: "a", action: "fine" })).toMatchObject({ ok: false, status: 409 });
 });
 it.each(["fine", null])("database rejects spans with verdict %s even when bypassing validation", async (verdict) => {
