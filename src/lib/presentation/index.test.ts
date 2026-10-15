@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  censorSlips,
   filterDeliverableContext,
   maskPersonalInformation,
   serializePublicMessage,
@@ -107,12 +108,13 @@ describe("presentation boundaries", () => {
   it("censors public slips while preserving masked violations for reviewers and the dataset", () => {
     const input = { ...message, context: [{ ...message }] };
     const publicMessage = serializePublicMessage(input);
-    expect(publicMessage.text).toBe("█████");
+    expect(publicMessage.text).toBe("Y** *r* st*p*d. C*ll [redacted]");
     expect(publicMessage.slipRule).toBe("Harassment");
-    expect(publicMessage.context[0].text).toBe("█████");
+    expect(publicMessage.context[0].text).toBe("Y** *r* st*p*d. C*ll [redacted]");
     for (const serialize of [serializeReviewerMessage, serializeTestCase]) {
       expect(serialize(input).text).toBe("You are stupid. Call [redacted]");
-      expect(serialize(input).context[0].text).toBe("You are stupid. Call [redacted]");
+      expect(serialize(input).context[0].text).toBe(serialize === serializeReviewerMessage
+        ? "Y** *r* st*p*d. C*ll [redacted]" : "You are stupid. Call [redacted]");
     }
   });
 
@@ -158,5 +160,45 @@ describe("presentation boundaries", () => {
       "context", "filterOutcome", "reasons", "slipRule", "status", "text", "username",
     ]);
     expect(serializeTestCase(output)).toEqual(output);
+  });
+});
+
+
+describe("span censorship", () => {
+  it.each([
+    ["fuck", "f*ck"], ["AEIOU y", "***** y"], ["cry", "c*y"],
+    ["z", "*"], ["hh", "h*"], ["shh", "s*h"], ["shhh", "sh*h"],
+  ])("masks %s as %s", (text, expected) => {
+    expect(censorSlips(text, [{ start: 0, end: text.length }])).toBe(expected);
+  });
+
+  it("merges overlapping consonant spans before choosing one middle character", () => {
+    expect(censorSlips("shhh", [{ start: 0, end: 3 }, { start: 1, end: 4 }])).toBe("sh*h");
+  });
+
+  it("keeps adjacent consonant spans separate", () => {
+    expect(censorSlips("hhhh", [{ start: 0, end: 2 }, { start: 2, end: 4 }])).toBe("h*h*");
+  });
+
+  it("only masks marked occurrences and strips internal span data", () => {
+    const input = { ...message, text: "fuck this fuck", slipSpans: [{ start: 0, end: 4 }] };
+    expect(serializePublicMessage(input).text).toBe("f*ck this fuck");
+    expect(serializePublicMessage(input)).not.toHaveProperty("slipSpans");
+    expect(serializeReviewerMessage(input).text).toBe(input.text);
+  });
+
+  it("uses contact-masked offsets without altering redactions, even inside a span", () => {
+    const text = `${email} fuck`;
+    expect(censorSlips(text, [{ start: 11, end: 15 }])).toBe("[redacted] f*ck");
+    expect(censorSlips(text)).toBe("[redacted] f*ck");
+  });
+
+  it("uses each context slip's own spans even on judging paths", () => {
+    const input = { ...message, slipRule: undefined, context: [{
+      ...message, text: "fuck this fuck", slipSpans: [{ start: 10, end: 14 }],
+    }] };
+    for (const serialize of [serializePublicMessage, serializeReviewerMessage]) {
+      expect(serialize(input).context[0].text).toBe("fuck this f*ck");
+    }
   });
 });

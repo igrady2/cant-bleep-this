@@ -1,6 +1,9 @@
 /// <reference types="@cloudflare/vitest-pool-workers/types" />
 import { env } from "cloudflare:test";
 import { beforeAll, beforeEach, expect, it } from "vitest";
+import { loadPublicFeed } from "@/lib/messages/feed";
+import { loadMessageReviewPresentation } from "./context";
+import { serializeReviewerMessage } from "@/lib/presentation";
 import { computeConsensus } from "./verdicts";
 import { submitReview } from "./submit";
 import type { ReviewsDatabase } from "./db";
@@ -166,4 +169,39 @@ it("rolls review, assignment, progress and verdict back together when consensus 
   expect(await submit()).toMatchObject({ ok: true });
   expect(await status()).toBe("slip");
   expect(await points()).toBe(1);
+});
+
+
+it.each([false, true])("censors only the deciding spans (one reviewer empty: %s), refreshes and removes", async (empty) => {
+  await d1.exec("UPDATE messages SET text = 'fuck this fuck', masked_text = 'fuck this fuck' WHERE id = 'm'");
+  expect((await loadPublicFeed(db))[0].text).toBe("fuck this fuck");
+  // These votes must not supply spans or the rule.
+  await vote("author", "not_ok");
+  await vote("a", "not_ok");
+  await d1.exec("UPDATE players SET reviewer_standing = 'excluded' WHERE id = 'a'");
+  await vote("b", "not_ok", "hand_picked");
+  await vote("c", "not_ok", "hand_picked");
+  await vote("d", "fine");
+  await vote("e", "not_ok");
+  await vote("f", "not_ok");
+  await d1.exec("UPDATE reviews SET rule = 'hate', flagged_spans = '[{\"start\":10,\"end\":14}]' WHERE verdict = 'not_ok'");
+  await d1.prepare("UPDATE reviews SET rule = 'profanity', flagged_spans = ? WHERE player_id = 'b'")
+    .bind(JSON.stringify([{ start: 1, end: 4 }])).run();
+  await d1.prepare("UPDATE reviews SET flagged_spans = ? WHERE player_id = 'e'")
+    .bind(JSON.stringify(empty ? [] : [{ start: 0, end: 3 }])).run();
+  await computeConsensus(db, "m");
+  const feed = await loadPublicFeed(db);
+  expect(feed[0]).toMatchObject({ text: "f*ck this fuck", slipRule: "Profanity", status: "slip" });
+  expect(JSON.stringify(feed)).not.toContain("flagged_spans");
+  // A different target sees this slip censored using the slip's own marks.
+  await message("next");
+  await d1.exec(`UPDATE messages SET context_message_ids = '["m"]' WHERE id = 'next'`);
+  const review = await loadMessageReviewPresentation(db, "next");
+  expect(serializeReviewerMessage(review!).text).toBe("synthetic text");
+  expect(serializeReviewerMessage(review!).context[0].text).toBe("f*ck this fuck");
+  await d1.exec("UPDATE messages SET status = 'excluded' WHERE id = 'm'");
+  expect((await loadPublicFeed(db)).map((entry) => entry.id)).toEqual(["next"]);
+  expect((await loadMessageReviewPresentation(db, "next"))!.context).toEqual([]);
+  await d1.exec("DELETE FROM messages WHERE id = 'm'");
+  expect((await loadPublicFeed(db)).map((entry) => entry.id)).toEqual(["next"]);
 });

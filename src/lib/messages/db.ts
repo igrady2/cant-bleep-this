@@ -26,3 +26,8 @@ export function getMessagesDatabase(): MessagesDatabase | null {
     return null;
   }
 }
+
+/** D1 returns a result envelope; lightweight test adapters may return rows directly. */
+export function databaseRows<T>(result: T[] | { results: T[] }): T[] {
+  return Array.isArray(result) ? result : result.results;
+}

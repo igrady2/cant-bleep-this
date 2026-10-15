@@ -61,6 +61,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
   const { crisisNote, applyAuthorResponse, clearCrisisNote, resetCrisisNoteForPostAttempt } =
     useAuthorCrisisNote();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const feedRequestRef = useRef(0);
   const idempotencyRef = useRef<string | null>(null);
 
   const checking = notice.kind === "checking";
@@ -88,28 +89,31 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
       }
       setFeedError(null);
       setMessages(toChatMessages(result.messages));
-      if (options?.initial) setFeedLoading(false);
+      setFeedLoading(false);
     },
     [],
   );
 
   const refreshFeed = useCallback(
     (options?: { initial?: boolean }) => {
-      void fetchRoomFeed().then((result) => applyFeedResult(result, options));
+      const request = ++feedRequestRef.current;
+      void fetchRoomFeed().then((result) => {
+        if (request === feedRequestRef.current) applyFeedResult(result, options);
+      });
     },
     [applyFeedResult],
   );
 
   useEffect(() => {
-    void fetchRoomFeed().then((result) => applyFeedResult(result, { initial: true }));
-  }, [applyFeedResult]);
+    refreshFeed({ initial: true });
+  }, [refreshFeed]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
 
     const tick = () => {
       if (document.visibilityState === "visible") {
-        void fetchRoomFeed().then((result) => applyFeedResult(result));
+        refreshFeed();
       }
     };
 
@@ -124,7 +128,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
         timer = null;
       }
       if (document.visibilityState === "visible") {
-        void fetchRoomFeed().then((result) => applyFeedResult(result));
+        refreshFeed();
         start();
       }
     };
@@ -135,7 +139,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
       if (timer) clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [applyFeedResult]);
+  }, [refreshFeed]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });

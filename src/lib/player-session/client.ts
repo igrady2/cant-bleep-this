@@ -67,7 +67,7 @@ export type PostMessageApiBody =
 export async function fetchRoomFeed(): Promise<
   { ok: true; messages: FeedMessage[] } | { ok: false; error: string }
 > {
-  const res = await fetch("/api/feed");
+  const res = await fetch("/api/feed", { cache: "no-store" });
   const data = (await res.json().catch(() => null)) as
     | { messages?: FeedMessage[]; error?: string }
     | null;

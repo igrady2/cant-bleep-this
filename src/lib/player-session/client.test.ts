@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { claimUsernameRequest, fetchPlayerProfile } from "./client";
+import { claimUsernameRequest, fetchPlayerProfile, fetchRoomFeed } from "./client";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -60,4 +60,11 @@ describe("fetchPlayerProfile", () => {
       },
     });
   });
+});
+
+it("bypasses cached room responses on every refresh", async () => {
+  const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ messages: [] }) });
+  vi.stubGlobal("fetch", fetchMock);
+  await fetchRoomFeed();
+  expect(fetchMock).toHaveBeenCalledWith("/api/feed", { cache: "no-store" });
 });
