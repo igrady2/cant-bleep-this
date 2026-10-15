@@ -10,7 +10,7 @@ function createDb(options: {
     id: string;
     author_id: string;
     filter_outcome: "passed" | "blocked";
-    status: "pending";
+    status: import("@/lib/messages/disposition").MessageStatus;
     text: string;
     masked_text: string;
     context_message_ids: string;
@@ -79,6 +79,17 @@ describe("assignHandPickedMessage", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.status).toBe(404);
+    expect(createSpy).not.toHaveBeenCalled();
+    createSpy.mockRestore();
+  });
+
+  it.each(["slip", "clean", "caught", "false_positive", "excluded"] as const)("rejects %s without creating an assignment", async (status) => {
+    const createSpy = vi.spyOn(await import("./assignments"), "createMessageReviewAssignment");
+    const result = await assignHandPickedMessage(createDb({ message: {
+      id: "decided", author_id: "other", filter_outcome: "passed", status,
+      text: "hello", masked_text: "hello", context_message_ids: "[]", author_name: "sam",
+    } }), player, "decided");
+    expect(result).toMatchObject({ ok: false, status: 404 });
     expect(createSpy).not.toHaveBeenCalled();
     createSpy.mockRestore();
   });

@@ -1,5 +1,9 @@
+import Link from "next/link";
+import type { MessageStatus } from "@/lib/messages/disposition";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export interface ChatMessage {
   id: string;
@@ -7,6 +11,7 @@ export interface ChatMessage {
   text: string;
   sentAt: number;
   slipRule?: string;
+  status?: MessageStatus;
 }
 
 const timeFormat = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
@@ -20,14 +25,17 @@ function authorInitial(author: string): string {
 export function MessageList({
   messages,
   playerName,
+  showJudgeActions = false,
 }: {
   messages: ChatMessage[];
   playerName?: string | null;
+  /** When true, non-author messages link to the hand-picked judge flow. */
+  showJudgeActions?: boolean;
 }) {
   return (
     <ol className="space-y-5">
       {messages.map((m) => {
-        const isSelf = playerName && m.author === playerName;
+        const isSelf = Boolean(playerName && m.author === playerName);
         return (
           <li key={m.id} className="flex gap-3">
             <Avatar className="mt-0.5 size-9 shrink-0">
@@ -53,6 +61,16 @@ export function MessageList({
                 >
                   {timeFormat.format(m.sentAt)}
                 </time>
+                {showJudgeActions && !isSelf && m.status === "pending" ? (
+                  <Button
+                    variant="link"
+                    size="xs"
+                    className="h-auto px-0 text-xs"
+                    render={<Link href={`/judge?messageId=${encodeURIComponent(m.id)}`} />}
+                  >
+                    Judge
+                  </Button>
+                ) : null}
               </div>
               <p className="mt-1 rounded-2xl rounded-tl-sm bg-muted px-4 py-2.5 leading-relaxed break-words whitespace-pre-wrap">
                 {m.text}

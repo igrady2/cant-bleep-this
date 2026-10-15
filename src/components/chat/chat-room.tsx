@@ -29,6 +29,7 @@ function toChatMessages(feed: FeedMessage[]) {
     text: message.text,
     sentAt: message.createdAt * 1000,
     slipRule: message.slipRule,
+    status: message.status,
   }));
 }
 
@@ -243,7 +244,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
           ) : messages.length === 0 ? (
             <EmptyState />
           ) : (
-            <MessageList messages={messages} playerName={playerName} />
+            <MessageList messages={messages} playerName={playerName} showJudgeActions />
           )}
         </div>
       </main>
