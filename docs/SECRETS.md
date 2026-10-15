@@ -10,12 +10,14 @@ Player device tokens are not environment variables. The server stores only their
 | --- | --- |
 | Local (`npm run dev`) | Next.js reads `.env.local`. Copy `.env.example` to `.env.local`. `.env.local` is gitignored. This process has no D1, rate-limit, or other Worker bindings. |
 | Local preview (`npm run preview`) | Wrangler reads `.dev.vars`, not `.env.local`. Copy `.dev.vars.example` to `.dev.vars`. `.dev.vars` is gitignored. Bindings come from `wrangler.jsonc`. |
-| Remote preview | A separate preview Worker. Set private values with `npx wrangler secret put <NAME>` on that Worker. Public overrides go in Wrangler `vars` or the dashboard. Manual. See [#29](https://github.com/igrady2/cant-bleep-this/issues/29). |
-| Production | Worker name `cant-bleep-this` at cantbleepthis.com. Set private values with `npx wrangler secret put <NAME> --name cant-bleep-this`. Public overrides go in the `vars` block of `wrangler.jsonc` (or the dashboard). Manual. See [#32](https://github.com/igrady2/cant-bleep-this/issues/32). |
+| Remote preview | A separate preview Worker. Set private runtime values with `npx wrangler secret put <NAME>` on that Worker. Non-secret runtime overrides go in Wrangler `vars` or the dashboard. `NEXT_PUBLIC_` values are build-time only (see below). Manual. See [#29](https://github.com/igrady2/cant-bleep-this/issues/29). |
+| Production | Worker name `cant-bleep-this` at cantbleepthis.com. Set private runtime values with `npx wrangler secret put <NAME> --name cant-bleep-this`. Non-secret runtime overrides go in the `vars` block of `wrangler.jsonc` (or the dashboard). `NEXT_PUBLIC_` values are build-time only (see below). Manual. See [#32](https://github.com/igrady2/cant-bleep-this/issues/32). |
 
 Secrets do not move with a Worker rename. After the name change to `cant-bleep-this`, set them again on the new Worker ([#36](https://github.com/igrady2/cant-bleep-this/issues/36)).
 
-CI (`.github/workflows/ci.yml`) does not receive or need these values. Do not put them in GitHub Actions secrets for that workflow.
+Next.js inlines every `NEXT_PUBLIC_` value into the client bundle when `next build` or `opennextjs-cloudflare build` runs. Set those on the build, including Workers Builds → Settings → Builds → Variables and secrets for that trigger. A Wrangler runtime var, a Worker secret, or a `.dev.vars` entry does not change a bundle that is already built. Runtime secrets and `vars` are for server code after deploy.
+
+CI (`.github/workflows/ci.yml`) does not receive or need these values, and it does not deploy. Do not put them in GitHub Actions secrets for that workflow.
 
 ## Variables the app reads today
 
@@ -25,7 +27,7 @@ These names come from `.env.example`, `.dev.vars.example`, `wrangler.jsonc`, and
 | --- | --- | --- | --- | --- | --- |
 | `TYPESAFE_API_KEY` | Secret. TypeSafe API key. When set, Jev scores messages. When unset, the current demo uses the local keyword mock. [#6](https://github.com/igrady2/cant-bleep-this/issues/6) removes that fallback: a missing key must then fail closed. | `.env.local`. Leave empty to use the mock. | Local: `.dev.vars`. Remote preview: Worker secret. | Worker secret: `npx wrangler secret put TYPESAFE_API_KEY --name cant-bleep-this`. | Yes. Never commit the key. |
 | `TYPESAFE_MODEL` | Optional config. Model name. Default `jev-latest` in code. | `.env.local` | `.dev.vars`, or Wrangler `vars` on a remote Worker. | Wrangler `vars`, not a secret. | Only if you override the default. |
-| `MODERATION_THRESHOLD` | Optional config. Probability at which a category blocks a message. Default `0.5` in code. | `.env.local` | `.dev.vars`, or Wrangler `vars` on a remote Worker. | Wrangler `vars`, not a secret. | Only if you override the default. |
+| `MODERATION_THRESHOLD` | Optional runtime config. The single probability the current code applies to every reviewable category. Default `0.5`. Per-rule and off-limits thresholds are separate settings below; this variable is not a substitute for them. | `.env.local` | `.dev.vars`, or Wrangler `vars` on a remote Worker. | Wrangler `vars`. Not a secret. | Only if you override the default. |
 | `MODERATION_PROVIDER` | Optional config. Set to `mock` to force the local mock even when a key is present. | `.env.local` | `.dev.vars`, or Wrangler `vars` on a remote Worker. | Wrangler `vars`, not a secret. Do not set `mock` on the live game. | Only if you force the mock. |
 | `MASK_MIN_DIGITS` | Optional config. Minimum digits masked in a phone-like run. Default `7` in code. Invalid values fail closed. | `.env.local` | `.dev.vars`, or Wrangler `vars` on a remote Worker. | Wrangler `vars`, not a secret. | Only if you override the default. |
 
@@ -37,13 +39,46 @@ Issues name these, and the app does not reference them yet. Use the names below 
 
 | Name | Kind | Local | Preview | Production | Manual? | Issue |
 | --- | --- | --- | --- | --- | --- | --- |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. The browser needs it, so the Next client bundle only sees a `NEXT_PUBLIC_` variable. | `.env.local` | Local: `.dev.vars` (and `.env.local` if the client bundle is built by `npm run preview`). Remote: Wrangler `vars` or the Turnstile hostname's widget config. Also allow the preview hostname on the Turnstile site. | Wrangler `vars` or the production build env. Allow the production hostname (cantbleepthis.com) on the Turnstile site. | Yes. Create the Turnstile widget in Cloudflare first. The site key is public; still do not treat the example files as a place to paste it. | [#9](https://github.com/igrady2/cant-bleep-this/issues/9), [#10](https://github.com/igrady2/cant-bleep-this/issues/10), [#29](https://github.com/igrady2/cant-bleep-this/issues/29), [#32](https://github.com/igrady2/cant-bleep-this/issues/32) |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Public Turnstile site key. Build-time only: Next.js inlines it into the client bundle. Do not set it as a Wrangler runtime var, a Worker secret, or a `.dev.vars` entry. | `.env.local`, read by `npm run dev` and by `next build`. | Present in the environment when `opennextjs-cloudflare build` runs (gitignored `.env.local` or `.env.production` for a local preview build). Remote preview: Workers Builds variable on the preview trigger, not a runtime var. Also allow the preview hostname on the Turnstile widget. | Workers Builds variable on the production trigger, present when `opennextjs-cloudflare build` runs. Also allow cantbleepthis.com on the Turnstile widget. | Yes. Create the Turnstile widget in Cloudflare first. The site key is public. Do not commit it. | [#9](https://github.com/igrady2/cant-bleep-this/issues/9), [#10](https://github.com/igrady2/cant-bleep-this/issues/10), [#29](https://github.com/igrady2/cant-bleep-this/issues/29), [#32](https://github.com/igrady2/cant-bleep-this/issues/32) |
 | `TURNSTILE_SECRET_KEY` | Secret. Server-side Turnstile verification. | `.env.local` | Local: `.dev.vars`. Remote preview: Worker secret. | Worker secret: `npx wrangler secret put TURNSTILE_SECRET_KEY --name cant-bleep-this`. | Yes. | [#9](https://github.com/igrady2/cant-bleep-this/issues/9), [#29](https://github.com/igrady2/cant-bleep-this/issues/29) |
 | `IP_HASH_SALT` | Secret. Salt for the daily name-claim cap (3 per IP). Only the salted hash is stored; raw IPs are not. | `.env.local` | Local: `.dev.vars`. Remote preview: Worker secret. | Worker secret: `npx wrangler secret put IP_HASH_SALT --name cant-bleep-this`. | Yes. Use a long random value, different from any other secret. | [#9](https://github.com/igrady2/cant-bleep-this/issues/9), [#29](https://github.com/igrady2/cant-bleep-this/issues/29) |
 | `CF_ACCESS_TEAM_DOMAIN` | Access team domain, used with the audience tag to verify the Access JWT on `/admin` API routes (for example `https://<team>.cloudflareaccess.com`). Not a password. Keep it off the client. | `.env.local` if you exercise admin routes locally. | Local: `.dev.vars`. Remote preview: Worker secret or `vars`, after the Access application exists for the preview hostname. | Worker secret or `vars`, after the Access application exists for the production hostname. | Yes. Create the Access application (free plan, email allow policy for the maintainer) in the Cloudflare dashboard. | [#23](https://github.com/igrady2/cant-bleep-this/issues/23) |
 | `CF_ACCESS_AUD` | Cloudflare Access application audience (AUD) tag. The Worker checks it when verifying the Access JWT so `/admin` cannot be called around Access. Not a password, but it identifies the private application. Do not commit it. | `.env.local` if you exercise admin routes locally. | Local: `.dev.vars`. Remote preview: Worker secret. | Worker secret: `npx wrangler secret put CF_ACCESS_AUD --name cant-bleep-this`. | Yes. Copy the audience tag from the Access application. One tag per application, so preview and production differ. | [#23](https://github.com/igrady2/cant-bleep-this/issues/23), [#29](https://github.com/igrady2/cant-bleep-this/issues/29) |
 
 [#29](https://github.com/igrady2/cant-bleep-this/issues/29) also says to set "the chosen admin credential where required." [#23](https://github.com/igrady2/cant-bleep-this/issues/23) decides that protection is Cloudflare Access with an email allow policy, so there is no admin password to store. Do not add one unless a later issue requires it. If it ever is required, set it with `npx wrangler secret put` and do not commit it.
+
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` is the only `NEXT_PUBLIC_` variable in this inventory. Any later `NEXT_PUBLIC_` name is also build-time only. Do not list it as a Wrangler runtime var.
+
+## Per-rule and off-limits thresholds
+
+These are runtime configuration, not secrets, and not `NEXT_PUBLIC_` values. Each is a probability. The initial value is **0.5**, and a score equal to the threshold triggers that question. The off-limits threshold is independent of the nine rule thresholds. Change them without a code release ([PRD](PRD.md#our-content-rules), [content rules](CONTENT_RULES.md)). Issue [#12](https://github.com/igrady2/cant-bleep-this/issues/12) owns the off-limits setting. Issue [#15](https://github.com/igrady2/cant-bleep-this/issues/15) reads the current per-rule thresholds when it builds the review queue.
+
+The app today reads only `MODERATION_THRESHOLD` and applies that one number to every reviewable category. It does not read the names below.
+
+| Name | Stable id | Initial |
+| --- | --- | --- |
+| `MODERATION_THRESHOLD_BULLYING_HARASSMENT` | `bullying_harassment` | 0.5 |
+| `MODERATION_THRESHOLD_HATE_SPEECH` | `hate_speech` | 0.5 |
+| `MODERATION_THRESHOLD_SEXUAL_CONTENT` | `sexual_content` | 0.5 |
+| `MODERATION_THRESHOLD_VIOLENCE_THREATS` | `violence_threats` | 0.5 |
+| `MODERATION_THRESHOLD_SELF_HARM` | `self_harm` | 0.5 |
+| `MODERATION_THRESHOLD_PROFANITY` | `profanity` | 0.5 |
+| `MODERATION_THRESHOLD_PERSONAL_INFO` | `personal_info` | 0.5 |
+| `MODERATION_THRESHOLD_SPAM` | `spam` | 0.5 |
+| `MODERATION_THRESHOLD_IMPERSONATION` | `impersonation` | 0.5 |
+| `MODERATION_THRESHOLD_OFF_LIMITS` | `off_limits` | 0.5 |
+
+| Environment | Where to set them | Manual? |
+| --- | --- | --- |
+| Local (`npm run dev`) | `.env.local` | Only when overriding 0.5. |
+| Local preview | `.dev.vars` | Only when overriding 0.5. |
+| Remote preview and production | Wrangler `vars` (runtime), not Worker secrets and not Workers Builds variables. | Only when overriding 0.5. |
+
+## Cloudflare API token for Workers Builds
+
+| Name | Kind | Local | Preview | Production | Manual? |
+| --- | --- | --- | --- | --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Secret. Authenticates non-interactive Wrangler deploys. Workers Builds uses an API token to upload the Worker (Worker → Settings → Builds → API token). Cloudflare can generate that token. It is not a Worker runtime value: do not put it in wrangler `vars`, `wrangler secret put`, or `.dev.vars`. | Shell environment, or a gitignored `.env` file that Wrangler loads. `npx wrangler login` is the interactive alternative and stores nothing in the repo. | Workers Builds preview trigger → Settings → Builds → API token. | Workers Builds production trigger → Settings → Builds → API token. | Yes, when you supply your own token. Never commit it. GitHub Actions CI does not deploy and must not receive this token. |
 
 ## Worker bindings in `wrangler.jsonc` (not env secrets)
 

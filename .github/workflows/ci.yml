@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   check:
     name: lint, typecheck, test, build
@@ -39,3 +42,7 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Build half of `npm run deploy` / `npm run preview`. No deploy and no secrets.
+      - name: Build OpenNext Worker
+        run: npx opennextjs-cloudflare build
