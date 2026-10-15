@@ -90,7 +90,7 @@ Players are the judges. Anyone can judge any message at any time, and a player w
 1. **Enter the room.** Confirm you are 18 or older and pick a username. The MVP has one shared room, a chat feed showing the newest 50 messages.
 2. **Post.** Write up to 140 characters and send.
 3. **The filter checks it in context**, with the last 10 messages and the usernames in the room. Passed messages appear in the feed. Blocked messages don't, and the author sees which rule they hit. If the filter can't be reached, nothing is posted and the author sees an error.
-4. **Judge.** Tap **Judge** on any message in the feed, or take the next one from the queue. You see it with the 10 messages before it and their usernames, then choose **Fine** or **Not OK**. Not OK asks for a rule and one line on how it breaks it ("'pro Al' is a sexual joke about the player Al").
+4. **Judge.** Tap **Judge** on any message in the feed, or take the next one from the queue. You see it with the 10 messages before it and their usernames, then choose **Fine** or **Not OK**. Not OK asks for a rule, the offending words (tap to mark them), and one line on how it breaks it ("'pro Al' is a sexual joke about the player Al").
 5. **Review requirement.** After a set number of posts without judging, the next post waits until you judge one message from the queue (see Review requirement below).
 6. **Players decide.** Every message, passed or blocked, collects 3 reviews from players other than its author. The first 2 that agree set the verdict.
 
@@ -167,7 +167,7 @@ The test set is the one thing kept past 90 days. Each case keeps the message, it
 
 ## Censoring and false positives
 
-**Censoring.** A message posts first and is censored once players confirm it as a slip. In v1 the feed replaces the whole message with "█████" and the rule name. A later improvement lets reviewers mark the offending words when they judge, so the feed can mask just those words ("f\*\*\*").
+**Censoring.** A message posts first and is censored once players confirm it as a slip. The feed keeps the message readable and masks only the flagged words or phrases by replacing their vowels with "\*" ("f\*ck"), and shows the rule name. The point of the game is seeing what gets through, so a censored slip should still be easy to read, just lightly censored. A flagged span with no vowels (such as "shh") has its middle character masked instead ("s\*h"). The flagged words are the ones the deciding Not OK reviewers marked (see Core loop step 4); if none were marked, the whole message is masked the same way.
 
 - Reviewers see the original, because judging it is their job. Entering the room shows a one-time note: "You'll judge messages other players wrote. Some will be offensive. You can skip any of them."
 - Phone numbers, emails and long digit runs are masked before anyone sees a message, reviewers included.
@@ -196,7 +196,7 @@ The game lives in the cant-bleep-this repo deployed as its own Cloudflare Worker
 | --- | --- | --- |
 | players | name, normalized name (unique), token hash, created, last played, reviewer standing | Until 90 days without a post |
 | messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
-| reviews | message, reviewer, Fine or Not OK, rule, reason, skipped flag, time (one per reviewer per message) | 90 days |
+| reviews | message, reviewer, Fine or Not OK, rule, flagged words, reason, skipped flag, time (one per reviewer per message) | 90 days |
 | scores | player, day, slips (one row per player per day) | 90 days |
 | test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames replaced by stand-ins |
 
