@@ -1,6 +1,7 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { POST } from "./route";
 import { CATEGORIES } from "@/lib/moderation/categories";
+import { TypeSafeError } from "@/lib/moderation/typesafe";
 
 const { moderate } = vi.hoisted(() => ({ moderate: vi.fn() }));
 vi.mock("@/lib/moderation", () => ({ moderate }));
@@ -64,6 +65,25 @@ it("does not return message text for off-limits outcomes", async () => {
   const body = await response.json() as Record<string, unknown>;
   expect(body).toEqual({ outcome: "off_limits", allowed: false, provider: "typesafe" });
   expect(JSON.stringify(body)).not.toContain(secret);
+});
+
+it("returns an error without echoing the message when Jev returns an invalid Noul score", async () => {
+  const secret = "unique-invalid-noul-secret-phrase";
+  moderate.mockRejectedValue(new TypeSafeError('Invalid Noul score for "off_limits"'));
+  const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const response = await POST(new Request("https://example.test/api/moderate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: secret }),
+    }));
+    expect(response.status).toBe(503);
+    const body = await response.json() as { error: string };
+    expect(body.error).toMatch(/unavailable/i);
+    expect(JSON.stringify(body)).not.toContain(secret);
+  } finally {
+    log.mockRestore();
+  }
 });
 
 it("fails closed when the masking setting is invalid", async () => {

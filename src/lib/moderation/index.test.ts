@@ -22,6 +22,31 @@ function stubJev(scores: Partial<Record<CategoryId, number>>, offLimits = 0.02) 
   return fetchMock;
 }
 
+/** JSON.stringify drops NaN/Infinity; stub json() so TypeSafe parsing sees them. */
+function stubJevParsedAnswers(
+  answers: Record<string, { type: "noul"; noul: number }>,
+) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ model: "jev-test", answers }),
+    })) as unknown as typeof fetch,
+  );
+  vi.stubEnv("TYPESAFE_API_KEY", "test-key");
+  vi.stubEnv("MODERATION_PROVIDER", "");
+}
+
+function validJevAnswers(
+  overrides: Record<string, { type: "noul"; noul: number }> = {},
+): Record<string, { type: "noul"; noul: number }> {
+  return {
+    ...Object.fromEntries(IDS.map((id) => [id, { type: "noul" as const, noul: 0.1 }])),
+    [OFF_LIMITS_ID]: { type: "noul", noul: 0.1 },
+    ...overrides,
+  };
+}
+
 function sentBody(fetchMock: ReturnType<typeof vi.fn>) {
   const init = fetchMock.mock.calls[0][1] as RequestInit;
   return JSON.parse(init.body as string) as {
@@ -122,6 +147,27 @@ describe("Jev request", () => {
       /Invalid Noul score for "profanity"/,
     );
   });
+
+  it.each([
+    [OFF_LIMITS_ID, Number.NaN],
+    [OFF_LIMITS_ID, Number.POSITIVE_INFINITY],
+    [OFF_LIMITS_ID, Number.NEGATIVE_INFINITY],
+  ])("rejects non-finite Noul scores for off_limits (%s)", async (questionId, noul) => {
+    stubJevParsedAnswers(validJevAnswers({ [questionId]: { type: "noul", noul } }));
+    await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(
+      new RegExp(`Invalid Noul score for "${questionId}"`),
+    );
+  });
+
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    "rejects non-finite Noul scores for profanity (%s)",
+    async (noul) => {
+      stubJevParsedAnswers(validJevAnswers({ profanity: { type: "noul", noul } }));
+      await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(
+        /Invalid Noul score for "profanity"/,
+      );
+    },
+  );
 });
 
 describe("rule mapping", () => {
