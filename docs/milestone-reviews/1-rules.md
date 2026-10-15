@@ -18,7 +18,7 @@ The M1 issues were created Oct 14 between 2:46 and 2:47 PM, and the milestone it
 - **Result:** 4 of 4 planned M1 issues shipped. None were dropped or deferred.
 - **Scope changes after start:** unknown. GitHub keeps no history of milestone membership.
 - **Not part of M1:** #1 is the PRD PR (merged Oct 14, 2:38 PM, before the milestone existed) and isn't on the M1 milestone.
-- **Related but not shipped as code:** #49 (vowel-mask censoring and word flagging) was filed in M3 after PRs #48 and #53 documented the PRD decision. It was **closed without any code merging**. On main, `presentText` still returns `█████`. Indigo moved the unfinished work into open issues **#16** (judging UI / word tapping) and **#20** (censor in feed / vowel masking). Do not read #49's closed state as delivery.
+- **Related but not shipped as code:** #49 (vowel-mask censoring and word flagging) was filed in M3 after PRs #48 and #53 documented the PRD decision. It was originally **closed without any code merging**. On main, `presentText` still returns `█████` until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20** (judging UI / word tapping, and censor in feed / vowel masking). Do not read #49's closed state as delivery.
 
 ## 2. Changes and why
 
@@ -29,7 +29,7 @@ These PRs changed the PRD or delivered M1 scope. Reasons come from PR bodies. Wh
 - **PR #43 (closes #2): CONTENT_RULES.md and general-audience policy.** Adds nine Jev questions with stable IDs, 0.5 thresholds, boundary examples, plus a separate off_limits question; removes school framing and academic dishonesty.
 - **PR #48: PRD censors slips by masking vowels in flagged words.** Docs-only decision: replaces whole-message "█████" in the PRD (Indigo decided 2026-10-15) so slips stay readable ("f\*ck"). Word marking moves into Build v1 scope. **Code did not change.** Follow-ups named at the time were #20, presentation code still using █████, and a schema migration.
 - **PR #53: Clarifies v1 word tapping and vowel masking in the PRD.** Docs only. Records edge cases from the #48 review (union of deciding spans; whole-message mask only if neither marked; y is not a vowel; no-vowel middle-character mask). With #48, it produced issue #49. PR #53 closes neither #49 nor #20.
-- **#49 closed without merged code (process gap).** #49 asked for the Build v1 implementation: word tapping, spans migration, and vowel masking so `presentText` no longer returns █████. It was closed Oct 15 at 11:44 AM BOT, but no implementation PR merged. Main still returns █████. Indigo moved that work into **#16** and **#20**, which remain open. Closing an issue without a merge is a process gap this review must not repeat: closed ≠ shipped.
+- **#49 closed without merged code, then re-closed as superseded by #16 and #20 (process gap).** #49 asked for the Build v1 implementation: word tapping, spans migration, and vowel masking so `presentText` no longer returns █████. It was originally closed Oct 15 at 11:44 AM BOT, but no implementation PR merged. Main still returns █████ until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20**, which remain open. Closing an issue without a merge is a process gap this review must not repeat: closed ≠ shipped.
 - **PR #44 and the crisis note:** The 988 Suicide & Crisis Lifeline rule came out of #2. The crisis-note issue was added Oct 14 at 4:07 PM BOT, one minute after #2 closed.
 - **PR #50 (closes #12), #51 (closes #8), #52 (closes #3):** shipped the remaining M1 deliverables (off-limits plumbing, username policy helper, ~100 seed messages). Note: issue bodies for #8 and #12 still say "Milestone: 3 — Build v1" in their text, while GitHub lists them under Milestone 1 (Rules).
 
@@ -41,10 +41,10 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 
 | Item | Flag | Reason |
 |---|---|---|
-| #16 Judging UI | **Needs update** | Owns optional word tapping / span capture after #49 was closed without code. Must match the PRD edge cases from #48/#53. |
-| #20 Censor in feed | **Needs update** | Owns vowel masking of flagged spans after #49 was closed without code. `presentText` still returns █████ on main. |
+| #16 Judging UI | **Needs update** | Owns optional word tapping / span capture. #49 was originally closed without code and is superseded by #16 and #20. Must match the PRD edge cases from #48/#53. |
+| #20 Censor in feed | **Needs update** | Owns vowel masking of flagged spans. #49 was originally closed without code and is superseded by #16 and #20. `presentText` still returns █████ on main until #16 and #20 ship. |
 | #22 Anonymized test cases | Not | It covers PII masking with the shared helper (#11), which vowel masking doesn't change. |
-| #49 Vowel-mask / word flagging | Not | Closed without merged code; work moved to #16 and #20. Do not reopen as delivered. |
+| #49 Vowel-mask / word flagging | Not | Originally closed without merged code; being re-closed as superseded by #16 and #20. Do not reopen as delivered. |
 | PRD: Censoring and false positives | Not | PR #48 already rewrote the PRD. Code has not caught up. |
 | PRD: Censoring edge cases | Not | PRs #48 and #53 already added the vowel, no-vowel and span rules to the PRD. |
 | PRD: Core loop step 4 | Not | It already describes optional tapping and says tapping ships in Build v1. |
@@ -108,7 +108,7 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 **Process gaps**
 
 1. Missing formal GitHub reviews on the board, even though #50–#52 did get a different-model review pass through Codex comments.
-2. **#49 was closed without its code merging.** Word tapping, the spans migration, and vowel masking never landed; `presentText` still returns █████. The work now lives in open #16 and #20. Closed issues must not be treated as shipped unless a merge (or an explicit "docs-only / superseded" note) is on the record.
+2. **#49 was originally closed without its code merging.** Word tapping, the spans migration, and vowel masking never landed; `presentText` still returns █████ until #16 and #20 ship. #49 is being re-closed as **superseded by #16 and #20**. Closed issues must not be treated as shipped unless a merge (or an explicit "docs-only / superseded" note) is on the record.
 
 ## 5. Next: risks and adjustments
 
@@ -122,7 +122,7 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 **Adjustments**
 
 - Close the M1 milestone on GitHub.
-- Update #15, #16 and #20 to match PRs #39, #48 and #53 before work on them starts; #16 and #20 now carry the unfinished #49 code.
+- Update #15, #16 and #20 to match PRs #39, #48 and #53 before work on them starts; #49 is superseded by #16 and #20, which still carry that unfinished code.
 - Confirm #35's acceptance criteria against #56 and #57, then close it or list what's missing.
 - Note: #9 is in M3 and is already closed, so it doesn't affect the M2 gate.
 - Do not change the README's █████ description while it still matches `presentText` on main.
