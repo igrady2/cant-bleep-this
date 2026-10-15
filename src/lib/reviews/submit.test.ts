@@ -2,6 +2,9 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 import { submitReview } from "./submit";
 import type { ReviewsDatabase } from "./db";
+import { computeConsensus } from "./verdicts";
+
+vi.mock("./verdicts", () => ({ computeConsensus: vi.fn() }));
 
 const mocks = vi.hoisted(() => ({
   getConsumableReviewAssignment: vi.fn(),
@@ -85,6 +88,7 @@ it("accepts Not OK with optional first-occurrence span", async () => {
   });
   expect(result).toEqual({ ok: true, reviewId: expect.any(String), skipped: false });
   expect(db.batch).toHaveBeenCalledOnce();
+  expect(computeConsensus).toHaveBeenCalledWith(db, "m1");
 });
 
 it("rejects bare word strings as spans", async () => {
@@ -104,4 +108,12 @@ it("stores a Skip without a verdict", async () => {
   const db = mockDb();
   const result = await submitReview(db, player, { assignmentId: "a1", action: "skip" });
   expect(result).toEqual({ ok: true, reviewId: expect.any(String), skipped: true });
+  expect(computeConsensus).not.toHaveBeenCalled();
+});
+
+it("does not invoke consensus for an unsuccessful insert", async () => {
+  expect(await submitReview(mockDb({ saved: false }), player, {
+    assignmentId: "a1", action: "fine",
+  })).toMatchObject({ ok: false });
+  expect(computeConsensus).not.toHaveBeenCalled();
 });

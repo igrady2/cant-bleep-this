@@ -8,6 +8,7 @@ import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import { consumeReviewAssignment, getConsumableReviewAssignment } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
 import type { ReviewsDatabase } from "./db";
+import { computeConsensus } from "./verdicts";
 import {
   parseAndValidateFlaggedSpans,
   serializeFlaggedSpans,
@@ -267,5 +268,8 @@ export async function submitReview(
     };
   }
 
+  if (assignment.message_id && skipped === 0) {
+    await computeConsensus(db, assignment.message_id);
+  }
   return { ok: true, reviewId, skipped: skipped === 1 };
 }
