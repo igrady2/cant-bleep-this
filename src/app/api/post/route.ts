@@ -41,7 +41,9 @@ export async function POST(request: Request) {
 
   const result = await postMessage(db, player, { text: message, idempotencyKey });
   if (!result.ok) {
-    return Response.json({ error: result.error }, { status: result.status });
+    const body: { error: string; code?: string } = { error: result.error };
+    if (result.code) body.code = result.code;
+    return Response.json(body, { status: result.status });
   }
 
   return Response.json({ id: result.messageId, ...result.body });

@@ -48,6 +48,32 @@ it("returns auth errors from requireAuthenticatedPlayer", async () => {
   expect(response.status).toBe(401);
 });
 
+it("returns machine-readable code on post failures", async () => {
+  isRateLimited.mockResolvedValue(false);
+  getMessagesDatabase.mockReturnValue({});
+  requireAuthenticatedPlayer.mockResolvedValue({
+    ok: true,
+    player: { id: "p1", name: "alice", normalizedName: "alice" },
+  });
+  postMessage.mockResolvedValue({
+    ok: false,
+    status: 429,
+    error: "You have reached today's posting limit. Try again tomorrow.",
+    code: "player_cap",
+  });
+  const response = await POST(
+    new Request("https://example.test/api/post", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: "Bearer token" },
+      body: JSON.stringify({ message: "hello" }),
+    }),
+  );
+  expect(response.status).toBe(429);
+  const body = await response.json();
+  expect(body.code).toBe("player_cap");
+  expect(body.error).toMatch(/posting limit/);
+});
+
 it("returns persisted moderation body with message id", async () => {
   isRateLimited.mockResolvedValue(false);
   getMessagesDatabase.mockReturnValue({});

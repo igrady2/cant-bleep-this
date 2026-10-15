@@ -4,7 +4,7 @@ import { CATEGORIES } from "@/lib/moderation/categories";
 import { TypeSafeError } from "@/lib/moderation/typesafe";
 import { postMessage } from "./post";
 import type { MessagesDatabase, MessagesStatement } from "./db";
-import { ACTIVE_FILTER_VERSION_ID, MESSAGE_MAX_LENGTH } from "./limits";
+import { ACTIVE_FILTER_VERSION_ID, DAILY_POSTS_PER_PLAYER, MESSAGE_MAX_LENGTH } from "./limits";
 
 const { moderate } = vi.hoisted(() => ({ moderate: vi.fn() }));
 vi.mock("@/lib/moderation", () => ({ moderate }));
@@ -41,6 +41,8 @@ function createDb(options: {
     filter_scores: string;
   };
   roomNames?: string[];
+  playerPostCount?: number;
+  sitePostCount?: number;
 }): MessagesDatabase & { batched: MessagesStatement[][] } {
   const batched: MessagesStatement[][] = [];
   return {
@@ -62,6 +64,16 @@ function createDb(options: {
             args,
             all: baseAll as MessagesStatement["all"],
           };
+          if (sql.includes("FROM player_daily_posts")) {
+            statement.first = (async () => ({
+              post_count: options.playerPostCount ?? 0,
+            })) as MessagesStatement["first"];
+          }
+          if (sql.includes("FROM site_daily_posts")) {
+            statement.first = (async () => ({
+              post_count: options.sitePostCount ?? 0,
+            })) as MessagesStatement["first"];
+          }
           if (sql.includes("FROM messages WHERE id = ?")) {
             statement.first = (async () => {
               if (
@@ -144,7 +156,22 @@ describe("postMessage", () => {
     const db = createDb({});
     const result = await postMessage(db, player, { text: "hello" });
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.status).toBe(503);
+    if (!result.ok) {
+      expect(result.status).toBe(503);
+      expect(result.code).toBe("provider_unavailable");
+    }
+    expect(db.batched).toHaveLength(0);
+  });
+
+  it("returns player_cap before calling Jev when the daily cap is already reached", async () => {
+    const db = createDb({ playerPostCount: DAILY_POSTS_PER_PLAYER });
+    const result = await postMessage(db, player, { text: "hello" });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(429);
+      expect(result.code).toBe("player_cap");
+    }
+    expect(moderate).not.toHaveBeenCalled();
     expect(db.batched).toHaveLength(0);
   });
 
@@ -182,7 +209,7 @@ describe("postMessage", () => {
       scores: defaultScores(),
     });
     const db = createDb({
-      batchError: new Error("CHECK constraint failed: player_daily_posts.post_count"),
+      batchError: new Error("CHECK constraint failed: post_count >= 0 AND post_count <= 20"),
     });
     const result = await postMessage(db, player, { text: "one more" });
     expect(result.ok).toBe(false);

@@ -7,9 +7,10 @@ import { TypeSafeError } from "@/lib/moderation/typesafe";
 import type { FilterOutcome, ModerationResult } from "@/lib/moderation/types";
 import type { FilterScores } from "@/lib/moderation/types";
 import { maskPersonalInformation } from "@/lib/presentation";
-import { utcClaimDay } from "@/lib/players/crypto";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
+import { utcClaimDay } from "@/lib/players/crypto";
 import { buildModerationApiBody, type ModerationApiBody } from "./moderation-response";
+import { findDailyPostCapBlock, parseDailyCapCheckError } from "./daily-caps";
 import {
   ACTIVE_FILTER_VERSION_ID,
   MESSAGE_MAX_LENGTH,
@@ -114,28 +115,6 @@ async function loadIdempotentPost(
   return buildModerationApiBody(moderation, row.text);
 }
 
-function dailyCapError(err: unknown): PostMessageResult | null {
-  const message = err instanceof Error ? err.message : String(err);
-  if (!/CHECK constraint failed/i.test(message)) return null;
-  if (/site_daily_posts/i.test(message)) {
-    return {
-      ok: false,
-      status: 429,
-      error: "The room has reached today's posting limit. Try again tomorrow.",
-      code: "site_cap",
-    };
-  }
-  if (/player_daily_posts/i.test(message)) {
-    return {
-      ok: false,
-      status: 429,
-      error: "You have reached today's posting limit. Try again tomorrow.",
-      code: "player_cap",
-    };
-  }
-  return null;
-}
-
 export async function postMessage(
   db: MessagesDatabase,
   player: AuthenticatedPlayer,
@@ -168,6 +147,11 @@ export async function postMessage(
     return { ok: true, messageId, body: existing };
   }
 
+  const capBlock = await findDailyPostCapBlock(db, player.id);
+  if (capBlock) {
+    return capBlock;
+  }
+
   const { contextMessageIds, context, roomUsernames } = await loadPostRoomContext(db);
 
   let result: ModerationResult;
@@ -180,6 +164,7 @@ export async function postMessage(
         ok: false,
         status: 502,
         error: "The moderation service rejected our API key. Check TYPESAFE_API_KEY.",
+        code: "provider_unavailable",
       };
     }
     return {
@@ -187,6 +172,7 @@ export async function postMessage(
       status: 503,
       error:
         "The moderation service is unavailable right now, so your message wasn't posted. Please try again.",
+      code: "provider_unavailable",
     };
   }
 
@@ -239,7 +225,7 @@ export async function postMessage(
     await db.batch([bumpPlayer, bumpSite, insertMessage, touchPlayer]);
   } catch (err) {
     console.error("[post]", err);
-    const cap = dailyCapError(err);
+    const cap = parseDailyCapCheckError(err);
     if (cap) return cap;
     if (isUniqueConstraintError(err)) {
       const raced = await loadIdempotentPost(db, messageId, player.id);
