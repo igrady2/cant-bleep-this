@@ -7,24 +7,30 @@ Indigo Grady owns the product. She approves the PRD, and she clears a gated pull
 | Role | What they do |
 | --- | --- |
 | Product owner | Indigo. Approves the PRD and clears each gated pull request once. |
-| Project Manager | Orchestrates the work. Brings each gated pull request to Indigo once. |
+| Project Manager | Orchestrates the work and brings each gated pull request to Indigo once. |
 | PRD Writer | Claude writes the PRD. |
 | Issue Planner | Turns an approved PRD into issues. |
-| Builder | Cursor, Codex, or Claude. A cheaper model takes the first pass. Cursor fast mode stays off. |
-| QA / Test Runner | Checks the change. |
-| Reviewer | A different model from the builder. |
-| Steward | Merges a gated pull request after the checks pass, and records the review on the project board. |
+| Builder | Cursor, Codex, Claude, or Grok. A cheaper model takes the first pass. Cursor fast mode stays off. The Builder opens the pull request and does not merge it. |
+| QA / Test Runner | Checks the issue's acceptance criteria, the tests, and lint and CI. |
+| Reviewer | A different LLM from the Built by LLM. |
+| Steward | Runs or routes the different-model review. Merges a gated pull request after the checks pass, and records the review on the project board. |
 | Release & Status | Build order, standups, and release notes. |
 
 ## Review routing
 
-| Built with | Reviewed by |
+Routing follows **Built by LLM**. The reviewer LLM is never that LLM. Cursor is the product shell, so a Cursor build uses whichever row matches the LLM underneath.
+
+| Built by LLM | Reviewer LLM |
 | --- | --- |
-| Cursor | Any model that did not build it, including Grok via Steward |
+| Grok | Codex or Claude |
 | Codex | Grok or Claude |
 | Claude | Grok or ChatGPT |
 
+When Grok is an allowed reviewer, Grok via Steward counts.
+
 ## Flow
+
+Each issue has one draft pull request. Fixes stay on that pull request and branch.
 
 ```mermaid
 flowchart TD
@@ -32,28 +38,39 @@ flowchart TD
   prd --> approved[Indigo approves the PRD]
   approved --> issues[Issues]
   issues --> waves[Dependency-ordered waves]
-  waves --> build[Build]
-  build --> gated{Gated?}
-  gated -->|Ungated| openChecks["CI, QA, and different-model review"]
+  waves --> draft[One draft pull request]
+  draft --> gated{Gated?}
+  gated -->|Ungated| ci[CI]
   gated -->|Gated| clear[Indigo clears once with the Project Manager]
-  clear --> gatedChecks["CI, QA, and different-model review"]
-  openChecks --> merge[Merge]
-  gatedChecks --> steward[Steward merges]
+  clear --> ci
+  ci --> qa[QA]
+  qa --> review[Different-model review]
+  review -->|Changes| fix[Builder fixes the same pull request]
+  fix --> qa
+  review -->|"Pass, ungated"| merge[Merge]
+  review -->|"Pass, gated"| steward[Steward merges]
 ```
 
-A pull request is gated when it changes moderation, schema, or auth, adds a dependency, affects cost, or changes more than about 400 lines of application code.
+A pull request is gated when it changes moderation, schema, or auth, adds a dependency, affects cost, or changes more than about 400 lines of application code. Fixtures, seeds, and lockfiles do not count toward that line count.
 
-Ungated pull requests merge when CI, QA, and a different-model review have passed.
+Ungated pull requests merge when CI, QA, and a different-model review have passed. Gated pull requests are cleared once by Indigo, with the Project Manager. Steward merges those after the same three checks. That clearance is the only ask. The Builder does not merge either path.
 
-Gated pull requests are cleared once by Indigo, with the Project Manager. Steward merges after CI, QA, and a different-model review have passed. That clearance is the only ask.
+Steward runs or routes the review. If review requests changes, the Builder fixes them on the same pull request. The change goes back to QA before the next merge attempt. That attempt still needs passing CI, QA, and a different-model review.
 
-## Paid API runs
+## Tests and paid API runs
 
-A paid API run, such as a live seed baseline, waits for Indigo's approval and a call count.
+Tests and CI use mocks only. CI does not make a live paid API call. A paid API run outside CI, such as a live seed baseline, waits for Indigo's approval and a call count.
 
-## Traceability
+## Pull request body
 
-Every pull request records **Built by model** and **Built by LLM**. Steward records **Reviewed by model** and **Reviewed by LLM** on the project board.
+Every pull request fills the fields in `.github/pull_request_template.md`, using these names:
+
+- **Closes**
+- **Built by model** and **Built by LLM**
+- **Reviewed by**. Steward also records **Reviewed by model** and **Reviewed by LLM** on the project board.
+- **Scope**, each answered Yes or No: In the PRD? More than 400 lines? New dependency? Schema, auth, or moderation change? Cost impact? Deviations from the PRD? The line-count answer uses application code only, as above.
+- **What changed**
+- **Verification**
 
 Labels: `built-by:cursor`, `built-by:codex`, `built-by:claude`, `built-by:grok`, `priority:high`, `priority:med`, `priority:low`, `size:S`, `size:M`, `size:L`, `blocked`, and `needs-approval`.
 
