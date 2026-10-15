@@ -15,3 +15,14 @@ export {
   type UsernameRejectionCode,
   type UsernameValidationResult,
 } from "./validate";
+export {
+  authenticatePlayerToken,
+  readPlayerTokenFromRequest,
+  requireAuthenticatedPlayer,
+  type AuthenticatedPlayer,
+  type PlayerAuthResult,
+} from "./auth";
+export { claimUsername, DAILY_CLAIMS_PER_IP, type ClaimUsernameResult } from "./claim";
+export { generatePlayerToken, hashIpForClaimCap, hashPlayerToken, sha256Hex } from "./crypto";
+export { verifyTurnstileToken } from "./turnstile";
+export { getPlayersDatabase, readWorkerSecret, type PlayersDatabase } from "./db";
