@@ -23,6 +23,15 @@ import { loadPostRoomContext } from "./room-context";
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+function parseFilterScoresJson(raw: string): FilterScores | null {
+  try {
+    return JSON.parse(raw) as FilterScores;
+  } catch (err) {
+    console.error("[post]", err);
+    return null;
+  }
+}
+
 export type PostMessageInput = {
   text: string;
   idempotencyKey?: string;
@@ -60,7 +69,8 @@ function moderationResultFromStored(
     return null;
   }
 
-  const stored = JSON.parse(row.filter_scores) as FilterScores;
+  const stored = parseFilterScoresJson(row.filter_scores);
+  if (!stored) return null;
   const limit = reviewableThreshold();
   const offLimit = offLimitsThreshold();
   const offLimitsScore = stored.off_limits ?? 0;
@@ -108,7 +118,8 @@ async function loadIdempotentPost(
   if (!row) return null;
 
   if (row.filter_outcome === "off_limits") {
-    const stored = JSON.parse(row.filter_scores) as FilterScores;
+    const stored = parseFilterScoresJson(row.filter_scores);
+    if (!stored) return null;
     const scores = Object.fromEntries(
       CATEGORIES.map((category) => [category.id, stored[category.id] ?? 0]),
     ) as ModerationResult["scores"];
