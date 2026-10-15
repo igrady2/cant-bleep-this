@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isForkPullRequest,
   modelFamily,
   parseBuiltByLlm,
   selectLlmReviewer,
@@ -30,6 +31,17 @@ describe("parseBuiltByLlm", () => {
   it("reads the first line under Built by LLM", () => {
     expect(parseBuiltByLlm(templateBody)).toBe("Composer 2.5");
   });
+
+  it("ignores HTML comments in the body", () => {
+    const body = `<!-- Built by LLM: Evil -->
+
+${templateBody}`;
+    expect(parseBuiltByLlm(body)).toBe("Composer 2.5");
+  });
+
+  it("returns empty when the section is missing", () => {
+    expect(parseBuiltByLlm("## Closes\n\nCloses #1\n")).toBe("");
+  });
 });
 
 describe("modelFamily", () => {
@@ -37,6 +49,17 @@ describe("modelFamily", () => {
     expect(modelFamily("Composer 2.5")).toBe("composer");
     expect(modelFamily("gpt-5.4-codex")).toBe("codex");
     expect(modelFamily("Claude Sonnet 4")).toBe("claude");
+  });
+});
+
+describe("isForkPullRequest", () => {
+  it("detects fork head repos", () => {
+    expect(
+      isForkPullRequest("fork/cant-bleep-this", "igrady2/cant-bleep-this"),
+    ).toBe(true);
+    expect(
+      isForkPullRequest("igrady2/cant-bleep-this", "igrady2/cant-bleep-this"),
+    ).toBe(false);
   });
 });
 
@@ -84,6 +107,26 @@ describe("selectLlmReviewer", () => {
       prBody: templateBody,
       hasClaudeSecret: false,
       hasCodexSecret: false,
+    });
+    expect(result.reviewer).toBe("skip");
+  });
+
+  it("skips when Built by LLM is missing or placeholder", () => {
+    const body = templateBody.replace("Composer 2.5", "Concrete model name.");
+    const result = selectLlmReviewer({
+      prBody: body,
+      hasClaudeSecret: true,
+      hasCodexSecret: true,
+    });
+    expect(result.reviewer).toBe("skip");
+  });
+
+  it("skips when Built by LLM is unrecognized", () => {
+    const body = templateBody.replace("Composer 2.5", "Totally Unknown Model X");
+    const result = selectLlmReviewer({
+      prBody: body,
+      hasClaudeSecret: true,
+      hasCodexSecret: true,
     });
     expect(result.reviewer).toBe("skip");
   });

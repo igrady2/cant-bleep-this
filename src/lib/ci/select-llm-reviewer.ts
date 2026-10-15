@@ -76,6 +76,17 @@ export function selectLlmReviewer(
     available.push("codex");
   }
 
+  if (family === "unknown") {
+    return {
+      reviewer: "skip",
+      reason:
+        "Built by LLM is missing or unrecognized in the PR body; fill in `.github/pull_request_template.md` before automated review runs.",
+      builtByLlm,
+      reviewedByTool: "",
+      reviewedByLlm: "",
+    };
+  }
+
   if (available.length === 0) {
     return {
       reviewer: "skip",
@@ -114,4 +125,12 @@ export function selectLlmReviewer(
     reviewedByTool,
     reviewedByLlm,
   };
+}
+
+/** Matches the fork guard in `.github/workflows/ci.yml` for LLM review jobs. */
+export function isForkPullRequest(
+  headRepoFullName: string,
+  repositoryFullName: string,
+): boolean {
+  return headRepoFullName !== repositoryFullName;
 }
