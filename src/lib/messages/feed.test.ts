@@ -94,7 +94,7 @@ describe("loadPublicFeed", () => {
               }
               if (sql.includes("FROM reviews")) {
                 expect(args[0]).toBe("slip-1");
-                return [{ message_id: "slip-1", rule: "profanity" }];
+                return [{ message_id: "slip-1", rule: "profanity", flagged_spans: "[]" }];
               }
               return [];
             },
@@ -106,7 +106,7 @@ describe("loadPublicFeed", () => {
 
     const messages = await loadPublicFeed(db);
     expect(messages).toHaveLength(1);
-    expect(messages[0]?.text).toBe("█████");
+    expect(messages[0]?.text).toBe("b*d w*rds");
     expect(messages[0]?.slipRule).toBe("Profanity");
   });
 

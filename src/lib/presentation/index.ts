@@ -1,5 +1,6 @@
 import "server-only";
 
+import { parseAndValidateFlaggedSpans, type FlaggedSpan } from "@/lib/reviews/spans";
 import type { FilterOutcome } from "@/lib/moderation/types";
 import { mayAppearInContext } from "@/lib/messages/disposition";
 import type { MessageStatus } from "@/lib/messages/disposition";
@@ -29,6 +30,8 @@ export interface MessageText {
   text: string;
   /** Present only once players have confirmed a slip; never a client flag. */
   slipRule?: string;
+  /** Internal only: offsets into contact-masked reviewer text. Never serialized. */
+  slipSpans?: readonly FlaggedSpan[];
 }
 
 export interface DeliverableContextEntry extends MessageText {
@@ -66,17 +69,55 @@ export function filterDeliverableContext(
   });
 }
 
+/** Apply the union once, preserving contact redactions and occurrence offsets. */
+export function censorSlips(text: string, spans: readonly FlaggedSpan[] = []): string {
+  const masked = maskPersonalInformation(text);
+  const sorted = spans.flatMap((span) => {
+    const parsed = parseAndValidateFlaggedSpans([span], masked.length);
+    if (!parsed.ok) throw new Error(parsed.error);
+    return parsed.spans;
+  }).sort((a, b) => a.start - b.start || a.end - b.end);
+  const union: FlaggedSpan[] = [];
+  for (const span of sorted) {
+    const previous = union[union.length - 1];
+    if (previous && span.start < previous.end) previous.end = Math.max(previous.end, span.end);
+    else union.push({ ...span });
+  }
+  if (!union.length) union.push({ start: 0, end: masked.length });
+  const characters = masked.split("");
+  const protectedOffsets = new Set<number>();
+  for (const match of masked.matchAll(/\[redacted\]/g)) {
+    for (let i = match.index; i < match.index + match[0].length; i++) protectedOffsets.add(i);
+  }
+  for (const { start, end } of union) {
+    const selection = masked.slice(start, end);
+    if (/[aeiou]/i.test(selection)) {
+      for (let i = start; i < end; i++) {
+        if (/[aeiou]/i.test(masked[i]) && !protectedOffsets.has(i)) characters[i] = "*";
+      }
+    } else if (end > start) {
+      const middle = start + Math.floor((end - start) / 2);
+      if (!protectedOffsets.has(middle)) characters[middle] = "*";
+    }
+  }
+  return characters.join("");
+}
+
 function presentText(message: MessageText, publicView: boolean): MessageText {
   return {
     username: maskPersonalInformation(message.username),
     text: publicView && message.slipRule !== undefined
-      ? "█████"
+      ? censorSlips(message.text, message.slipSpans)
       : maskPersonalInformation(message.text),
     ...(message.slipRule === undefined ? {} : { slipRule: maskPersonalInformation(message.slipRule) }),
   };
 }
 
-function presentMessage(message: MessagePresentation, publicView: boolean): MessagePresentation {
+function presentMessage(
+  message: MessagePresentation,
+  publicView: boolean,
+  publicContext = publicView,
+): MessagePresentation {
   assertDeliverable(message);
   // Explicit projection: extra storage fields (including raw text) never leak.
   return {
@@ -84,7 +125,7 @@ function presentMessage(message: MessagePresentation, publicView: boolean): Mess
     filterOutcome: message.filterOutcome,
     status: message.status,
     context: filterDeliverableContext(message.context).map((entry) => ({
-      ...presentText(entry, publicView),
+      ...presentText(entry, publicContext),
       filterOutcome: entry.filterOutcome,
       status: entry.status,
     })),
@@ -92,14 +133,14 @@ function presentMessage(message: MessagePresentation, publicView: boolean): Mess
   };
 }
 
-/** Public slips are fully censored, including slips in their context. */
+/** Public slips are span-censored, including slips in their context. */
 export function serializePublicMessage(message: MessagePresentation): MessagePresentation {
   return presentMessage(message, true);
 }
 
 /** Reviewers retain policy-violating words, but never contact details. */
 export function serializeReviewerMessage(message: MessagePresentation): MessagePresentation {
-  return presentMessage(message, false);
+  return presentMessage(message, false, true);
 }
 
 /** The permanent dataset boundary must re-mask, never trust stored masked text. */

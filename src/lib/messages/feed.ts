@@ -1,11 +1,12 @@
 import "server-only";
 
-import { CATEGORIES } from "@/lib/moderation/categories";
+import { databaseRows } from "@/lib/messages/db";
+import { loadSlipCensorship, type SlipCensorship } from "@/lib/reviews/censorship";
 import { filterMessagesForFeed } from "./delivery";
 import type { MessageStatus } from "./disposition";
 import type { MessagesDatabase } from "./db";
 import { FEED_MESSAGE_LIMIT } from "./room-config";
-import { maskPersonalInformation, serializePublicMessage } from "@/lib/presentation";
+import { serializePublicMessage } from "@/lib/presentation";
 
 interface FeedRow {
   id: string;
@@ -14,11 +15,6 @@ interface FeedRow {
   created_at: number;
   filter_outcome: "passed";
   author_name: string;
-}
-
-interface SlipRuleRow {
-  message_id: string;
-  rule: string | null;
 }
 
 /** Player-visible feed item after masking and public slip presentation. */
@@ -41,48 +37,12 @@ export const PUBLIC_FEED_MESSAGE_KEYS = [
   "slipRule",
 ] as const satisfies readonly (keyof PublicFeedMessage)[];
 
-function slipRuleLabel(ruleId: string | null | undefined): string | undefined {
-  if (!ruleId) return undefined;
-  const category = CATEGORIES.find((entry) => entry.id === ruleId);
-  const label = category?.label ?? ruleId;
-  return maskPersonalInformation(label);
-}
-
-async function loadSlipRules(
-  db: MessagesDatabase,
-  messageIds: readonly string[],
-): Promise<Map<string, string>> {
-  if (messageIds.length === 0) return new Map();
-
-  const placeholders = messageIds.map(() => "?").join(", ");
-  const rows = await (
-    db
-      .prepare(
-        `SELECT message_id, rule
-         FROM reviews
-         WHERE message_id IN (${placeholders})
-           AND skipped = 0
-           AND verdict = 'not_ok'
-         ORDER BY created_at ASC, id ASC`,
-      )
-      .bind(...messageIds) as { all<T>(): Promise<T[]> }
-  ).all<SlipRuleRow>();
-
-  const rules = new Map<string, string>();
-  for (const row of rows) {
-    if (rules.has(row.message_id)) continue;
-    const label = slipRuleLabel(row.rule);
-    if (label) rules.set(row.message_id, label);
-  }
-  return rules;
-}
-
-function serializeFeedRow(row: FeedRow, slipRules: Map<string, string>): PublicFeedMessage {
-  const slipRule = row.status === "slip" ? slipRules.get(row.id) : undefined;
+function serializeFeedRow(row: FeedRow, slips: Map<string, SlipCensorship>): PublicFeedMessage {
+  const censorship = row.status === "slip" ? (slips.get(row.id) ?? { slipRule: "Slip", slipSpans: [] }) : {};
   const presented = serializePublicMessage({
     username: row.author_name,
     text: row.masked_text,
-    ...(slipRule === undefined ? {} : { slipRule }),
+    ...censorship,
     filterOutcome: "passed",
     status: row.status,
     context: [],
@@ -118,7 +78,7 @@ export async function loadPublicFeed(
   ).all<FeedRow>();
 
   const eligible = filterMessagesForFeed(
-    rows.map((row) => ({
+    databaseRows(rows).map((row) => ({
       row,
       filterOutcome: row.filter_outcome,
       status: row.status,
@@ -126,7 +86,7 @@ export async function loadPublicFeed(
   ).map((entry) => entry.row);
 
   const slipIds = eligible.filter((row) => row.status === "slip").map((row) => row.id);
-  const slipRules = await loadSlipRules(db, slipIds);
+  const slipRules = await loadSlipCensorship(db, slipIds);
 
   const chronological = [...eligible].reverse();
   return chronological.map((row) => serializeFeedRow(row, slipRules));

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { databaseRows } from "@/lib/messages/db";
+import { loadSlipCensorship } from "./censorship";
 import { mayAppearInContext } from "@/lib/messages/disposition";
 import type { FilterOutcome } from "@/lib/moderation/types";
 import type { MessageStatus } from "@/lib/messages/disposition";
@@ -49,7 +51,7 @@ async function loadContextRows(
       .bind(...contextIds) as { all<T>(): Promise<T[]> }
   ).all<ContextRow>();
 
-  const byId = new Map(rows.map((row) => [row.id, row]));
+  const byId = new Map(databaseRows(rows).map((row) => [row.id, row]));
   return contextIds
     .map((id) => byId.get(id))
     .filter((row): row is ContextRow => row !== undefined)
@@ -79,6 +81,8 @@ export async function loadMessageReviewPresentation(
   const contextIds = JSON.parse(row.context_message_ids) as string[];
   const contextRows = await loadContextRows(db, contextIds);
 
+  const slips = await loadSlipCensorship(db, contextRows.filter((entry) => entry.status === "slip").map((entry) => entry.id));
+
   return {
     username: row.author_name,
     text: reviewerBody(row),
@@ -86,6 +90,7 @@ export async function loadMessageReviewPresentation(
     status: row.status,
     reasons: [],
     context: contextRows.map((entry) => ({
+      ...(entry.status === "slip" ? (slips.get(entry.id) ?? { slipRule: "Slip", slipSpans: [] }) : {}),
       username: entry.author_name,
       text: reviewerBody(entry),
       filterOutcome: entry.filter_outcome,

@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SELF_HARM_CRISIS_NOTE } from "@/lib/content/self-harm-crisis-note";
@@ -124,4 +124,23 @@ describe("ChatRoom crisis note", () => {
     render(createElement(ChatRoom));
     expect((screen.getByLabelText(/Write a message/i) as HTMLTextAreaElement).value).toBe(text);
   });
+});
+
+
+it("keeps a newer removal response when an older feed request finishes late", async () => {
+  const pending: Array<(response: unknown) => void> = [];
+  vi.stubGlobal("fetch", vi.fn(() => new Promise((resolve) => pending.push(resolve))));
+  const view = render(createElement(ChatRoom));
+  expect(pending).toHaveLength(1);
+  // Returning to the tab triggers another request before the first completes.
+  Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+  act(() => document.dispatchEvent(new Event("visibilitychange")));
+  expect(pending).toHaveLength(2);
+  await act(async () => pending[1]({ ok: true, json: async () => ({ messages: [] }) }));
+  await act(async () => pending[0]({ ok: true, json: async () => ({ messages: [{
+    id: "removed", author: "bob", text: "stale original", createdAt: 1, status: "pending",
+  }] }) }));
+  expect(screen.queryByText("stale original")).toBeNull();
+  view.unmount();
+  vi.unstubAllGlobals();
 });

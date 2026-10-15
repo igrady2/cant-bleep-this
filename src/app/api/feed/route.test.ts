@@ -7,6 +7,8 @@ const { loadPublicFeed, getMessagesDatabase } = vi.hoisted(() => ({
   getMessagesDatabase: vi.fn(),
 }));
 
+vi.mock("next/server", () => ({ connection: vi.fn().mockResolvedValue(undefined) }));
+
 vi.mock("@/lib/messages/feed", () => ({ loadPublicFeed }));
 vi.mock("@/lib/messages/db", () => ({ getMessagesDatabase }));
 vi.mock("@/lib/players/db", () => ({ getPlayersDatabase: vi.fn(() => null) }));
@@ -28,6 +30,7 @@ it("returns serialized feed messages", async () => {
   ]);
   const response = await GET();
   expect(response.status).toBe(200);
+  expect(response.headers.get("Cache-Control")).toBe("no-store");
   const body = await response.json();
   expect(body.messages).toHaveLength(1);
   expect(body.messages[0].author).toBe("alice");
