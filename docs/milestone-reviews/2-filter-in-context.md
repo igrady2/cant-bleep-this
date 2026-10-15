@@ -61,9 +61,9 @@ This is the main product call of the milestone.
 - **What #58 does not do.** Filter rule and threshold changes are explicitly out of scope until a harder set exists to measure them against.
 - **Where it lives.** #58 is on M4 (Private beta), not M3.
 
-### Possible follow-ups not yet confirmed
+### Follow-ups folded into #58
 
-SEED_EVALUATION.md proposes ambiguity tickets for multi-rule blocks, off-limits false triggers, threshold edge cases and contextual sexual innuendo. Whether any were filed beyond #58 is unknown.
+SEED_EVALUATION.md proposes ambiguity tickets for multi-rule blocks, off-limits false triggers, threshold edge cases and contextual sexual innuendo. Those fold into #58. They are covered by #58, not open filing work.
 
 ## 3. Impact check
 
@@ -75,7 +75,7 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 |---|---|---|
 | #58 Harder seed benchmark v2 | Not | This issue is the follow-up itself. It owns the four failures and the deferred harder set. |
 | #25 Permanent test-set runner | **Needs update** | #35 left the permanent runner to #25. Error rows may be stored with `outcome: "passed"` and `kind: "error"`. If that's confirmed, #25 needs to handle or fix it before it relies on the schema. Unverified. |
-| SEED_EVALUATION.md proposed tickets | **Needs update** | Four ambiguity areas are proposed but unknown whether filed. File them or record that #58 covers them. |
+| SEED_EVALUATION.md proposed tickets | Not | Fold into #58. Covered by #58, not open filing work. |
 
 ### Fail closed and context (PRs #54, #55)
 
@@ -89,9 +89,9 @@ Each open issue and PRD section touched by these changes is flagged **needs upda
 
 | Item | Flag | Reason |
 |---|---|---|
-| #15 Review assignments | **Needs update** | Still needs the uncertain/random queue mix from PR #39 (M1 review). |
-| #16 Judging UI | **Needs update** | Still needs word tapping from PRs #48 and #53 (M1 review). |
-| #20 Censor in feed | **Needs update** | Still needs vowel masking from PRs #48 and #53 (M1 review). |
+| #15 Review assignments | **done / not needs update** | #15 needed no change. |
+| #16 Judging UI | **done / not needs update** | #16 is already updated. |
+| #20 Censor in feed | **done / not needs update** | #20 is already updated. |
 
 ## 4. Metrics
 
@@ -152,7 +152,7 @@ As in M1, reviews happen through PR comments rather than formal GitHub reviews. 
 
 - Build #10 and #13 next in M3. Keep #58 out of M3.
 - Confirm the error-row behavior and update #25 to match.
-- Update #15, #16 and #20 for the M1 queue-mix and vowel-masking decisions before work on them starts.
-- Decide whether the SEED_EVALUATION.md ambiguity tickets get filed or folded into #58.
+- #15 needed no change. #16 and #20 are already updated.
+- SEED_EVALUATION.md ambiguity tickets fold into #58.
 - Fix the M2 milestone counter so the board shows 5 of 5 closed.
 - Manual steps still open: #23 (Cloudflare Access) and #29 (preview deploy).
