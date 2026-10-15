@@ -12,8 +12,21 @@ it.each([true, false])("returns masked presentation while moderating original te
   const email = ["player", "example.test"].join("@");
   const message = `You are stupid. Call ${contact} or ${email}`;
   moderate.mockResolvedValue({
-    allowed, provider: "typesafe", model: "jev-latest", threshold: 0.5,
-    flags: allowed ? [] : [{ category: "bullying_harassment", label: "Harassment", probability: 0.9, explanation: `Insult with ${contact} and ${email}` }],
+    outcome: allowed ? "passed" : "blocked",
+    allowed,
+    provider: "typesafe",
+    model: "jev-latest",
+    threshold: 0.5,
+    offLimitsThreshold: 0.5,
+    offLimitsScore: 0.03,
+    flags: allowed
+      ? []
+      : [{
+          category: "bullying_harassment",
+          label: "Harassment",
+          probability: 0.9,
+          explanation: `Insult with ${contact} and ${email}`,
+        }],
     scores: Object.fromEntries(CATEGORIES.map((c) => [c.id, 0.03])),
   });
   const response = await POST(new Request("https://example.test/api/moderate", {
@@ -29,9 +42,43 @@ it.each([true, false])("returns masked presentation while moderating original te
   if (!allowed) expect(body.flags[0].explanation).toBe("Insult with [redacted] and [redacted]");
 });
 
+it("does not return message text for off-limits outcomes", async () => {
+  const secret = "plan to bomb the stadium tonight";
+  moderate.mockResolvedValue({
+    outcome: "off_limits",
+    allowed: false,
+    provider: "typesafe",
+    model: "jev-latest",
+    threshold: 0.5,
+    offLimitsThreshold: 0.5,
+    offLimitsScore: 0.95,
+    flags: [],
+    scores: Object.fromEntries(CATEGORIES.map((c) => [c.id, 0.03])),
+  });
+  const response = await POST(new Request("https://example.test/api/moderate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: secret }),
+  }));
+  expect(response.status).toBe(200);
+  const body = await response.json() as { outcome: string; message?: string };
+  expect(body.outcome).toBe("off_limits");
+  expect(body.message).toBeUndefined();
+  expect(JSON.stringify(body)).not.toContain(secret);
+});
+
 it("fails closed when the masking setting is invalid", async () => {
   vi.stubEnv("MASK_MIN_DIGITS", "invalid");
-  moderate.mockResolvedValue({ allowed: true, model: "jev-latest", flags: [] });
+  moderate.mockResolvedValue({
+    outcome: "passed",
+    allowed: true,
+    model: "jev-latest",
+    threshold: 0.5,
+    offLimitsThreshold: 0.5,
+    offLimitsScore: 0.03,
+    flags: [],
+    scores: Object.fromEntries(CATEGORIES.map((c) => [c.id, 0.03])),
+  });
   const log = vi.spyOn(console, "error").mockImplementation(() => {});
   try {
     const response = await POST(new Request("https://example.test/api/moderate", {

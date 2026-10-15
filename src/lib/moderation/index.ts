@@ -2,16 +2,11 @@ import "server-only";
 
 import { CATEGORIES } from "./categories";
 import { scoreWithMock } from "./mock";
+import { offLimitsThreshold, reviewableThreshold } from "./thresholds";
 import { scoreWithJev } from "./typesafe";
-import type { ModerationResult } from "./types";
+import type { FilterOutcome, ModerationResult } from "./types";
 
 const DEFAULT_MODEL = "jev-latest";
-const DEFAULT_THRESHOLD = 0.5;
-
-function threshold(): number {
-  const parsed = Number(process.env.MODERATION_THRESHOLD);
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : DEFAULT_THRESHOLD;
-}
 
 export function activeProvider(): "typesafe" | "mock" {
   if (process.env.MODERATION_PROVIDER === "mock") return "mock";
@@ -20,19 +15,21 @@ export function activeProvider(): "typesafe" | "mock" {
 
 export async function moderate(message: string): Promise<ModerationResult> {
   const provider = activeProvider();
-  const limit = threshold();
+  const limit = reviewableThreshold();
+  const offLimit = offLimitsThreshold();
 
-  const { model, scores } =
+  const { model, scores, offLimitsScore } =
     provider === "typesafe"
       ? await scoreWithJev(
           message,
           process.env.TYPESAFE_API_KEY!,
           process.env.TYPESAFE_MODEL || DEFAULT_MODEL,
         )
-      : { model: "local-mock", scores: scoreWithMock(message) };
+      : { model: "local-mock", ...scoreWithMock(message) };
 
-  // Policy: any single category at or above the threshold blocks the message.
-  const flags = CATEGORIES.filter((c) => scores[c.id] >= limit)
+  let outcome: FilterOutcome = "passed";
+
+  const reviewableFlags = CATEGORIES.filter((c) => scores[c.id] >= limit)
     .map((c) => ({
       category: c.id,
       label: c.label,
@@ -41,5 +38,25 @@ export async function moderate(message: string): Promise<ModerationResult> {
     }))
     .sort((a, b) => b.probability - a.probability);
 
-  return { allowed: flags.length === 0, provider, model, threshold: limit, flags, scores };
+  if (offLimitsScore >= offLimit) {
+    outcome = "off_limits";
+  } else if (reviewableFlags.length > 0) {
+    outcome = "blocked";
+  }
+
+  const flags = outcome === "blocked" ? reviewableFlags : [];
+
+  return {
+    outcome,
+    allowed: outcome === "passed",
+    provider,
+    model,
+    threshold: limit,
+    offLimitsThreshold: offLimit,
+    flags,
+    scores,
+    offLimitsScore,
+  };
 }
+
+export { OFF_LIMITS_ID } from "./off-limits";

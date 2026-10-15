@@ -1,6 +1,13 @@
 import type { CategoryId } from "./categories";
+import type { OFF_LIMITS_ID } from "./off-limits";
 
 export type ModerationProvider = "typesafe" | "mock";
+
+export type FilterOutcome = "passed" | "blocked" | "off_limits";
+
+export type FilterScoreKey = CategoryId | typeof OFF_LIMITS_ID;
+
+export type FilterScores = Record<FilterScoreKey, number>;
 
 export interface CategoryFlag {
   category: CategoryId;
@@ -11,16 +18,21 @@ export interface CategoryFlag {
 }
 
 export interface ModerationResult {
+  /** Passed messages may post; blocked messages are reviewable; off-limits messages are excluded. */
+  outcome: FilterOutcome;
   allowed: boolean;
   provider: ModerationProvider;
   model: string;
   threshold: number;
-  /** Categories at or above the threshold, highest probability first. */
+  offLimitsThreshold: number;
+  /** Reviewable categories at or above the threshold, highest probability first. Empty when off-limits. */
   flags: CategoryFlag[];
   scores: Record<CategoryId, number>;
+  offLimitsScore: number;
 }
 
 /** Text returned by the server is safe for message presentation. */
 export interface ModerationResponse extends ModerationResult {
-  message: string;
+  /** Omitted when the message is off-limits so the body never leaves the server. */
+  message?: string;
 }

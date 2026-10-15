@@ -33,11 +33,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const message = maskPersonalInformation(text);
     const result = await moderate(text);
+
+    if (result.outcome === "off_limits") {
+      return Response.json({
+        ...result,
+        model: maskPersonalInformation(result.model),
+      });
+    }
+
+    const masked = maskPersonalInformation(text);
     return Response.json({
       ...result,
-      message,
+      message: masked,
       model: maskPersonalInformation(result.model),
       flags: result.flags.map((flag) => ({
         ...flag,

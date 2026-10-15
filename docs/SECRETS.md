@@ -53,7 +53,7 @@ Issues name these, and the app does not reference them yet. Use the names below 
 
 These are runtime configuration, not secrets, and not `NEXT_PUBLIC_` values. Each is a probability. The initial value is **0.5**, and a score equal to the threshold triggers that question. The off-limits threshold is independent of the nine rule thresholds. Change them without a code release ([PRD](PRD.md#our-content-rules), [content rules](CONTENT_RULES.md)). Issue [#12](https://github.com/igrady2/cant-bleep-this/issues/12) owns the off-limits setting. Issue [#15](https://github.com/igrady2/cant-bleep-this/issues/15) reads the current per-rule thresholds when it builds the review queue.
 
-The app today reads only `MODERATION_THRESHOLD` and applies that one number to every reviewable category. It does not read the names below.
+The app reads `MODERATION_THRESHOLD` for every reviewable category and `MODERATION_THRESHOLD_OFF_LIMITS` for the separate exclusion question. It does not read the per-rule names below.
 
 | Name | Stable id | Initial |
 | --- | --- | --- |

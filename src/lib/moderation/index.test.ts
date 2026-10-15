@@ -2,18 +2,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CATEGORIES, type CategoryId } from "./categories";
 import { moderate } from "./index";
+import { OFF_LIMITS_ID } from "./off-limits";
 import { scoreWithJev } from "./typesafe";
 import policy from "../../../docs/CONTENT_RULES.md?raw";
 
 const IDS = CATEGORIES.map((c) => c.id);
 
-function jevResponse(scores: Partial<Record<CategoryId, number>>) {
+function jevResponse(scores: Partial<Record<CategoryId, number>>, offLimits = 0.02) {
   const answers = Object.fromEntries(IDS.map((id) => [id, { type: "noul", noul: scores[id] ?? 0.02 }]));
+  answers[OFF_LIMITS_ID] = { type: "noul", noul: offLimits };
   return new Response(JSON.stringify({ model: "jev-test", answers }), { status: 200 });
 }
 
-function stubJev(scores: Partial<Record<CategoryId, number>>) {
-  const fetchMock = vi.fn(async () => jevResponse(scores));
+function stubJev(scores: Partial<Record<CategoryId, number>>, offLimits = 0.02) {
+  const fetchMock = vi.fn(async () => jevResponse(scores, offLimits));
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("TYPESAFE_API_KEY", "test-key");
   vi.stubEnv("MODERATION_PROVIDER", "");
@@ -39,12 +41,13 @@ describe("game policy", () => {
       "bullying_harassment", "hate_speech", "sexual_content", "violence_threats", "self_harm",
       "profanity", "personal_info", "spam", "impersonation",
     ]);
-    expect(IDS).not.toContain("off_limits");
+    expect(IDS).not.toContain(OFF_LIMITS_ID);
     for (const c of CATEGORIES) {
       expect(policy).toContain(`\`${c.id}\``);
       expect(policy).toContain(c.question.instructions);
       expect(policy).toContain(c.question.criteria.true);
     }
+    expect(policy).toContain(`\`${OFF_LIMITS_ID}\``);
   });
 
   it("has no school-only rules or framing left", () => {
@@ -56,13 +59,14 @@ describe("game policy", () => {
 });
 
 describe("Jev request", () => {
-  it("sends one request with all nine questions and game framing", async () => {
+  it("sends one request with all nine reviewable questions, off-limits, and game framing", async () => {
     const fetchMock = stubJev({});
     await moderate("good game");
     expect(fetchMock).toHaveBeenCalledOnce();
     const body = sentBody(fetchMock);
-    expect(Object.keys(body.questions)).toEqual(IDS);
+    expect(Object.keys(body.questions).sort()).toEqual([...IDS, OFF_LIMITS_ID].sort());
     for (const q of Object.values(body.questions)) expect(q.type).toBe("noul");
+    expect(body.questions[OFF_LIMITS_ID].instructions).toContain("off-limits threat");
     expect(body.state.game.name).toBe("Can't Bleep This");
     expect(JSON.stringify(body).toLowerCase()).not.toContain("school");
   });
@@ -83,6 +87,13 @@ describe("Jev request", () => {
       new Response(JSON.stringify({ model: "jev-test", answers: { spam: { type: "noul", noul: 0.1 } } }))));
     await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(/Missing Noul answer/);
   });
+
+  it("rejects a response missing the off-limits answer", async () => {
+    const answers = Object.fromEntries(IDS.map((id) => [id, { type: "noul", noul: 0.1 }]));
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify({ model: "jev-test", answers }))));
+    await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(/off_limits/);
+  });
 });
 
 describe("rule mapping", () => {
@@ -91,11 +102,13 @@ describe("rule mapping", () => {
     const result = await moderate("this is sh1t");
     expect(Object.keys(result.scores).sort()).toEqual([...IDS].sort());
     expect(result.scores.profanity).toBe(0.7);
+    expect(result.offLimitsScore).toBe(0.02);
   });
 
   it("flags every rule at or above 0.5, highest first, with its label", async () => {
     stubJev({ spam: 0.6, impersonation: 0.91, profanity: 0.5, hate_speech: 0.49 });
     const result = await moderate("I'm the real Al, buy at example.com");
+    expect(result.outcome).toBe("blocked");
     expect(result.allowed).toBe(false);
     expect(result.threshold).toBe(0.5);
     expect(result.flags.map((f) => [f.category, f.label])).toEqual([
@@ -108,7 +121,27 @@ describe("rule mapping", () => {
   it("allows a message when every rule is below the threshold", async () => {
     stubJev({ violence_threats: 0.49 });
     const result = await moderate("I'll beat your high score tonight");
+    expect(result.outcome).toBe("passed");
     expect(result.allowed).toBe(true);
     expect(result.flags).toEqual([]);
+  });
+
+  it("excludes off-limits content before reviewable flags", async () => {
+    stubJev({ profanity: 0.95, spam: 0.8 }, 0.9);
+    const result = await moderate("flagged and excluded");
+    expect(result.outcome).toBe("off_limits");
+    expect(result.allowed).toBe(false);
+    expect(result.flags).toEqual([]);
+  });
+
+  it("reads the independent off-limits threshold", async () => {
+    vi.stubEnv("MODERATION_THRESHOLD_OFF_LIMITS", "0.8");
+    stubJev({}, 0.75);
+    const below = await moderate("edge case");
+    expect(below.outcome).toBe("passed");
+
+    stubJev({}, 0.85);
+    const above = await moderate("edge case");
+    expect(above.outcome).toBe("off_limits");
   });
 });

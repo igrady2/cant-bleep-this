@@ -10,6 +10,7 @@ export type NoticeState =
   | { kind: "idle" }
   | { kind: "checking"; message: string }
   | { kind: "blocked"; message: string; result: ModerationResult }
+  | { kind: "excluded" }
   | { kind: "error"; message: string; error: string };
 
 export function ModerationNotice({
@@ -45,6 +46,24 @@ export function ModerationNotice({
           <Button size="sm" variant="outline" onClick={() => onRetry(state.message)}>
             <RotateCcw /> Retry
           </Button>
+          <Button size="icon-sm" variant="ghost" onClick={onDismiss} aria-label="Dismiss">
+            <X />
+          </Button>
+        </AlertAction>
+      </Alert>
+    );
+  }
+
+  if (state.kind === "excluded") {
+    return (
+      <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
+        <ShieldAlert aria-hidden />
+        <AlertTitle className="font-heading text-base">This message wasn&apos;t posted</AlertTitle>
+        <AlertDescription className="text-pretty">
+          It was removed because it isn&apos;t allowed in this room. It won&apos;t appear in the chat
+          or the review queue.
+        </AlertDescription>
+        <AlertAction>
           <Button size="icon-sm" variant="ghost" onClick={onDismiss} aria-label="Dismiss">
             <X />
           </Button>

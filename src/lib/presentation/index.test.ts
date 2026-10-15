@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  filterDeliverableContext,
   maskPersonalInformation,
   serializePublicMessage,
   serializeReviewerMessage,
   serializeTestCase,
+  UndeliverableMessageError,
   type MessagePresentation,
 } from "./index";
 
@@ -99,6 +101,26 @@ describe("presentation boundaries", () => {
   it("does not censor unconfirmed messages", () => {
     expect(serializePublicMessage({ ...message, slipRule: undefined }).text)
       .toBe("You are stupid. Call [redacted]");
+  });
+
+  it("drops off-limits and excluded predecessors from serialized context", () => {
+    const input = {
+      ...message,
+      context: [
+        { username: "Player B", text: "visible", filterOutcome: "passed" as const },
+        { username: "Player C", text: "hidden", filterOutcome: "off_limits" as const, status: "excluded" as const },
+      ],
+    };
+    const output = serializeReviewerMessage(input);
+    expect(output.context).toEqual([{ username: "Player B", text: "visible" }]);
+    expect(filterDeliverableContext(input.context)).toHaveLength(1);
+  });
+
+  it("refuses to serialize off-limits rows", () => {
+    const input = { ...message, filterOutcome: "off_limits" as const, status: "excluded" as const };
+    for (const serialize of [serializePublicMessage, serializeReviewerMessage, serializeTestCase]) {
+      expect(() => serialize(input)).toThrow(UndeliverableMessageError);
+    }
   });
 
   it("re-masks permanent test-case output instead of trusting stored masked fields", () => {

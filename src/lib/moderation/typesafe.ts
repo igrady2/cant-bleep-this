@@ -1,6 +1,7 @@
 import "server-only";
 
 import { CATEGORIES, type CategoryId } from "./categories";
+import { OFF_LIMITS_ID, OFF_LIMITS_QUESTION } from "./off-limits";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const RETRYABLE = new Set([429, 529]);
@@ -30,7 +31,7 @@ export async function scoreWithJev(
   message: string,
   apiKey: string,
   model: string,
-): Promise<{ model: string; scores: Record<CategoryId, number> }> {
+): Promise<{ model: string; scores: Record<CategoryId, number>; offLimitsScore: number }> {
   const body = {
     model,
     state: {
@@ -46,12 +47,19 @@ export async function scoreWithJev(
       // Player text is data to be scored, never instructions to follow.
       message,
     },
-    questions: Object.fromEntries(
-      CATEGORIES.map((c) => [
-        c.id,
-        { type: "noul", instructions: c.question.instructions, criteria: c.question.criteria },
-      ]),
-    ),
+    questions: {
+      ...Object.fromEntries(
+        CATEGORIES.map((c) => [
+          c.id,
+          { type: "noul", instructions: c.question.instructions, criteria: c.question.criteria },
+        ]),
+      ),
+      [OFF_LIMITS_ID]: {
+        type: "noul",
+        instructions: OFF_LIMITS_QUESTION.instructions,
+        criteria: OFF_LIMITS_QUESTION.criteria,
+      },
+    },
   };
 
   let lastError: TypeSafeError | undefined;
@@ -80,7 +88,11 @@ export async function scoreWithJev(
         }
         scores[c.id] = answer.noul;
       }
-      return { model: data.model, scores };
+      const offLimitsAnswer = data.answers?.[OFF_LIMITS_ID];
+      if (offLimitsAnswer?.type !== "noul" || typeof offLimitsAnswer.noul !== "number") {
+        throw new TypeSafeError(`Missing Noul answer for "${OFF_LIMITS_ID}"`);
+      }
+      return { model: data.model, scores, offLimitsScore: offLimitsAnswer.noul };
     }
 
     const detail = await res.text().catch(() => "");
