@@ -116,7 +116,9 @@ export async function loadSeedReviewPresentation(
   const context = JSON.parse(row.context_snapshot) as Array<{ username: string; text: string }>;
 
   return {
-    username: "Player",
+    username: ["sam_skates", "mira_cloud", "alex_draws", "kai_music"][
+      Array.from(seedCaseId).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 0) % 4
+    ],
     text: row.message,
     filterOutcome: "passed",
     status: "pending",

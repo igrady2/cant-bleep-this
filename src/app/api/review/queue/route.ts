@@ -37,9 +37,6 @@ export async function POST(request: Request) {
   return Response.json({
     assignmentId: payload.assignmentId,
     assignment: payload.assignment,
-    kind: payload.kind,
-    ...(payload.messageId ? { messageId: payload.messageId } : {}),
-    ...(payload.seedCaseId ? { seedCaseId: payload.seedCaseId } : {}),
     presentation: payload.presentation,
   });
 }

@@ -5,6 +5,7 @@ import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import {
   createMessageReviewAssignment,
   createSeedReviewAssignment,
+  findOpenReviewAssignment,
 } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
 import { validateMessageEligibility } from "./eligibility";
@@ -24,26 +25,18 @@ async function buildMessageAssignmentPayload(
   const eligibility = await validateMessageEligibility(db, messageId, player);
   if (!eligibility.ok) return eligibility;
 
-  const created = await createMessageReviewAssignment(
-    db,
-    player.id,
-    messageId,
-    preferHandPicked,
-    now,
-  );
-
   const presentation = await loadMessageReviewPresentation(db, messageId);
   if (!presentation) {
     return { ok: false, status: 404, error: "That message is not available to judge." };
   }
+  const created = await createMessageReviewAssignment(db, player.id, messageId, preferHandPicked, now);
 
   return {
     ok: true,
     payload: {
       assignmentId: created.id,
       assignment: created.assignment,
-      kind: "message",
-      messageId,
+      ...(preferHandPicked ? { messageId } : {}),
       presentation: serializeReviewerMessage(presentation),
     },
   };
@@ -54,6 +47,20 @@ export async function assignNextFromQueue(
   player: AuthenticatedPlayer,
 ): Promise<ReviewAssignResult> {
   const now = Math.floor(Date.now() / 1000);
+  const open = await findOpenReviewAssignment(db, player.id, now);
+  if (open) {
+    const presentation = open.message_id
+      ? await loadMessageReviewPresentation(db, open.message_id)
+      : await loadSeedReviewPresentation(db, open.seed_case_id!);
+    if (!presentation) {
+      return { ok: false, status: 404, error: "That message is not available to judge." };
+    }
+    return { ok: true, payload: {
+      assignmentId: open.id,
+      assignment: open.assignment,
+      presentation: serializeReviewerMessage(presentation),
+    } };
+  }
   const target = await pickNextQueueTarget(db, player);
   if (!target) {
     return {
@@ -80,8 +87,6 @@ export async function assignNextFromQueue(
       payload: {
         assignmentId: created.id,
         assignment: "queue",
-        kind: "seed",
-        seedCaseId: target.seedCaseId,
         presentation: serializeReviewerMessage(presentation),
       },
     };

@@ -62,7 +62,6 @@ it("returns server-chosen assignment and presentation", async () => {
     payload: {
       assignmentId: "a1",
       assignment: "hand_picked",
-      kind: "message",
       messageId: "m1",
       presentation: { username: "bob", text: "hi", context: [], reasons: [], filterOutcome: "passed", status: "pending" },
     },
@@ -79,4 +78,6 @@ it("returns server-chosen assignment and presentation", async () => {
   expect(body.assignmentId).toBe("a1");
   expect(body.assignment).toBe("hand_picked");
   expect(body.messageId).toBe("m1");
+  expect(body).not.toHaveProperty("kind");
+  expect(body).not.toHaveProperty("seedCaseId");
 });

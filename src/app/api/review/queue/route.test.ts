@@ -20,7 +20,7 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-it("returns queue assignment payloads", async () => {
+it.each(["message", "seed"])("returns opaque queue payloads for %s targets", async (kind) => {
   isReviewRateLimited.mockResolvedValue(false);
   getMessagesDatabase.mockReturnValue({});
   requireAuthenticatedPlayer.mockResolvedValue({
@@ -32,8 +32,9 @@ it("returns queue assignment payloads", async () => {
     payload: {
       assignmentId: "a9",
       assignment: "queue",
-      kind: "message",
+      kind,
       messageId: "m9",
+      seedCaseId: "private-seed",
       presentation: {
         username: "bob",
         text: "msg",
@@ -54,5 +55,5 @@ it("returns queue assignment payloads", async () => {
   const body = await response.json();
   expect(body.assignmentId).toBe("a9");
   expect(body.assignment).toBe("queue");
-  expect(body.messageId).toBe("m9");
+  expect(Object.keys(body).sort()).toEqual(["assignment", "assignmentId", "presentation"]);
 });

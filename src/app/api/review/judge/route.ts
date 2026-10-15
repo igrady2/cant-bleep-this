@@ -53,7 +53,6 @@ export async function POST(request: Request) {
   return Response.json({
     assignmentId: assignment.assignmentId,
     assignment: assignment.assignment,
-    kind: assignment.kind,
     messageId: assignment.messageId,
     presentation: assignment.presentation,
   });

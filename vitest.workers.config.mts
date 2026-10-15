@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
@@ -14,6 +15,14 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       miniflare: {
+        // Baseline supported by the pinned test pool's workerd binary.
+        d1Databases: ["REVIEWS_TEST_DB"],
+        bindings: {
+          REVIEW_ASSIGNMENTS_SCHEMA: readFileSync(
+            new URL("./migrations/0005_hand_picked_reservations.sql", import.meta.url),
+            "utf8",
+          ),
+        },
         compatibilityDate: "2026-08-15",
         compatibilityFlags: ["nodejs_compat"],
       },
