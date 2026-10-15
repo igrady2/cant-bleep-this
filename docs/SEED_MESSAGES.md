@@ -11,7 +11,7 @@ Each fixture includes:
 
 | Field | Purpose |
 | --- | --- |
-| `id` | Stable id (`seed-<rule>-<nn>` or `seed-fine-<nn>`) |
+| `id` | Stable id (`seed-<rule>-<nn>`, `seed-<rule>-fine-<nn>`, or `seed-fine-<nn>`) |
 | `author` | Username posting the message under test |
 | `text` | Masked message body (synthetic only) |
 | `context` | Up to 10 preceding `{ username, text }` lines |
@@ -21,6 +21,8 @@ Each fixture includes:
 | `reasons` | One-line reviewer explanations when `not_ok` |
 
 Rule ids match [`docs/CONTENT_RULES.md`](CONTENT_RULES.md) and [`src/lib/moderation/categories.ts`](../src/lib/moderation/categories.ts).
+
+Room participants use neutral stand-ins (`Player A`, `Player B`, …) in authors, context, `roomUsernames`, and reasons. Public-figure names may appear in message text only when the fixture tests impersonation of that figure.
 
 ## Coverage
 
@@ -32,7 +34,7 @@ The set spans all nine reviewable rules, clean `fine` messages, disguised profan
 
 ## Usage
 
-1. **CI / local:** `npm test` runs [`src/lib/seeds/seeds.test.ts`](../src/lib/seeds/seeds.test.ts), which validates the JSON (counts, ids, rule coverage, masking, verdict/rule consistency).
+1. **CI / local:** `npm test` runs [`src/lib/seeds/seeds.test.ts`](../src/lib/seeds/seeds.test.ts), which validates the JSON (counts, ids, rule coverage, masking, verdict/rule consistency, and the 140-character posting limit on message bodies).
 2. **Import in code:** `import { SEED_FIXTURES } from "@/lib/seeds"` after validation at module load.
 3. **Filter baseline ([#35](https://github.com/igrady2/cant-bleep-this/issues/35)):** Run each fixture through the game moderation request with its `context` and `roomUsernames`; compare outcomes to labels without checking credentials into git.
 4. **Queue seeds ([#19](https://github.com/igrady2/cant-bleep-this/issues/19)):** When inserting into D1, map to `test_cases` with masked text and anonymized stand-ins per the PRD; compare reviewer input to `expectedVerdict`, `rule`, and `reasons` for `seed_correct`.
