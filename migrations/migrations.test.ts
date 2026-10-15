@@ -24,4 +24,10 @@ describe("D1 migrations", () => {
     expect(sql).toContain("filter_outcome IN ('passed', 'blocked')");
     expect(sql).toContain("status <> 'excluded'");
   });
+
+  it("reserves at most one hand-picked review slot per message", () => {
+    const sql = readFileSync(join(import.meta.dirname, "0005_hand_picked_reservations.sql"), "utf8");
+    expect(sql).toContain("hand_picked_review_reservations");
+    expect(sql).toMatch(/message_id TEXT PRIMARY KEY/i);
+  });
 });
