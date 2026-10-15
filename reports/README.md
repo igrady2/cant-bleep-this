@@ -4,13 +4,13 @@
 
 | File | Description |
 | --- | --- |
-| `seed-baseline.json` | Latest **live** seed evaluation output from `npm run evaluate:seeds` (not committed until a cleared baseline run). |
+| `seed-baseline.json` | Latest **live** seed evaluation output from `npm run evaluate:seeds -- --live`. |
 | `seed-baseline.example.json` | Shape-only example with zero counts for tooling and docs. |
 
 ## Generating a baseline
 
 1. Set `TYPESAFE_API_KEY` (and optional `TYPESAFE_MODEL`, `MODERATION_THRESHOLD`, `MODERATION_THRESHOLD_OFF_LIMITS`).
-2. Run `npm run evaluate:seeds`.
+2. Run `npm run evaluate:seeds -- --live`.
 3. Commit `seed-baseline.json` when the team wants a frozen comparison point for a given model and threshold set.
 
 Do **not** commit API keys or unmasked personal information. Reports list fixture ids and outcomes only.

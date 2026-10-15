@@ -3,6 +3,7 @@ import "server-only";
 import { CATEGORIES, POLICY_VERSION, type CategoryId } from "@/lib/moderation/categories";
 import { moderate } from "@/lib/moderation";
 import { offLimitsThreshold, reviewableThreshold } from "@/lib/moderation/thresholds";
+import { TypeSafeError } from "@/lib/moderation/typesafe";
 import type { FilterOutcome, ModerationResult } from "@/lib/moderation/types";
 import seedMeta from "../../../fixtures/seeds.json";
 import type { SeedFixture } from "@/lib/seeds/types";
@@ -79,6 +80,23 @@ export interface SeedEvalReport {
 }
 
 export type SeedModerateFn = (fixture: SeedFixture) => Promise<ModerationResult>;
+
+/** Redacted marker for baseline reports — never raw provider or stack text. */
+export function sanitizeSeedEvalError(err: unknown): string {
+  if (err instanceof TypeSafeError) {
+    const status = err.status;
+    if (status === 401 || status === 403) return "jev_auth_error";
+    if (status === 429) return "jev_rate_limited";
+    if (status === 529) return "jev_overloaded";
+    if (status !== undefined && status >= 500) return "jev_server_error";
+    if (status !== undefined && status >= 400) return "jev_client_error";
+    return "jev_error";
+  }
+  if (err instanceof Error) {
+    if (err.name === "AbortError" || err.name === "TimeoutError") return "jev_timeout";
+  }
+  return "moderation_error";
+}
 
 function emptyByRule(): Record<CategoryId, SeedEvalRuleStats> {
   return Object.fromEntries(
@@ -205,7 +223,6 @@ export async function evaluateSeedFixtures(
       }
     } catch (err) {
       summary.errors += 1;
-      const message = err instanceof Error ? err.message : "Unknown error";
       cases.push({
         id: fixture.id,
         contextual,
@@ -214,7 +231,7 @@ export async function evaluateSeedFixtures(
         outcome: "passed",
         flaggedRules: [],
         kind: "error",
-        error: message,
+        error: sanitizeSeedEvalError(err),
       });
       failures.push({
         id: fixture.id,

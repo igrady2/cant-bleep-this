@@ -9,12 +9,12 @@ The permanent D1 test-set runner and release gate are tracked in [#25](https://g
 | Command | Purpose |
 | --- | --- |
 | `npm test` | Validates fixtures and runs the evaluation harness with **mocked Jev** (no API cost). |
-| `npm run evaluate:seeds` | **Live** baseline: one billed Jev call per seed fixture (~100 today). Requires `TYPESAFE_API_KEY`. Do not run in CI or cloud agents without explicit cost clearance. |
+| `npm run evaluate:seeds -- --live` | **Live** baseline: one billed Jev call per seed fixture (~100 today). Requires explicit `--live` and `TYPESAFE_API_KEY`. Without `--live`, the CLI refuses to call Jev. Do not run in CI or cloud agents without explicit cost clearance. |
 
 Optional flags for the live runner:
 
 ```bash
-npm run evaluate:seeds -- --output reports/seed-baseline.json
+npm run evaluate:seeds -- --live --output reports/seed-baseline.json
 ```
 
 ## Report output
@@ -25,6 +25,7 @@ Live runs write JSON to [`reports/seed-baseline.json`](../reports/seed-baseline.
 - Summary counts: passes, catches, misses, false positives, wrong-rule blocks, unexpected off-limits, contextual failures, and errors.
 - Per-rule aggregates: expected violations, catches, misses, and false-positive flag counts.
 - Failure lists keyed by **fixture id only** (no message bodies or credentials).
+- Per-case `error` fields use redacted markers only (for example `jev_rate_limited`), never raw provider response text.
 
 Re-run the same command after policy or model changes and diff the JSON to track regressions.
 
@@ -57,4 +58,4 @@ After a cleared live run, replace the “live run pending” note in the PR with
 
 ## Live run status
 
-**Live baseline pending cost clearance.** The harness and mocked tests are in place; a full seed pass requires **100** Jev requests (one per fixture in `fixtures/seeds.json`). No live results are checked in until that run is approved and executed locally or in a maintainer environment.
+**Baseline checked in** on PR [#57](https://github.com/igrady2/cant-bleep-this/pull/57) (`reports/seed-baseline.json`, `jev-1.13.0`, thresholds 0.5). Re-run with `npm run evaluate:seeds -- --live` after policy or model changes.
