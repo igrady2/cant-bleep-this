@@ -1,3 +1,4 @@
+import type { SelfHarmCrisisNote } from "@/lib/content/self-harm-crisis-note";
 import type { CategoryId } from "./categories";
 import type { OFF_LIMITS_ID } from "./off-limits";
 
@@ -35,4 +36,6 @@ export interface ModerationResult {
 export interface ModerationResponse extends ModerationResult {
   /** Omitted when the message is off-limits so the body never leaves the server. */
   message?: string;
+  /** Shown only to the message author when the self-harm score meets its threshold. */
+  crisisNote?: SelfHarmCrisisNote;
 }

@@ -16,3 +16,8 @@ export function reviewableThreshold(): number {
 export function offLimitsThreshold(): number {
   return readThreshold("MODERATION_THRESHOLD_OFF_LIMITS");
 }
+
+/** Threshold for the `self_harm` rule and the author-only 988 crisis note. */
+export function selfHarmThreshold(): number {
+  return readThreshold("MODERATION_THRESHOLD_SELF_HARM");
+}

@@ -55,6 +55,7 @@ export type PostMessageApiBody =
       outcome: "off_limits";
       allowed: false;
       provider: ModerationResponse["provider"];
+      crisisNote?: ModerationResponse["crisisNote"];
     }
   | (ModerationResponse & {
       message: string;
