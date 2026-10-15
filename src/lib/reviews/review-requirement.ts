@@ -32,11 +32,11 @@ export async function findReviewRequirementBlock(db: ReviewsDatabase, playerId: 
  * transaction if another post used the last allowance while Jev was running. */
 export function recordPostForReviewRequirement(db: ReviewsDatabase, playerId: string) {
   const tiers = [...reviewRequirementTiers()].reverse();
-  const limit = `CASE ${tiers.map(() => `WHEN ${QUEUE_SIZE} >= ? THEN ?`).join(" ")} ELSE NULL END`;
+  const limit = `CASE ${tiers.map(() => `WHEN queue_size >= ? THEN ?`).join(" ")} ELSE NULL END`;
   return db.prepare(`INSERT INTO player_review_progress (player_id, posts_since_review)
     VALUES (?, 1)
     ON CONFLICT(player_id) DO UPDATE SET posts_since_review =
-      CASE WHEN posts_since_review >= (${limit}) THEN -1 ELSE posts_since_review + 1 END`)
+      CASE WHEN posts_since_review >= (WITH queue AS MATERIALIZED (SELECT ${QUEUE_SIZE} AS queue_size) SELECT ${limit} FROM queue) THEN -1 ELSE posts_since_review + 1 END`)
     .bind(playerId, ...tiers.flatMap((tier) => [tier.queueSize, tier.posts]));
 }
 

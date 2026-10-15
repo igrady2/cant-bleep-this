@@ -8,6 +8,7 @@ import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import { consumeReviewAssignment, getConsumableReviewAssignment } from "./assignments";
 import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./context";
 import type { ReviewsDatabase } from "./db";
+import { updateStanding } from "./standing";
 import { consensusStatement } from "./verdicts";
 import { resetReviewRequirement } from "./review-requirement";
 import {
@@ -231,6 +232,7 @@ export async function submitReview(
   try {
     await db.batch([
       insertReview, consumeAssignment,
+      ...(assignment.seed_case_id && skipped === 0 ? [updateStanding(db, player.id, reviewId)] : []),
       resetReviewRequirement(db, player.id, reviewId),
       ...(assignment.message_id && skipped === 0
         ? [consensusStatement(db, assignment.message_id, reviewId)] : []),

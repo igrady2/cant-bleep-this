@@ -907,7 +907,7 @@
     {
       "id": "seed-profanity-03",
       "author": "Player C",
-      "text": "What the hell is this lag",
+      "text": "What the fuck is this lag",
       "context": [],
       "roomUsernames": [
         "Player C",
@@ -957,7 +957,7 @@
     {
       "id": "seed-profanity-06",
       "author": "Player F",
-      "text": "damn it all",
+      "text": "Shit, I lost all my progress",
       "context": [],
       "roomUsernames": [
         "Player F",
@@ -992,7 +992,7 @@
     {
       "id": "seed-profanity-08",
       "author": "Player H",
-      "text": "screw this garbage",
+      "text": "This is fucking garbage",
       "context": [],
       "roomUsernames": [
         "Player H",
@@ -1068,7 +1068,7 @@
     {
       "id": "seed-personal_info-03",
       "author": "Player C",
-      "text": "Player B's real name is Player G Lee from Springfield",
+      "text": "Player B's real name is Nolan Whitcombe from Springfield",
       "context": [
         {
           "username": "Player B",
@@ -1140,7 +1140,7 @@
     {
       "id": "seed-personal_info-07",
       "author": "Player G",
-      "text": "My full name is Player F Smith for anyone tracking",
+      "text": "My full name is Tessa Brindleford for anyone tracking",
       "context": [],
       "roomUsernames": [
         "Player G",
@@ -1368,7 +1368,7 @@
     {
       "id": "seed-impersonation-05",
       "author": "Player E",
-      "text": "Signing off as your moderator Indigo",
+      "text": "Signing off as your moderator Rowan",
       "context": [],
       "roomUsernames": [
         "Player E",
@@ -1404,7 +1404,7 @@
     {
       "id": "seed-impersonation-fine-01",
       "author": "Player A",
-      "text": "Player B said they prefer puzzles (quoting them transparently)",
+      "text": "Player B said they prefer puzzles",
       "context": [
         {
           "username": "Player B",
@@ -1503,7 +1503,7 @@
     {
       "id": "seed-fine-06",
       "author": "Player F",
-      "text": "Class was tough today (talking about a game class)",
+      "text": "Class was tough today",
       "context": [],
       "roomUsernames": [
         "Player F",

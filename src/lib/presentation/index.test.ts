@@ -202,3 +202,18 @@ describe("span censorship", () => {
     }
   });
 });
+
+
+it.each([
+  ["\u{1F600}", "*"],
+  ["\u{1F600}\u{1F601}", "\u{1F600}*"],
+  ["\u{1F600}\u{1F601}\u{1F602}", "\u{1F600}*\u{1F602}"],
+  ["\u{1F600}\u{1F601}\u{1F602}\u{1F603}", "\u{1F600}\u{1F601}*\u{1F603}"],
+])("masks the middle code point of %s without breaking emoji", (text, expected) => {
+  expect(censorSlips(text, [{ start: 0, end: text.length }])).toBe(expected);
+});
+
+it("falls back to whole-message censorship for invalid stored spans", () => {
+  expect(censorSlips("fuck this fuck", [{ start: 0, end: 4 }, { start: 99, end: 100 }]))
+    .toBe("f*ck th*s f*ck");
+});

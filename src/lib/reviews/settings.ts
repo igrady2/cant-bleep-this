@@ -1,5 +1,29 @@
 import "server-only";
 
+const warned = new Set<string>();
+function warnInvalid(name: string) {
+  if (process.env[name] === undefined || warned.has(name)) return;
+  warned.add(name);
+  console.warn(`[reviews.settings] Invalid ${name}; using default.`);
+}
+
+export function seedStandingWindow(): number {
+  return readInteger("REVIEW_SEED_WINDOW", 10, 1, 1000);
+}
+export function seedStandingMisses(): number {
+  return readInteger("REVIEW_SEED_MISSES", 3, 1, 1000);
+}
+function readInteger(name: string, fallback: number, min: number, max: number): number {
+  const raw = process.env[name];
+  const n = Number(raw);
+  if (raw === undefined) return fallback;
+  if (!raw?.trim() || !Number.isSafeInteger(n) || n < min || n > max) {
+    warnInvalid(name);
+    return fallback;
+  }
+  return n;
+}
+
 export interface ReviewRequirementTier { queueSize: number; posts: number }
 
 /** Runtime env override, editable in Worker settings without a code release. */
@@ -15,16 +39,18 @@ export function reviewRequirementTiers(): ReviewRequirementTier[] {
       tier && Number.isSafeInteger(tier.queueSize) && tier.queueSize >= 0 &&
       Number.isSafeInteger(tier.posts) && tier.posts > 0 &&
       (i === 0 || tier.queueSize > value[i - 1].queueSize),
-    )) return defaults;
+    )) { warnInvalid("REVIEW_REQUIREMENT_TIERS"); return defaults; }
     return value;
   } catch {
+    warnInvalid("REVIEW_REQUIREMENT_TIERS");
     return defaults;
   }
 }
 
 function readFraction(envName: string, defaultValue: number): number {
-  const parsed = Number(process.env[envName]);
-  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) return defaultValue;
+  if (process.env[envName] === undefined) return defaultValue;
+  const parsed = process.env[envName]?.trim() ? Number(process.env[envName]) : NaN;
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > 1) { warnInvalid(envName); return defaultValue; }
   return parsed;
 }
 
@@ -40,16 +66,12 @@ export function queueSeedFraction(): number {
 
 /** Maximum pending messages considered when building the queue (bounded scan). */
 export function queueScanLimit(): number {
-  const parsed = Number(process.env.REVIEW_QUEUE_SCAN_LIMIT);
-  if (!Number.isFinite(parsed) || parsed < 1) return 500;
-  return Math.min(Math.floor(parsed), 2000);
+  return readInteger("REVIEW_QUEUE_SCAN_LIMIT", 500, 1, 2000);
 }
 
 /** Seconds before an unconsumed assignment expires and releases its hand-picked slot. */
 export function assignmentTtlSeconds(): number {
-  const parsed = Number(process.env.REVIEW_ASSIGNMENT_TTL_SECONDS);
-  if (!Number.isFinite(parsed) || parsed < 60) return 900;
-  return Math.min(Math.floor(parsed), 86_400);
+  return readInteger("REVIEW_ASSIGNMENT_TTL_SECONDS", 900, 60, 86400);
 }
 
 export function randomUnit(): number {
