@@ -94,6 +94,34 @@ describe("Jev request", () => {
       new Response(JSON.stringify({ model: "jev-test", answers }))));
     await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(/off_limits/);
   });
+
+  it.each([-1, 1.01])(
+    "rejects out-of-range Noul scores for off_limits (%s)",
+    async (noul) => {
+      const answers = {
+        ...Object.fromEntries(IDS.map((id) => [id, { type: "noul", noul: 0.1 }])),
+        [OFF_LIMITS_ID]: { type: "noul", noul },
+      };
+      vi.stubGlobal("fetch", vi.fn(async () =>
+        new Response(JSON.stringify({ model: "jev-test", answers }))));
+      await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(
+        /Invalid Noul score for "off_limits"/,
+      );
+    },
+  );
+
+  it("rejects out-of-range Noul scores for reviewable rules", async () => {
+    const answers = {
+      ...Object.fromEntries(IDS.map((id) => [id, { type: "noul", noul: 0.1 }])),
+      profanity: { type: "noul", noul: -0.5 },
+      [OFF_LIMITS_ID]: { type: "noul", noul: 0.1 },
+    };
+    vi.stubGlobal("fetch", vi.fn(async () =>
+      new Response(JSON.stringify({ model: "jev-test", answers }))));
+    await expect(scoreWithJev("hi", "key", "jev-test")).rejects.toThrow(
+      /Invalid Noul score for "profanity"/,
+    );
+  });
 });
 
 describe("rule mapping", () => {

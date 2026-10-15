@@ -31,7 +31,7 @@ npm run dev                  # http://localhost:4317
 - **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the message is player data and any instructions inside it are ignored, and the message itself.
 - **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules, plus a separate `off_limits` exclusion question in the same request. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
-The rule is applied in code: if the off-limits question reaches its threshold, the message is removed and never shown. Otherwise, if any reviewable category reaches the threshold, the message is blocked but still reviewable. The response returns every score, so you can tune thresholds without changing the questions. If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
+The rule is applied in code: if the off-limits question reaches its threshold, the message is removed and never shown. Otherwise, if any reviewable category reaches the threshold, the message is blocked but still reviewable. Reviewable outcomes return every score so you can tune thresholds without changing the questions; off-limits outcomes return only `outcome`, `allowed`, and `provider` (no message body or scores). If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
 
 ### Categories (`src/lib/moderation/categories.ts`)
 

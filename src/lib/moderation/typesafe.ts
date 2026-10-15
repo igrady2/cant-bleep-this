@@ -27,6 +27,17 @@ export class TypeSafeError extends Error {
   }
 }
 
+function parseNoulScore(questionId: string, answer: NoulAnswer | undefined): number {
+  if (answer?.type !== "noul" || typeof answer.noul !== "number") {
+    throw new TypeSafeError(`Missing Noul answer for "${questionId}"`);
+  }
+  const score = answer.noul;
+  if (!Number.isFinite(score) || score < 0 || score > 1) {
+    throw new TypeSafeError(`Invalid Noul score for "${questionId}"`);
+  }
+  return score;
+}
+
 export async function scoreWithJev(
   message: string,
   apiKey: string,
@@ -82,17 +93,10 @@ export async function scoreWithJev(
       const data = (await res.json()) as SystemOneResponse;
       const scores = {} as Record<CategoryId, number>;
       for (const c of CATEGORIES) {
-        const answer = data.answers?.[c.id];
-        if (answer?.type !== "noul" || typeof answer.noul !== "number") {
-          throw new TypeSafeError(`Missing Noul answer for "${c.id}"`);
-        }
-        scores[c.id] = answer.noul;
+        scores[c.id] = parseNoulScore(c.id, data.answers?.[c.id]);
       }
-      const offLimitsAnswer = data.answers?.[OFF_LIMITS_ID];
-      if (offLimitsAnswer?.type !== "noul" || typeof offLimitsAnswer.noul !== "number") {
-        throw new TypeSafeError(`Missing Noul answer for "${OFF_LIMITS_ID}"`);
-      }
-      return { model: data.model, scores, offLimitsScore: offLimitsAnswer.noul };
+      const offLimitsScore = parseNoulScore(OFF_LIMITS_ID, data.answers?.[OFF_LIMITS_ID]);
+      return { model: data.model, scores, offLimitsScore };
     }
 
     const detail = await res.text().catch(() => "");
