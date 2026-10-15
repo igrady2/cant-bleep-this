@@ -120,19 +120,40 @@ export async function loadSeedReviewPresentation(
 
   const context = JSON.parse(row.context_snapshot) as Array<{ username: string; text: string }>;
 
+  // Rotate the pool per seed while preserving every reference to the same player.
+  const names = [
+    "sam_skates", "mira_cloud", "alex_draws", "kai_music", "riley_reads",
+    "taylor_runs", "jordan_codes", "casey_cooks", "avery_bikes", "quinn_paints",
+    "rowan_hikes", "sage_plays", "emery_sings", "finley_swims", "parker_bakes",
+    "reese_gardens", "blair_dances", "devon_climbs", "ellis_writes", "hayden_knits",
+    "jamie_builds", "logan_fishes", "morgan_skis", "noel_drums", "robin_sews",
+    "skyler_surfs", "drew_travels", "jules_walks",
+  ];
+  const offset = Array.from(seedCaseId).reduce(
+    (hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 0,
+  ) % names.length;
+  const existingNames = new Set(context.map((line) => line.username));
+  const pool = names.slice(offset).concat(names.slice(0, offset))
+    .filter((name) => !existingNames.has(name));
+  const replacements = new Map<string, string>();
+  const replacePlayers = (text: string) => text.replace(/\bPlayer [A-Z]\b/g, (player) => {
+    if (!replacements.has(player)) replacements.set(player, pool[replacements.size]);
+    return replacements.get(player)!;
+  });
+  const presentedContext = context.map((line) => ({
+    username: replacePlayers(line.username),
+    text: replacePlayers(line.text),
+    filterOutcome: "passed" as const,
+    status: "pending" as const,
+  }));
+  const text = replacePlayers(row.message);
+
   return {
-    username: ["sam_skates", "mira_cloud", "alex_draws", "kai_music"][
-      Array.from(seedCaseId).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 0) % 4
-    ],
-    text: row.message,
+    username: pool[replacements.size],
+    text,
     filterOutcome: "passed",
     status: "pending",
     reasons: [],
-    context: context.map((line) => ({
-      username: line.username,
-      text: line.text,
-      filterOutcome: "passed" as const,
-      status: "pending" as const,
-    })),
+    context: presentedContext,
   };
 }
