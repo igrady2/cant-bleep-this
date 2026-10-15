@@ -1,0 +1,40 @@
+import "server-only";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+
+export interface BoardEntry { playerId: string; name: string; slips: number }
+export interface BoardDatabase {
+  prepare(sql: string): {
+    bind(...values: unknown[]): {
+      all<T>(): Promise<{ results: T[]; success: boolean }>;
+    };
+  };
+}
+
+export function getBoardDatabase(): BoardDatabase | null {
+  try {
+    return (getCloudflareContext().env as { DB?: BoardDatabase }).DB ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadBoard(db: BoardDatabase, now = new Date()): Promise<BoardEntry[]> {
+  const today = now.toISOString().slice(0, 10);
+  const start = new Date(`${today}T00:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - 89);
+  // Exactly 90 UTC score days including today; future rows do not count.
+  // Ties: slips descending, then case-sensitive SQLite BINARY name ascending,
+  // then player id ascending. LIMIT applies after this total ordering.
+  // Read earned daily counts, never re-evaluate messages against patched rules.
+  const result = await db.prepare(`
+    SELECT p.id AS playerId, p.name, SUM(s.slips) AS slips
+    FROM scores s JOIN players p ON p.id = s.player_id
+    WHERE s.day >= ? AND s.day <= ? AND p.banned_at IS NULL
+    GROUP BY p.id, p.name
+    HAVING SUM(s.slips) > 0
+    ORDER BY slips DESC, p.name COLLATE BINARY ASC, p.id COLLATE BINARY ASC
+    LIMIT 50
+  `).bind(start.toISOString().slice(0, 10), today).all<BoardEntry>();
+  if (!result.success) throw new Error("Board query failed");
+  return result.results;
+}
