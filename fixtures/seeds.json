@@ -1,0 +1,1782 @@
+{
+  "policyVersion": "v1",
+  "fixtures": [
+    {
+      "id": "seed-bullying_harassment-01",
+      "author": "Player C",
+      "text": "Player B, you are an idiot and nobody wants you here",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "I liked the new layout"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Direct insult aimed at player Player B in the room"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-02",
+      "author": "Player B",
+      "text": "Everyone pile on Player G until they leave",
+      "context": [
+        {
+          "username": "Player G",
+          "text": "Can we talk about the rules?"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player B",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Invitation to target a player"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-03",
+      "author": "Player A",
+      "text": "Nice try, loser",
+      "context": [
+        {
+          "username": "Player F",
+          "text": "I almost had that round"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Mocking another player after a game moment"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-04",
+      "author": "Player D",
+      "text": "Player L, you are pathetic",
+      "context": [],
+      "roomUsernames": [
+        "Player L",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Personal put-down using a room username"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-05",
+      "author": "Player E",
+      "text": "Keep laughing at Player J; they deserve it",
+      "context": [
+        {
+          "username": "Player J",
+          "text": "That joke fell flat"
+        }
+      ],
+      "roomUsernames": [
+        "Player J",
+        "Player E",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Encourages ridicule of a named player"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-06",
+      "author": "Player F",
+      "text": "Player F is too dumb to understand this",
+      "context": [
+        {
+          "username": "Player F",
+          "text": "What does that setting do?"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Demeaning a player by username"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-07",
+      "author": "Player G",
+      "text": "Player D, shut up; your ideas are trash",
+      "context": [
+        {
+          "username": "Player D",
+          "text": "Maybe we pick another map"
+        }
+      ],
+      "roomUsernames": [
+        "Player D",
+        "Player G",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Hostile dismissal of a player's suggestion"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-08",
+      "author": "Player H",
+      "text": "Go away, nobody likes you",
+      "context": [
+        {
+          "username": "Player K",
+          "text": "Hey everyone"
+        }
+      ],
+      "roomUsernames": [
+        "Player H",
+        "Player K",
+        "Player L"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Unwelcome targeting without using a name in the insult line"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-fine-01",
+      "author": "Player A",
+      "text": "Player B, I disagree with your argument; the numbers do not support it",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "We should double the timer"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player A"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-hate_speech-01",
+      "author": "Player A",
+      "text": "People of that religion are inferior and should be kicked out",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Identity-based attack and exclusion demand"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-02",
+      "author": "Player B",
+      "text": "Women should not be allowed in this room",
+      "context": [
+        {
+          "username": "Player C",
+          "text": "Glad more people joined"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Gender-based exclusion"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-03",
+      "author": "Player C",
+      "text": "Disabled people are a burden on everyone else",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Dehumanizing attack on disability"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-04",
+      "author": "Player D",
+      "text": "No Jewish players belong in this room",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Glad our Jewish players group found this room"
+        },
+        {
+          "username": "Player F",
+          "text": "Who is winning?"
+        }
+      ],
+      "roomUsernames": [
+        "Player D",
+        "Player B",
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Exclusionary attack on people because of their religion"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-05",
+      "author": "Player E",
+      "text": "No one from that country belongs here",
+      "context": [],
+      "roomUsernames": [
+        "Player E",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "National-origin exclusion"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-06",
+      "author": "Player F",
+      "text": "Trans people are not real; stay out",
+      "context": [
+        {
+          "username": "Player I",
+          "text": "Hi all"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Attack on gender identity"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-07",
+      "author": "Player G",
+      "text": "Disabled players in this room are animals, not real people",
+      "context": [],
+      "roomUsernames": [
+        "Player G",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Dehumanizing attack on disability in the room"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-08",
+      "author": "Player H",
+      "text": "Gay players ruin every lobby",
+      "context": [
+        {
+          "username": "Player L",
+          "text": "Good game"
+        }
+      ],
+      "roomUsernames": [
+        "Player H",
+        "Player L",
+        "Player M"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Sexuality-based hostile generalization"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-fine-01",
+      "author": "Player A",
+      "text": "People of every background should feel welcome here",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-sexual_content-01",
+      "author": "Player A",
+      "text": "Player E is pro Player B",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Stop making everything about sex"
+        },
+        {
+          "username": "Player E",
+          "text": "You know what pro means between us"
+        },
+        {
+          "username": "Player C",
+          "text": "Another innuendo thread?"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B",
+        "Player E",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual double meaning about players Player E and Player B from the preceding chat"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-02",
+      "author": "Player A",
+      "text": "Come over tonight and we can fool around",
+      "context": [
+        {
+          "username": "Player D",
+          "text": "Anyone still playing?"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual proposition in chat"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-03",
+      "author": "Player B",
+      "text": "I want to do things to you that are not PG",
+      "context": [
+        {
+          "username": "Player F",
+          "text": "lol"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Explicit sexual intent"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-04",
+      "author": "Player C",
+      "text": "Nice curves on that avatar, baby",
+      "context": [
+        {
+          "username": "Player H",
+          "text": "Updated my profile pic"
+        }
+      ],
+      "roomUsernames": [
+        "Player C",
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual remark about another player"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-05",
+      "author": "Player D",
+      "text": "That username sounds like a bedroom nickname",
+      "context": [
+        {
+          "username": "Player K",
+          "text": "Picked a new name"
+        }
+      ],
+      "roomUsernames": [
+        "Player D",
+        "Player K",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual innuendo about a player's name"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-06",
+      "author": "Player E",
+      "text": "Let's talk about what I would do to you in private",
+      "context": [],
+      "roomUsernames": [
+        "Player E",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual talk directed at others in the room"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-07",
+      "author": "Player F",
+      "text": "She was moaning the whole time in that clip",
+      "context": [
+        {
+          "username": "Player L",
+          "text": "Did you see the video?"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player L",
+        "Player M"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Explicit sexual description"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-08",
+      "author": "Player G",
+      "text": "Player C is definitely bottom energy",
+      "context": [
+        {
+          "username": "Player C",
+          "text": "I picked support again"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player C",
+        "Player N"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Sexual joke targeting a player username"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-fine-01",
+      "author": "Player A",
+      "text": "I am pro Player B's suggestion to change the colors",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "What if we use blue instead?"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-sexual_content-fine-02",
+      "author": "Player C",
+      "text": "We should keep the health discussion non-graphic",
+      "context": [
+        {
+          "username": "Player D",
+          "text": "Any tips for better sleep?"
+        }
+      ],
+      "roomUsernames": [
+        "Player C",
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-violence_threats-01",
+      "author": "Player A",
+      "text": "I will kill you if you take my fries",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Those look good"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Violent hyperbole framed as a joke about food"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-02",
+      "author": "Player B",
+      "text": "My game character attacks the dragon with a sword",
+      "context": [],
+      "roomUsernames": [
+        "Player B",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Fictional game violence"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-03",
+      "author": "Player C",
+      "text": "I am going to destroy you in this match",
+      "context": [
+        {
+          "username": "Player E",
+          "text": "Ready when you are"
+        }
+      ],
+      "roomUsernames": [
+        "Player C",
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-violence_threats-04",
+      "author": "Player D",
+      "text": "Violence is awesome; more people should get hurt",
+      "context": [],
+      "roomUsernames": [
+        "Player D",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Glorification of violence"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-05",
+      "author": "Player E",
+      "text": "Bang bang, you are dead, haha",
+      "context": [
+        {
+          "username": "Player H",
+          "text": "Nice shot"
+        }
+      ],
+      "roomUsernames": [
+        "Player E",
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Playful violent roleplay"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-06",
+      "author": "Player F",
+      "text": "I will beat you senseless in round two",
+      "context": [
+        {
+          "username": "Player J",
+          "text": "Rematch?"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player J",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Threat of physical harm in a game context"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-07",
+      "author": "Player G",
+      "text": "That song lyric talks about shooting up the club",
+      "context": [
+        {
+          "username": "Player L",
+          "text": "What are we listening to?"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player L",
+        "Player M"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Violent lyric reference"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-08",
+      "author": "Player H",
+      "text": "Someone should punch that referee",
+      "context": [
+        {
+          "username": "Player N",
+          "text": "Bad call"
+        }
+      ],
+      "roomUsernames": [
+        "Player H",
+        "Player N",
+        "Player O"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "violence_threats",
+      "reasons": [
+        "Wish for violence against a person"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-fine-01",
+      "author": "Player A",
+      "text": "I will beat your high score tonight",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Good luck"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-self_harm-01",
+      "author": "Player A",
+      "text": "You should hurt yourself; nobody would miss you",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "I messed up again"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Encourages self-injury toward another player"
+      ]
+    },
+    {
+      "id": "seed-self_harm-02",
+      "author": "Player B",
+      "text": "Go ahead and end it; that is the brave choice",
+      "context": [
+        {
+          "username": "Player D",
+          "text": "I feel hopeless"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Pressures suicide as a solution"
+      ]
+    },
+    {
+      "id": "seed-self_harm-03",
+      "author": "Player C",
+      "text": "Cut deeper next time if you want respect",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player F"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Praises self-harm"
+      ]
+    },
+    {
+      "id": "seed-self_harm-04",
+      "author": "Player D",
+      "text": "You keep saying you want to hurt yourself; go cut yourself tonight",
+      "context": [
+        {
+          "username": "Player G",
+          "text": "I feel like hurting myself again"
+        }
+      ],
+      "roomUsernames": [
+        "Player D",
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Urges self-injury toward a player expressing self-harm urges"
+      ]
+    },
+    {
+      "id": "seed-self_harm-05",
+      "author": "Player E",
+      "text": "If you hate yourself that much, you should kill yourself already",
+      "context": [
+        {
+          "username": "Player I",
+          "text": "I hate myself today"
+        }
+      ],
+      "roomUsernames": [
+        "Player E",
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Encourages suicide toward a player who says they hate themselves"
+      ]
+    },
+    {
+      "id": "seed-self_harm-06",
+      "author": "Player F",
+      "text": "You deserve pain; keep hurting yourself",
+      "context": [],
+      "roomUsernames": [
+        "Player F",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Approves self-injury"
+      ]
+    },
+    {
+      "id": "seed-self_harm-fine-01",
+      "author": "Player A",
+      "text": "I am struggling with urges to hurt myself and need someone to talk to",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-self_harm-fine-02",
+      "author": "Player B",
+      "text": "I am here with you; let's get support together",
+      "context": [
+        {
+          "username": "Player C",
+          "text": "Everything feels heavy"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-profanity-01",
+      "author": "Player A",
+      "text": "This is complete sh1t",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Disguised swear spelling"
+      ]
+    },
+    {
+      "id": "seed-profanity-02",
+      "author": "Player B",
+      "text": "f*ck that idea",
+      "context": [
+        {
+          "username": "Player C",
+          "text": "Try the new mode"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Masked swear word"
+      ]
+    },
+    {
+      "id": "seed-profanity-03",
+      "author": "Player C",
+      "text": "What the hell is this lag",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Ordinary profanity"
+      ]
+    },
+    {
+      "id": "seed-profanity-04",
+      "author": "Player D",
+      "text": "s h i t game",
+      "context": [],
+      "roomUsernames": [
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Spaced profanity disguise"
+      ]
+    },
+    {
+      "id": "seed-profanity-05",
+      "author": "Player E",
+      "text": "bullsh1t excuse",
+      "context": [
+        {
+          "username": "Player F",
+          "text": "I had to leave"
+        }
+      ],
+      "roomUsernames": [
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Disguised profanity in compound word"
+      ]
+    },
+    {
+      "id": "seed-profanity-06",
+      "author": "Player F",
+      "text": "damn it all",
+      "context": [],
+      "roomUsernames": [
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Swearing"
+      ]
+    },
+    {
+      "id": "seed-profanity-07",
+      "author": "Player G",
+      "text": "a$$hole move",
+      "context": [
+        {
+          "username": "Player H",
+          "text": "Why did you do that?"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Symbol substitution profanity"
+      ]
+    },
+    {
+      "id": "seed-profanity-08",
+      "author": "Player H",
+      "text": "screw this garbage",
+      "context": [],
+      "roomUsernames": [
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Profane frustration"
+      ]
+    },
+    {
+      "id": "seed-profanity-fine-01",
+      "author": "Player A",
+      "text": "That is frustrating but we can fix it",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "The build broke"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-profanity-fine-02",
+      "author": "Player C",
+      "text": "The ship leaves tomorrow morning",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-personal_info-01",
+      "author": "Player A",
+      "text": "Email me at [redacted] if you want details",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Shares an email address (masked in the fixture)"
+      ]
+    },
+    {
+      "id": "seed-personal_info-02",
+      "author": "Player B",
+      "text": "Call my cell at [redacted]",
+      "context": [],
+      "roomUsernames": [
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Shares a phone number (masked in the fixture)"
+      ]
+    },
+    {
+      "id": "seed-personal_info-03",
+      "author": "Player C",
+      "text": "Player B's real name is Player G Lee from Springfield",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Just use my username"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Links a player username to a private full name"
+      ]
+    },
+    {
+      "id": "seed-personal_info-04",
+      "author": "Player D",
+      "text": "Find me on social as @PrivateHandle99",
+      "context": [],
+      "roomUsernames": [
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "External account handle"
+      ]
+    },
+    {
+      "id": "seed-personal_info-05",
+      "author": "Player E",
+      "text": "I live at 42 Oak Lane, Apt 3B",
+      "context": [],
+      "roomUsernames": [
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Street address disclosure"
+      ]
+    },
+    {
+      "id": "seed-personal_info-06",
+      "author": "Player F",
+      "text": "Player G is actually my coworker Dana at the downtown office",
+      "context": [
+        {
+          "username": "Player G",
+          "text": "Small world"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Reveals who is behind a player name"
+      ]
+    },
+    {
+      "id": "seed-personal_info-07",
+      "author": "Player G",
+      "text": "My full name is Player F Smith for anyone tracking",
+      "context": [],
+      "roomUsernames": [
+        "Player G",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Author shares their own full name"
+      ]
+    },
+    {
+      "id": "seed-personal_info-fine-01",
+      "author": "Player A",
+      "text": "Player B likes puzzles",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Anyone want a riddle?"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-spam-01",
+      "author": "Player A",
+      "text": "Here is a useful guide: https://example.com/tips",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Link in message (MVP bans all links)"
+      ]
+    },
+    {
+      "id": "seed-spam-02",
+      "author": "Player B",
+      "text": "Visit example dot com for free coins",
+      "context": [],
+      "roomUsernames": [
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Disguised web address"
+      ]
+    },
+    {
+      "id": "seed-spam-03",
+      "author": "Player C",
+      "text": "BUY NOW BUY NOW cheapest prices guaranteed",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Advertisement spam"
+      ]
+    },
+    {
+      "id": "seed-spam-04",
+      "author": "Player D",
+      "text": "Send a payment to claim your guaranteed prize",
+      "context": [],
+      "roomUsernames": [
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Scam offer"
+      ]
+    },
+    {
+      "id": "seed-spam-05",
+      "author": "Player E",
+      "text": "win win win win win win win",
+      "context": [],
+      "roomUsernames": [
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Repeated spam text"
+      ]
+    },
+    {
+      "id": "seed-spam-06",
+      "author": "Player F",
+      "text": "Check www[.]example[.]org right now",
+      "context": [],
+      "roomUsernames": [
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Obfuscated link"
+      ]
+    },
+    {
+      "id": "seed-spam-07",
+      "author": "Player G",
+      "text": "http://test.example/path",
+      "context": [
+        {
+          "username": "Player H",
+          "text": "Any docs?"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Raw URL"
+      ]
+    },
+    {
+      "id": "seed-spam-fine-01",
+      "author": "Player A",
+      "text": "I found a useful guide and posted my summary here without a link",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-impersonation-01",
+      "author": "Player A",
+      "text": "I am the real Player B; that other account is fake",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Still here"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player A"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "False claim to be another player"
+      ]
+    },
+    {
+      "id": "seed-impersonation-02",
+      "author": "Player B",
+      "text": "This is the official admin account speaking",
+      "context": [],
+      "roomUsernames": [
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Pretends to be staff"
+      ]
+    },
+    {
+      "id": "seed-impersonation-03",
+      "author": "Player C",
+      "text": "I am celebrity Taylor Swift and I approve this message",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Pretends to be a real public figure as the author"
+      ]
+    },
+    {
+      "id": "seed-impersonation-04",
+      "author": "Player D",
+      "text": "I am Player G. I quit and hate you all.",
+      "context": [
+        {
+          "username": "Player G",
+          "text": "gg everyone"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Player D claims to be Player G and posts a hostile statement as that player"
+      ]
+    },
+    {
+      "id": "seed-impersonation-05",
+      "author": "Player E",
+      "text": "Signing off as your moderator Indigo",
+      "context": [],
+      "roomUsernames": [
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Claims moderator identity"
+      ]
+    },
+    {
+      "id": "seed-impersonation-06",
+      "author": "Player F",
+      "text": "It is me, Player G, back on a new device",
+      "context": [
+        {
+          "username": "Player G",
+          "text": "Who is that?"
+        }
+      ],
+      "roomUsernames": [
+        "Player F",
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Player F falsely claims to be Player G"
+      ]
+    },
+    {
+      "id": "seed-impersonation-fine-01",
+      "author": "Player A",
+      "text": "Player B said they prefer puzzles (quoting them transparently)",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "I like puzzles"
+        }
+      ],
+      "roomUsernames": [
+        "Player A",
+        "Player B"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-01",
+      "author": "Player A",
+      "text": "Good game everyone",
+      "context": [],
+      "roomUsernames": [
+        "Player A",
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-02",
+      "author": "Player B",
+      "text": "I like the new filter idea",
+      "context": [
+        {
+          "username": "Player C",
+          "text": "What changed?"
+        }
+      ],
+      "roomUsernames": [
+        "Player B",
+        "Player C"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-03",
+      "author": "Player C",
+      "text": "Can someone explain the scoring?",
+      "context": [],
+      "roomUsernames": [
+        "Player C",
+        "Player D"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-04",
+      "author": "Player D",
+      "text": "brb getting water",
+      "context": [
+        {
+          "username": "Player E",
+          "text": "haha same"
+        }
+      ],
+      "roomUsernames": [
+        "Player D",
+        "Player E"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-05",
+      "author": "Player E",
+      "text": "That pun was harmless",
+      "context": [
+        {
+          "username": "Player F",
+          "text": "I tried"
+        }
+      ],
+      "roomUsernames": [
+        "Player E",
+        "Player F"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-06",
+      "author": "Player F",
+      "text": "Class was tough today (talking about a game class)",
+      "context": [],
+      "roomUsernames": [
+        "Player F",
+        "Player G"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-07",
+      "author": "Player G",
+      "text": "The assistant tool helped me debug",
+      "context": [],
+      "roomUsernames": [
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-08",
+      "author": "Player H",
+      "text": "Scunthorpe is a funny place name",
+      "context": [],
+      "roomUsernames": [
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-09",
+      "author": "Player I",
+      "text": "Countdown: 3 2 1 go",
+      "context": [],
+      "roomUsernames": [
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-10",
+      "author": "Player J",
+      "text": "I read a book about Ada Lovelace",
+      "context": [],
+      "roomUsernames": [
+        "Player J",
+        "Player K"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-11",
+      "author": "Player K",
+      "text": "Let's regroup after this round",
+      "context": [
+        {
+          "username": "Player L",
+          "text": "One more"
+        }
+      ],
+      "roomUsernames": [
+        "Player K",
+        "Player L"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-fine-12",
+      "author": "Player L",
+      "text": "I support Player B's color tweak",
+      "context": [
+        {
+          "username": "Player B",
+          "text": "Blue or green?"
+        }
+      ],
+      "roomUsernames": [
+        "Player L",
+        "Player B",
+        "Player M"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-bullying_harassment-09",
+      "author": "Player I",
+      "text": "Player I, you are embarrassing yourself",
+      "context": [
+        {
+          "username": "Player I",
+          "text": "I was just joking"
+        }
+      ],
+      "roomUsernames": [
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Mocking a player after they post"
+      ]
+    },
+    {
+      "id": "seed-hate_speech-09",
+      "author": "Player I",
+      "text": "Religious people are all liars",
+      "context": [],
+      "roomUsernames": [
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "hate_speech",
+      "reasons": [
+        "Broad attack on a religion"
+      ]
+    },
+    {
+      "id": "seed-sexual_content-09",
+      "author": "Player K",
+      "text": "Player H, that skin hugging every curve is turning me on",
+      "context": [
+        {
+          "username": "Player H",
+          "text": "New skin unlocked"
+        }
+      ],
+      "roomUsernames": [
+        "Player H",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "sexual_content",
+      "reasons": [
+        "Explicit sexual remark about another player's appearance"
+      ]
+    },
+    {
+      "id": "seed-violence_threats-09",
+      "author": "Player I",
+      "text": "I will hunt you down in this game",
+      "context": [
+        {
+          "username": "Player L",
+          "text": "You cannot catch me"
+        }
+      ],
+      "roomUsernames": [
+        "Player I",
+        "Player L",
+        "Player M"
+      ],
+      "expectedVerdict": "fine",
+      "rule": null,
+      "reasons": []
+    },
+    {
+      "id": "seed-spam-08",
+      "author": "Player H",
+      "text": "DM me on discord.gg/example for the hack",
+      "context": [],
+      "roomUsernames": [
+        "Player H",
+        "Player I"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "spam",
+      "reasons": [
+        "Disguised invite link"
+      ]
+    },
+    {
+      "id": "seed-personal_info-08",
+      "author": "Player H",
+      "text": "My Discord is PrivateUser#1234",
+      "context": [],
+      "roomUsernames": [
+        "Player H",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "personal_info",
+      "reasons": [
+        "Account handle disclosure"
+      ]
+    },
+    {
+      "id": "seed-impersonation-07",
+      "author": "Player G",
+      "text": "Official message from the site owner: send passwords here",
+      "context": [],
+      "roomUsernames": [
+        "Player G",
+        "Player H"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "impersonation",
+      "reasons": [
+        "Fake authority impersonation"
+      ]
+    },
+    {
+      "id": "seed-self_harm-07",
+      "author": "Player G",
+      "text": "When you feel that awful, you should end your life instead of posting here",
+      "context": [
+        {
+          "username": "Player I",
+          "text": "I feel awful"
+        }
+      ],
+      "roomUsernames": [
+        "Player G",
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "self_harm",
+      "reasons": [
+        "Pressures a distressed player toward suicide"
+      ]
+    },
+    {
+      "id": "seed-profanity-09",
+      "author": "Player I",
+      "text": "b!tch please",
+      "context": [],
+      "roomUsernames": [
+        "Player I",
+        "Player J"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "profanity",
+      "reasons": [
+        "Disguised profanity"
+      ]
+    },
+    {
+      "id": "seed-bullying_harassment-10",
+      "author": "Player J",
+      "text": "Player N, nobody asked for your opinion",
+      "context": [
+        {
+          "username": "Player N",
+          "text": "Maybe we slow down"
+        }
+      ],
+      "roomUsernames": [
+        "Player N",
+        "Player J",
+        "Player K"
+      ],
+      "expectedVerdict": "not_ok",
+      "rule": "bullying_harassment",
+      "reasons": [
+        "Dismissive insult toward a named player"
+      ]
+    }
+  ]
+}
