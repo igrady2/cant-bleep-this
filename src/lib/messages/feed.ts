@@ -31,6 +31,16 @@ export interface PublicFeedMessage {
   slipRule?: string;
 }
 
+/** Allowed JSON keys on GET /api/feed items (author-only fields such as crisisNote are excluded). */
+export const PUBLIC_FEED_MESSAGE_KEYS = [
+  "id",
+  "author",
+  "text",
+  "createdAt",
+  "status",
+  "slipRule",
+] as const satisfies readonly (keyof PublicFeedMessage)[];
+
 function slipRuleLabel(ruleId: string | null | undefined): string | undefined {
   if (!ruleId) return undefined;
   const category = CATEGORIES.find((entry) => entry.id === ruleId);
@@ -89,6 +99,7 @@ function serializeFeedRow(row: FeedRow, slipRules: Map<string, string>): PublicF
   };
 }
 
+/** Loads the shared room feed from D1 message rows only (never from post/moderate API bodies). */
 export async function loadPublicFeed(
   db: MessagesDatabase,
   limit = FEED_MESSAGE_LIMIT,

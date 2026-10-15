@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { loadPublicFeed } from "./feed";
+import { serializePublicMessage, type MessagePresentation } from "@/lib/presentation";
+
+import { PUBLIC_FEED_MESSAGE_KEYS, loadPublicFeed } from "./feed";
 import type { MessagesDatabase } from "./db";
+
+const allowedFeedKeySet = new Set<string>(PUBLIC_FEED_MESSAGE_KEYS);
 
 function createDb(rows: Array<{
   id: string;
@@ -104,5 +108,65 @@ describe("loadPublicFeed", () => {
     expect(messages).toHaveLength(1);
     expect(messages[0]?.text).toBe("█████");
     expect(messages[0]?.slipRule).toBe("Profanity");
+  });
+
+  it("never exposes author-only crisisNote in feed payloads built from DB rows", async () => {
+    const db = createDb([
+      {
+        id: "m1",
+        masked_text: "need help",
+        status: "pending",
+        created_at: 1,
+        filter_outcome: "passed",
+        author_name: "sam",
+      },
+    ]);
+
+    const messages = await loadPublicFeed(db);
+    const payload = JSON.stringify({ messages });
+    expect(payload).not.toContain("crisisNote");
+
+    for (const message of messages) {
+      expect(message).not.toHaveProperty("crisisNote");
+      for (const key of Object.keys(message)) {
+        expect(allowedFeedKeySet.has(key)).toBe(true);
+      }
+    }
+  });
+
+  it("drops crisisNote from serializePublicMessage before feed projection", () => {
+    const input = {
+      username: "sam",
+      text: "masked text",
+      filterOutcome: "passed",
+      status: "pending",
+      context: [],
+      reasons: [],
+      crisisNote: {
+        headline: "988 Suicide & Crisis Lifeline",
+        message: "If you are in crisis, call or text 988.",
+        phone: "988",
+        url: "https://988lifeline.org",
+      },
+    } as MessagePresentation & {
+      crisisNote: {
+        headline: string;
+        message: string;
+        phone: string;
+        url: string;
+      };
+    };
+
+    const presented = serializePublicMessage(input);
+    expect(presented).not.toHaveProperty("crisisNote");
+
+    const feedItem = {
+      id: "msg-1",
+      author: presented.username,
+      text: presented.text,
+      createdAt: 1,
+      status: presented.status,
+    };
+    expect(JSON.stringify(feedItem)).not.toContain("crisisNote");
   });
 });

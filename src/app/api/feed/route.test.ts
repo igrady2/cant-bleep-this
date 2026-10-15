@@ -32,3 +32,23 @@ it("returns serialized feed messages", async () => {
   expect(body.messages).toHaveLength(1);
   expect(body.messages[0].author).toBe("alice");
 });
+
+it("does not include author-only crisisNote in feed JSON", async () => {
+  getMessagesDatabase.mockReturnValue({});
+  loadPublicFeed.mockResolvedValue([
+    {
+      id: "m1",
+      author: "alice",
+      text: "hi",
+      createdAt: 1,
+      status: "pending",
+    },
+  ]);
+  const response = await GET();
+  const raw = await response.text();
+  expect(raw).not.toContain("crisisNote");
+  const body = JSON.parse(raw) as { messages: Record<string, unknown>[] };
+  for (const message of body.messages) {
+    expect(message).not.toHaveProperty("crisisNote");
+  }
+});
