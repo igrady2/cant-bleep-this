@@ -48,12 +48,20 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
         return;
       }
 
-      if (!data.allowed) {
-        setNotice({ kind: "blocked", message: data.message, result: data });
+      if (data.outcome === "off_limits") {
+        setNotice({ kind: "excluded" });
         return;
       }
 
-      setMessages((prev) => [...prev, { id: crypto.randomUUID(), text: data.message, sentAt: Date.now() }]);
+      if (!data.allowed) {
+        setNotice({ kind: "blocked", message: data.message ?? "", result: data });
+        return;
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), text: data.message ?? "", sentAt: Date.now() },
+      ]);
       setDraft("");
       setNotice({ kind: "idle" });
     } catch {

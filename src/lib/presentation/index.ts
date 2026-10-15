@@ -1,5 +1,9 @@
 import "server-only";
 
+import type { FilterOutcome } from "@/lib/moderation/types";
+import { mayAppearInContext } from "@/lib/messages/disposition";
+import type { MessageStatus } from "@/lib/messages/disposition";
+
 /** Minimum digits in a contact-like run. Invalid configuration fails closed. */
 function minimumDigits(): number {
   const value = process.env.MASK_MIN_DIGITS ?? "7";
@@ -27,9 +31,39 @@ export interface MessageText {
   slipRule?: string;
 }
 
+export interface DeliverableContextEntry extends MessageText {
+  filterOutcome: FilterOutcome;
+  status: MessageStatus;
+}
+
 export interface MessagePresentation extends MessageText {
-  context: readonly MessageText[];
+  context: readonly DeliverableContextEntry[];
   reasons: readonly string[];
+  filterOutcome: FilterOutcome;
+  status: MessageStatus;
+}
+
+export class UndeliverableMessageError extends Error {
+  constructor(message = "Off-limits content cannot be serialized for delivery.") {
+    super(message);
+    this.name = "UndeliverableMessageError";
+  }
+}
+
+function assertDeliverable(message: Pick<MessagePresentation, "filterOutcome" | "status">): void {
+  if (message.filterOutcome === "off_limits" || message.status === "excluded") {
+    throw new UndeliverableMessageError();
+  }
+}
+
+/** Drops predecessors without delivery metadata or that must not be shown. */
+export function filterDeliverableContext(
+  context: readonly Partial<DeliverableContextEntry>[],
+): DeliverableContextEntry[] {
+  return context.filter((entry): entry is DeliverableContextEntry => {
+    if (entry.filterOutcome === undefined || entry.status === undefined) return false;
+    return mayAppearInContext(entry.filterOutcome, entry.status);
+  });
 }
 
 function presentText(message: MessageText, publicView: boolean): MessageText {
@@ -43,10 +77,17 @@ function presentText(message: MessageText, publicView: boolean): MessageText {
 }
 
 function presentMessage(message: MessagePresentation, publicView: boolean): MessagePresentation {
+  assertDeliverable(message);
   // Explicit projection: extra storage fields (including raw text) never leak.
   return {
     ...presentText(message, publicView),
-    context: message.context.map((entry) => presentText(entry, publicView)),
+    filterOutcome: message.filterOutcome,
+    status: message.status,
+    context: filterDeliverableContext(message.context).map((entry) => ({
+      ...presentText(entry, publicView),
+      filterOutcome: entry.filterOutcome,
+      status: entry.status,
+    })),
     reasons: message.reasons.map(maskPersonalInformation),
   };
 }

@@ -18,7 +18,8 @@ npm run dev                  # http://localhost:4317
 | --- | --- |
 | `TYPESAFE_API_KEY` | TypeSafe API key ([docs](https://docs.typesafe.ai/api)). When set, every message is scored by Jev. |
 | `TYPESAFE_MODEL` | Optional. Defaults to `jev-latest`. |
-| `MODERATION_THRESHOLD` | Optional. Probability at which a category blocks a message. Defaults to `0.5`. |
+| `MODERATION_THRESHOLD` | Optional. Probability at which a reviewable category blocks a message. Defaults to `0.5`. |
+| `MODERATION_THRESHOLD_OFF_LIMITS` | Optional. Independent threshold for the off-limits exclusion question. Defaults to `0.5`. |
 | `MODERATION_PROVIDER` | Optional. Set to `mock` to force the local mock even when a key is set. |
 
 **Without `TYPESAFE_API_KEY`, the app uses a local keyword mock** (`src/lib/moderation/mock.ts`) so the demo still works offline. A "Demo" badge above the chat box shows while the mock is active. The mock is only a stand-in and is not real moderation.
@@ -28,9 +29,9 @@ npm run dev                  # http://localhost:4317
 `POST /api/moderate` with `{ message }` sends a single request to `https://api.typesafe.ai/v1/systemone`. The request includes:
 
 - **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the message is player data and any instructions inside it are ignored, and the message itself.
-- **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
+- **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules, plus a separate `off_limits` exclusion question in the same request. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
-The rule is applied in code: if any category reaches the threshold, the message is blocked. The response returns every category's probability, so you can tune the threshold without changing the questions. If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
+The rule is applied in code: if the off-limits question reaches its threshold, the message is removed and never shown. Otherwise, if any reviewable category reaches the threshold, the message is blocked but still reviewable. Reviewable outcomes return every score so you can tune thresholds without changing the questions; off-limits outcomes return only `outcome`, `allowed`, and `provider` (no message body or scores). If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
 
 ### Categories (`src/lib/moderation/categories.ts`)
 

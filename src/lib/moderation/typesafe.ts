@@ -1,6 +1,7 @@
 import "server-only";
 
 import { CATEGORIES, type CategoryId } from "./categories";
+import { OFF_LIMITS_ID, OFF_LIMITS_QUESTION } from "./off-limits";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const RETRYABLE = new Set([429, 529]);
@@ -26,11 +27,22 @@ export class TypeSafeError extends Error {
   }
 }
 
+function parseNoulScore(questionId: string, answer: NoulAnswer | undefined): number {
+  if (answer?.type !== "noul" || typeof answer.noul !== "number") {
+    throw new TypeSafeError(`Missing Noul answer for "${questionId}"`);
+  }
+  const score = answer.noul;
+  if (!Number.isFinite(score) || score < 0 || score > 1) {
+    throw new TypeSafeError(`Invalid Noul score for "${questionId}"`);
+  }
+  return score;
+}
+
 export async function scoreWithJev(
   message: string,
   apiKey: string,
   model: string,
-): Promise<{ model: string; scores: Record<CategoryId, number> }> {
+): Promise<{ model: string; scores: Record<CategoryId, number>; offLimitsScore: number }> {
   const body = {
     model,
     state: {
@@ -46,12 +58,19 @@ export async function scoreWithJev(
       // Player text is data to be scored, never instructions to follow.
       message,
     },
-    questions: Object.fromEntries(
-      CATEGORIES.map((c) => [
-        c.id,
-        { type: "noul", instructions: c.question.instructions, criteria: c.question.criteria },
-      ]),
-    ),
+    questions: {
+      ...Object.fromEntries(
+        CATEGORIES.map((c) => [
+          c.id,
+          { type: "noul", instructions: c.question.instructions, criteria: c.question.criteria },
+        ]),
+      ),
+      [OFF_LIMITS_ID]: {
+        type: "noul",
+        instructions: OFF_LIMITS_QUESTION.instructions,
+        criteria: OFF_LIMITS_QUESTION.criteria,
+      },
+    },
   };
 
   let lastError: TypeSafeError | undefined;
@@ -74,13 +93,10 @@ export async function scoreWithJev(
       const data = (await res.json()) as SystemOneResponse;
       const scores = {} as Record<CategoryId, number>;
       for (const c of CATEGORIES) {
-        const answer = data.answers?.[c.id];
-        if (answer?.type !== "noul" || typeof answer.noul !== "number") {
-          throw new TypeSafeError(`Missing Noul answer for "${c.id}"`);
-        }
-        scores[c.id] = answer.noul;
+        scores[c.id] = parseNoulScore(c.id, data.answers?.[c.id]);
       }
-      return { model: data.model, scores };
+      const offLimitsScore = parseNoulScore(OFF_LIMITS_ID, data.answers?.[OFF_LIMITS_ID]);
+      return { model: data.model, scores, offLimitsScore };
     }
 
     const detail = await res.text().catch(() => "");

@@ -1,4 +1,5 @@
 import type { CategoryId } from "./categories";
+import { OFF_LIMITS_ID } from "./off-limits";
 
 /**
  * LOCAL MOCK — NOT TypeSafe/Jev.
@@ -58,10 +59,21 @@ const PATTERNS: Record<CategoryId, RegExp[]> = {
   ],
 };
 
-export function scoreWithMock(message: string): Record<CategoryId, number> {
+/** Serious-harm threats to a real place or event without clear joke framing (demo only). */
+const OFF_LIMITS_PATTERNS: RegExp[] = [
+  /\b(plan to|going to|will) (bomb|shoot up|attack) (the |@)?(stadium|airport|city hall|concert)\b/i,
+  /\bbringing (a |an )?(bomb|explosive|rifle) to (school|work|the game)\b/i,
+];
+
+export function scoreWithMock(
+  message: string,
+): { scores: Record<CategoryId, number>; offLimitsScore: number } {
   const scores = {} as Record<CategoryId, number>;
   for (const [id, patterns] of Object.entries(PATTERNS) as [CategoryId, RegExp[]][]) {
     scores[id] = patterns.some((p) => p.test(message)) ? HIT : MISS;
   }
-  return scores;
+  const offLimitsScore = OFF_LIMITS_PATTERNS.some((p) => p.test(message)) ? HIT : MISS;
+  return { scores, offLimitsScore };
 }
+
+export { OFF_LIMITS_ID };
