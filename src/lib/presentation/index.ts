@@ -31,11 +31,16 @@ export interface MessageText {
   slipRule?: string;
 }
 
+export interface DeliverableContextEntry extends MessageText {
+  filterOutcome: FilterOutcome;
+  status: MessageStatus;
+}
+
 export interface MessagePresentation extends MessageText {
-  context: readonly MessageText[];
+  context: readonly DeliverableContextEntry[];
   reasons: readonly string[];
-  filterOutcome?: FilterOutcome;
-  status?: MessageStatus;
+  filterOutcome: FilterOutcome;
+  status: MessageStatus;
 }
 
 export class UndeliverableMessageError extends Error {
@@ -45,20 +50,20 @@ export class UndeliverableMessageError extends Error {
   }
 }
 
-function assertDeliverable(message: MessagePresentation): void {
+function assertDeliverable(message: Pick<MessagePresentation, "filterOutcome" | "status">): void {
   if (message.filterOutcome === "off_limits" || message.status === "excluded") {
     throw new UndeliverableMessageError();
   }
 }
 
-/** Drops predecessors that must not appear in feed, queue, reviewer or dataset context. */
-export function filterDeliverableContext<T extends Pick<MessageText, "text"> & {
-  filterOutcome?: FilterOutcome;
-  status?: MessageStatus;
-}>(context: readonly T[]): T[] {
-  return context.filter((entry) =>
-    mayAppearInContext(entry.filterOutcome ?? "passed", entry.status ?? "pending"),
-  );
+/** Drops predecessors without delivery metadata or that must not be shown. */
+export function filterDeliverableContext(
+  context: readonly Partial<DeliverableContextEntry>[],
+): DeliverableContextEntry[] {
+  return context.filter((entry): entry is DeliverableContextEntry => {
+    if (entry.filterOutcome === undefined || entry.status === undefined) return false;
+    return mayAppearInContext(entry.filterOutcome, entry.status);
+  });
 }
 
 function presentText(message: MessageText, publicView: boolean): MessageText {
@@ -76,7 +81,13 @@ function presentMessage(message: MessagePresentation, publicView: boolean): Mess
   // Explicit projection: extra storage fields (including raw text) never leak.
   return {
     ...presentText(message, publicView),
-    context: filterDeliverableContext(message.context).map((entry) => presentText(entry, publicView)),
+    filterOutcome: message.filterOutcome,
+    status: message.status,
+    context: filterDeliverableContext(message.context).map((entry) => ({
+      ...presentText(entry, publicView),
+      filterOutcome: entry.filterOutcome,
+      status: entry.status,
+    })),
     reasons: message.reasons.map(maskPersonalInformation),
   };
 }

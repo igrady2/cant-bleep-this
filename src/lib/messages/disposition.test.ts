@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type { ModerationResult } from "@/lib/moderation/types";
+import { maintainerRemovalEntersTestSet } from "./maintainer-removal";
 import {
   dispositionFromModeration,
-  maintainerRemovalEntersTestSet,
   mayAppearInContext,
   mayAppearInFeed,
   mayEnterReviewQueue,
@@ -61,10 +61,11 @@ describe("message disposition", () => {
     expect(disposition.maskedText).toBe("masked");
   });
 
-  it("allows blocked messages in the review queue but not off-limits rows", () => {
-    expect(mayEnterReviewQueue("blocked")).toBe(true);
-    expect(mayEnterReviewQueue("passed")).toBe(true);
-    expect(mayEnterReviewQueue("off_limits")).toBe(false);
+  it("allows blocked messages in the review queue but not off-limits or excluded rows", () => {
+    expect(mayEnterReviewQueue("blocked", "pending")).toBe(true);
+    expect(mayEnterReviewQueue("passed", "pending")).toBe(true);
+    expect(mayEnterReviewQueue("off_limits", "excluded")).toBe(false);
+    expect(mayEnterReviewQueue("passed", "excluded")).toBe(false);
   });
 
   it("keeps off-limits and excluded rows out of feed, context and test cases", () => {

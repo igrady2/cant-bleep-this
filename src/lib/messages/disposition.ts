@@ -61,9 +61,14 @@ export function mayAppearInFeed(
   return filterOutcome === "passed" && status !== "excluded";
 }
 
-/** Blocked reviewable messages stay in the queue; off-limits rows do not. */
-export function mayEnterReviewQueue(filterOutcome: FilterOutcome): boolean {
-  return filterOutcome === "passed" || filterOutcome === "blocked";
+/** Blocked reviewable messages stay in the queue; off-limits and excluded rows do not. */
+export function mayEnterReviewQueue(
+  filterOutcome: FilterOutcome,
+  status: MessageStatus,
+): boolean {
+  return (
+    (filterOutcome === "passed" || filterOutcome === "blocked") && status !== "excluded"
+  );
 }
 
 /** Context snapshots and serializers must drop undeliverable predecessors. */
@@ -80,11 +85,6 @@ export function mayEnterTestCase(
   status: MessageStatus,
 ): boolean {
   return mayAppearInContext(filterOutcome, status);
-}
-
-/** Maintainer deletion hard-deletes the row; it is not the same as filter exclusion. */
-export function maintainerRemovalEntersTestSet(): false {
-  return false;
 }
 
 export function isOffLimitsDisposition(disposition: Pick<MessageDisposition, "filterOutcome">): boolean {

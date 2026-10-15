@@ -17,7 +17,14 @@ const message: MessagePresentation = {
   username: "Player A",
   text: `You are stupid. Call ${fullNumber}`,
   slipRule: "Harassment",
-  context: [{ username: "Player B", text: `Email ${email}` }],
+  filterOutcome: "passed",
+  status: "pending",
+  context: [{
+    username: "Player B",
+    text: `Email ${email}`,
+    filterOutcome: "passed",
+    status: "pending",
+  }],
   reasons: [`Insult followed by ${localNumber}`],
 };
 
@@ -74,14 +81,25 @@ describe("presentation boundaries", () => {
         username: email,
         slipRule: `Harassment ${localNumber}`,
         rawText: fullNumber,
-        context: [{ username: email, text: fullNumber, rawText: email }],
+        context: [{
+          username: email,
+          text: fullNumber,
+          rawText: email,
+          filterOutcome: "passed",
+          status: "pending",
+        }],
       };
-      const output = serialize(input);
+      const output = serialize(input as MessagePresentation);
       const json = JSON.stringify(output);
       for (const contact of [email, localNumber, fullNumber]) expect(json).not.toContain(contact);
       expect(json).not.toContain("rawText");
       expect(output.reasons).toEqual(["Insult followed by [redacted]"]);
-      expect(output.context).toEqual([{ username: "[redacted]", text: "[redacted]" }]);
+      expect(output.context).toEqual([{
+        username: "[redacted]",
+        text: "[redacted]",
+        filterOutcome: "passed",
+        status: "pending",
+      }]);
       expect(input.rawText).toBe(fullNumber);
     },
   );
@@ -104,16 +122,25 @@ describe("presentation boundaries", () => {
   });
 
   it("drops off-limits and excluded predecessors from serialized context", () => {
-    const input = {
+    const input: MessagePresentation = {
       ...message,
       context: [
-        { username: "Player B", text: "visible", filterOutcome: "passed" as const },
-        { username: "Player C", text: "hidden", filterOutcome: "off_limits" as const, status: "excluded" as const },
+        { username: "Player B", text: "visible", filterOutcome: "passed", status: "pending" },
+        { username: "Player C", text: "hidden", filterOutcome: "off_limits", status: "excluded" },
       ],
     };
+    const withIncompleteContext = {
+      ...input,
+      context: [...input.context, { username: "Player D", text: "no metadata" }],
+    };
     const output = serializeReviewerMessage(input);
-    expect(output.context).toEqual([{ username: "Player B", text: "visible" }]);
-    expect(filterDeliverableContext(input.context)).toHaveLength(1);
+    expect(output.context).toEqual([{
+      username: "Player B",
+      text: "visible",
+      filterOutcome: "passed",
+      status: "pending",
+    }]);
+    expect(filterDeliverableContext(withIncompleteContext.context)).toHaveLength(1);
   });
 
   it("refuses to serialize off-limits rows", () => {
@@ -127,7 +154,9 @@ describe("presentation boundaries", () => {
     const input = { ...message, maskedText: email, rawText: fullNumber };
     const output = serializeTestCase(input);
     expect(output.text).toBe("You are stupid. Call [redacted]");
-    expect(Object.keys(output).sort()).toEqual(["context", "reasons", "slipRule", "text", "username"]);
+    expect(Object.keys(output).sort()).toEqual([
+      "context", "filterOutcome", "reasons", "slipRule", "status", "text", "username",
+    ]);
     expect(serializeTestCase(output)).toEqual(output);
   });
 });

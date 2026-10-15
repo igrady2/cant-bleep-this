@@ -61,9 +61,8 @@ it("does not return message text for off-limits outcomes", async () => {
     body: JSON.stringify({ message: secret }),
   }));
   expect(response.status).toBe(200);
-  const body = await response.json() as { outcome: string; message?: string };
-  expect(body.outcome).toBe("off_limits");
-  expect(body.message).toBeUndefined();
+  const body = await response.json() as Record<string, unknown>;
+  expect(body).toEqual({ outcome: "off_limits", allowed: false, provider: "typesafe" });
   expect(JSON.stringify(body)).not.toContain(secret);
 });
 
