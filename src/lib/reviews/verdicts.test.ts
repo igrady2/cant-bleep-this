@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/vitest-pool-workers/types" />
 import { env } from "cloudflare:test";
-import { beforeAll, beforeEach, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, expect, it, vi } from "vitest";
 import { loadPublicFeed } from "@/lib/messages/feed";
 import { loadMessageReviewPresentation } from "./context";
 import { serializeReviewerMessage } from "@/lib/presentation";
@@ -204,4 +204,57 @@ it.each([false, true])("censors only the deciding spans (one reviewer empty: %s)
   expect((await loadMessageReviewPresentation(db, "next"))!.context).toEqual([]);
   await d1.exec("DELETE FROM messages WHERE id = 'm'");
   expect((await loadPublicFeed(db)).map((entry) => entry.id)).toEqual(["next"]);
+});
+
+async function seedVote(player: string, seed: string, action: "fine" | "not_ok" | "skip") {
+  const id = crypto.randomUUID();
+  await d1.prepare(`INSERT INTO review_assignments (id, player_id, seed_case_id, assignment, created_at, expires_at)
+    VALUES (?, ?, ?, 'queue', 0, 9999999999)`).bind(id, player, seed).run();
+  const input = { assignmentId: id, action, ...(action === "not_ok" ? {rule: "profanity", reason: "Synthetic reason"} : {}) };
+  return { result: await submitReview(db, {id: player, name: player, normalizedName: player}, input), input };
+}
+it("persists misses, excludes at three, and cannot farm or replay seeds for points", async () => {
+  const seeds = ["seed-bullying_harassment-01", "seed-bullying_harassment-02", "seed-bullying_harassment-03"];
+  for (const seed of seeds) expect((await seedVote("a", seed, "fine")).result.ok).toBe(true);
+  expect(await d1.prepare("SELECT reviewer_standing FROM players WHERE id = ?").bind("a").first()).toEqual({reviewer_standing: "excluded"});
+  const repeat = await seedVote("a", seeds[0], "fine");
+  expect(repeat.result.ok).toBe(false);
+  expect((await submitReview(db, {id: "a", name: "a", normalizedName: "a"}, repeat.input)).ok).toBe(false);
+  expect(await points()).toBe(0);
+  expect(await status()).toBe("pending");
+  await vote("a", "not_ok"); await vote("b", "not_ok");
+  await computeConsensus(db, "m");
+  expect(await status()).toBe("pending");
+  await vote("c", "fine"); await vote("d", "fine");
+  await computeConsensus(db, "m");
+  expect(await status()).toBe("clean"); expect(await points()).toBe(0);
+});
+it("keeps skips out of accuracy and blocks duplicate submissions even concurrently", async () => {
+  const first = await seedVote("a", "seed-bullying_harassment-01", "skip");
+  expect(first.result.ok).toBe(true);
+  expect((await submitReview(db, {id: "a", name: "a", normalizedName: "a"}, first.input)).ok).toBe(false);
+  const attempts = await Promise.all([
+    seedVote("b", "seed-bullying_harassment-02", "fine"),
+    seedVote("b", "seed-bullying_harassment-02", "fine"),
+  ]);
+  expect(attempts.filter(a => a.result.ok)).toHaveLength(1);
+  expect(await d1.prepare("SELECT seed_correct FROM reviews WHERE player_id = ?").bind("a").first()).toEqual({seed_correct: null});
+  expect(await points()).toBe(0);
+});
+
+afterEach(() => vi.unstubAllEnvs());
+it("uses the configured rolling window, recovers, and checks the Not OK rule", async () => {
+  vi.stubEnv("REVIEW_SEED_WINDOW", "2"); vi.stubEnv("REVIEW_SEED_MISSES", "1");
+  expect((await seedVote("a", "seed-bullying_harassment-01", "not_ok")).result.ok).toBe(true);
+  expect(await d1.prepare("SELECT seed_correct FROM reviews WHERE player_id = ?").bind("a").first()).toEqual({seed_correct: 0});
+  const { updateStanding } = await import("./standing");
+  for (let i = 0; i < 2; i++) {
+    const seed = `clean-seed-${i}`;
+    await d1.prepare(`INSERT INTO test_cases VALUES (?, 'hello', '[]', 'fine', NULL, '[]', 'seed', 'v1')`).bind(seed).run();
+    const saved = await seedVote("a", seed, "fine");
+    expect(saved.result.ok).toBe(true);
+  }
+  expect(await d1.prepare("SELECT reviewer_standing FROM players WHERE id = ?").bind("a").first()).toEqual({reviewer_standing: "good"});
+  // A nonexistent review cannot change standing.
+  await updateStanding(db, "a", "missing").run!();
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { pickRandomCandidate, pickUncertainCandidate } from "./queue";
+import { pickNextQueueTarget, pickRandomCandidate, pickUncertainCandidate } from "./queue";
 
 describe("queue picks", () => {
   const base = {
@@ -60,4 +60,24 @@ describe("queue picks", () => {
     expect(pickRandomCandidate(candidates)?.id).toBe("b");
     vi.restoreAllMocks();
   });
+});
+
+it("uses the default ten percent seed boundary and falls back when seeds are exhausted", async () => {
+  const player = {id: "a", name: "a", normalizedName: "a"};
+  let seedAvailable = true;
+  const db = { prepare: (sql: string) => ({bind: () => ({all: async () =>
+    sql.includes("FROM test_cases") ? (seedAvailable ? [{id: "seed"}] : []) :
+    [{id: "real", filter_outcome: "passed", status: "pending", filter_scores: "{}", created_at: 0}],
+  })}) } as unknown as import("./db").ReviewsDatabase;
+  const rng = vi.spyOn(crypto, "getRandomValues").mockImplementation(array => {
+    (array as Uint32Array)[0] = 0;
+    return array;
+  });
+  expect(await pickNextQueueTarget(db, player)).toEqual({kind: "seed", seedCaseId: "seed"});
+  rng.mockImplementation(array => { (array as Uint32Array)[0] = Math.ceil(0.1 * 2 ** 32); return array; });
+  expect(await pickNextQueueTarget(db, player)).toEqual({kind: "message", messageId: "real"});
+  seedAvailable = false;
+  rng.mockImplementation(array => { (array as Uint32Array)[0] = 0; return array; });
+  expect(await pickNextQueueTarget(db, player)).toEqual({kind: "message", messageId: "real"});
+  vi.restoreAllMocks();
 });

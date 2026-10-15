@@ -14,6 +14,7 @@ export function consensusStatement(db: ReviewsDatabase, messageId: string, revie
       JOIN players p ON p.id = r.player_id
       WHERE r.message_id = ? AND r.player_id <> m.author_id
         AND p.reviewer_standing = 'good' AND r.skipped = 0
+        AND r.seed_case_id IS NULL
         AND r.verdict IN ('fine', 'not_ok')
     ), votes AS (
       SELECT verdict FROM eligible

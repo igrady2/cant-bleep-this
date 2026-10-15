@@ -44,3 +44,9 @@ describe("D1 migrations", () => {
     expect(sql).not.toMatch(/0002_/);
   });
 
+
+it("adds seed attempt uniqueness and loads the curated seed pool", () => {
+  const sql = readFileSync(join(import.meta.dirname, "0009_seed_checks_standing.sql"), "utf8");
+  expect(sql).toContain("CREATE UNIQUE INDEX reviews_seed_once");
+  expect(sql).toContain("seed-bullying_harassment-01");
+});

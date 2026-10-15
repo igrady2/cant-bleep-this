@@ -1,5 +1,6 @@
 import "server-only";
 
+import { CATEGORIES } from "@/lib/moderation/categories";
 import { mayEnterReviewQueue } from "@/lib/messages/disposition";
 import type { FilterOutcome } from "@/lib/moderation/types";
 import type { MessageStatus } from "@/lib/messages/disposition";
@@ -62,13 +63,14 @@ async function listSeedCandidates(
         `SELECT tc.id
          FROM test_cases tc
          WHERE tc.source = 'seed'
+           AND (tc.expected_verdict = 'fine' OR tc.rule IN (${CATEGORIES.map(() => '?').join(', ')}))
            AND NOT EXISTS (
              SELECT 1 FROM reviews r
              WHERE r.seed_case_id = tc.id AND r.player_id = ?
            )
          LIMIT ?`,
       )
-      .bind(playerId, queueScanLimit()) as { all<T>(): Promise<T[]> }
+      .bind(...CATEGORIES.map(c => c.id), playerId, queueScanLimit()) as { all<T>(): Promise<T[]> }
   ).all<SeedCandidateRow>();
 }
 
