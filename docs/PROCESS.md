@@ -1,66 +1,60 @@
 # Process
 
-Indigo Grady is the product owner and the final approver. Agents write the PRD, plan the issues, build, test, and review. The game itself is specified in the [PRD](PRD.md). This page is how a change gets from an idea to `main`.
+Indigo Grady owns the product. She approves the PRD, and she clears a gated pull request once. The game is specified in the [PRD](PRD.md). This page is how a change reaches `main`.
 
 ## Roles
 
-| Role | Details |
+| Role | What they do |
 | --- | --- |
-| Product owner | Indigo. Final approver. |
-| Project Manager | An AI that orchestrates the work. |
-| PRD Writer | Claude. |
+| Product owner | Indigo. Approves the PRD and clears each gated pull request once. |
+| Project Manager | Orchestrates the work. Brings each gated pull request to Indigo once. |
+| PRD Writer | Claude writes the PRD. |
 | Issue Planner | Turns an approved PRD into issues. |
 | Builder | Cursor, Codex, or Claude. A cheaper model takes the first pass. Cursor fast mode stays off. |
 | QA / Test Runner | Checks the change. |
-| Reviewer | A more capable model than the builder, and a different model. |
+| Reviewer | A different model from the builder. |
+| Steward | Merges a gated pull request after the checks pass, and records the review on the project board. |
 | Release & Status | Build order, standups, and release notes. |
 
-Review pairing:
+## Review routing
 
 | Built with | Reviewed by |
 | --- | --- |
+| Cursor | Any model that did not build it, including Grok via Steward |
 | Codex | Grok or Claude |
 | Claude | Grok or ChatGPT |
-| Cursor | Any model that did not build it |
 
 ## Flow
 
 ```mermaid
 flowchart TD
   idea[Idea] --> prd[PRD]
-  prd --> approve{Indigo approves}
-  approve -->|Yes| issues[Issues]
-  approve -->|No| prd
+  prd --> approved[Indigo approves the PRD]
+  approved --> issues[Issues]
   issues --> waves[Dependency-ordered waves]
   waves --> build[Build]
-  build --> ci[CI]
-  ci --> qa[QA]
-  qa --> review[Different-model review]
-  review --> passed{"CI, QA, and review passed"}
-  passed -->|Yes| merge[Merge automatically]
-  passed -->|No| build
+  build --> gated{Gated?}
+  gated -->|Ungated| openChecks["CI, QA, and different-model review"]
+  gated -->|Gated| clear[Indigo clears once with the Project Manager]
+  clear --> gatedChecks["CI, QA, and different-model review"]
+  openChecks --> merge[Merge]
+  gatedChecks --> steward[Steward merges]
 ```
 
-Issues list their dependencies, and waves follow that order. A pull request merges automatically once CI, QA, and review have all passed.
+A pull request is gated when it changes moderation, schema, or auth, adds a dependency, affects cost, or changes more than about 400 lines of application code.
 
-## Gates
+Ungated pull requests merge when CI, QA, and a different-model review have passed.
 
-- The PRD is scope-locked. Work outside it gets the `needs-approval` label.
-- Splitting an issue needs approval.
-- Escalation tripwires: about 400 lines changed, a new dependency, a schema, auth, or moderation change, or a cost impact.
-- Each milestone exits with a preview deploy that Indigo checks.
-- Branch protection comes after v1.
+Gated pull requests are cleared once by Indigo, with the Project Manager. Steward merges after CI, QA, and a different-model review have passed. That clearance is the only ask.
+
+## Paid API runs
+
+A paid API run, such as a live seed baseline, waits for Indigo's approval and a call count.
 
 ## Traceability
 
-The pull request template records **Built by** and **Reviewed by**.
+Every pull request records **Built by model** and **Built by LLM**. Steward records **Reviewed by model** and **Reviewed by LLM** on the project board.
 
-Labels: `built-by:*` (`built-by:cursor`, `built-by:codex`, `built-by:claude`, `built-by:grok`), `priority:high`, `priority:med`, `priority:low`, `size:S`, `size:M`, `size:L`, `blocked`, and `needs-approval`.
+Labels: `built-by:cursor`, `built-by:codex`, `built-by:claude`, `built-by:grok`, `priority:high`, `priority:med`, `priority:low`, `size:S`, `size:M`, `size:L`, `blocked`, and `needs-approval`.
 
 Milestones follow the PRD: `1 - Rules`, `2 - Filter in context`, `3 - Build v1`, `4 - Private beta`, `5 - Launch`.
-
-## Usage discipline
-
-- One issue per agent run.
-- Minimal context on that run.
-- Update [AGENTS.md](../AGENTS.md) when a working rule changes.
