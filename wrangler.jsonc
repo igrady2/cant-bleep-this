@@ -35,5 +35,6 @@
     "enabled": true
   }
   // TYPESAFE_API_KEY is a secret: `npx wrangler secret put TYPESAFE_API_KEY`.
+  // TURNSTILE_SECRET_KEY and IP_HASH_SALT are secrets for POST /api/claim.
   // Optional overrides (TYPESAFE_MODEL, MODERATION_THRESHOLD, MODERATION_THRESHOLD_OFF_LIMITS) go in "vars".
 }

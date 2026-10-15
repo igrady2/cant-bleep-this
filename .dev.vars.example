@@ -1,3 +1,7 @@
 # Copy to .dev.vars for `npm run preview` (the local Workers runtime reads this, not .env).
 # Required for posting messages in preview.
 TYPESAFE_API_KEY=
+
+# Required for username claims in preview (`POST /api/claim`).
+TURNSTILE_SECRET_KEY=
+IP_HASH_SALT=
