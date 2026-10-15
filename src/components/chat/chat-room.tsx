@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { AlertTriangle, Loader2, RotateCcw } from "lucide-react";
 
 import { FEED_REFRESH_INTERVAL_MS } from "@/lib/messages/room-config";
+import { useAuthorCrisisNote } from "@/lib/messages/use-author-crisis-note";
 import {
   fetchRoomFeed,
   postMessageRequest,
@@ -19,6 +20,7 @@ import { Composer } from "./composer";
 import { EmptyState } from "./empty-state";
 import { MessageList } from "./message-list";
 import { ModerationNotice, type NoticeState } from "./moderation-notice";
+import { SelfHarmCrisisNoteBanner } from "./self-harm-crisis-note";
 
 function toChatMessages(feed: FeedMessage[]) {
   return feed.map((message) => ({
@@ -52,6 +54,8 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
   const [notice, setNotice] = useState<NoticeState>({ kind: "idle" });
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
+  const { crisisNote, applyAuthorResponse, clearCrisisNote, resetCrisisNoteForPostAttempt } =
+    useAuthorCrisisNote();
   const scrollRef = useRef<HTMLDivElement>(null);
   const idempotencyRef = useRef<string | null>(null);
 
@@ -147,6 +151,7 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
       return;
     }
 
+    resetCrisisNoteForPostAttempt();
     const idempotencyKey = beginPostAttempt();
     setNotice({ kind: "checking", message });
     try {
@@ -164,6 +169,8 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
       }
 
       const { body } = result;
+      applyAuthorResponse(body);
+
       if (body.outcome === "off_limits") {
         clearPostAttempt();
         setNotice({ kind: "excluded" });
@@ -243,6 +250,9 @@ export function ChatRoom({ status }: { status?: ReactNode }) {
 
       <footer className="shrink-0 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
         <div className="mx-auto w-full max-w-3xl space-y-3 px-4 py-3 sm:px-6 sm:py-4">
+          {crisisNote ? (
+            <SelfHarmCrisisNoteBanner note={crisisNote} onDismiss={clearCrisisNote} />
+          ) : null}
           <ModerationNotice
             state={notice}
             onDismiss={() => {

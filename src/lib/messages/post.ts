@@ -9,6 +9,7 @@ import type { FilterScores } from "@/lib/moderation/types";
 import { maskPersonalInformation } from "@/lib/presentation";
 import type { AuthenticatedPlayer } from "@/lib/players/auth";
 import { utcClaimDay } from "@/lib/players/crypto";
+import { selfHarmCrisisNoteForScores } from "@/lib/moderation/self-harm-crisis";
 import { buildModerationApiBody, type ModerationApiBody } from "./moderation-response";
 import { findDailyPostCapBlock, parseDailyCapCheckError } from "./daily-caps";
 import {
@@ -107,7 +108,17 @@ async function loadIdempotentPost(
   if (!row) return null;
 
   if (row.filter_outcome === "off_limits") {
-    return { outcome: "off_limits", allowed: false, provider: "typesafe" };
+    const stored = JSON.parse(row.filter_scores) as FilterScores;
+    const scores = Object.fromEntries(
+      CATEGORIES.map((category) => [category.id, stored[category.id] ?? 0]),
+    ) as ModerationResult["scores"];
+    const crisisNote = selfHarmCrisisNoteForScores(scores);
+    return {
+      outcome: "off_limits",
+      allowed: false,
+      provider: "typesafe",
+      ...(crisisNote ? { crisisNote } : {}),
+    };
   }
 
   const moderation = moderationResultFromStored(row);

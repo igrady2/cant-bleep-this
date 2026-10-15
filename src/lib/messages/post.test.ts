@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { SELF_HARM_CRISIS_NOTE } from "@/lib/content/self-harm-crisis-note";
 import { CATEGORIES } from "@/lib/moderation/categories";
 import { TypeSafeError } from "@/lib/moderation/typesafe";
 import { postMessage } from "./post";
@@ -194,6 +195,33 @@ describe("postMessage", () => {
     expect(result.ok).toBe(true);
     expect(moderate).not.toHaveBeenCalled();
     expect(db.batched).toHaveLength(0);
+  });
+
+  it("returns the author-only crisis note when self_harm scores meet threshold", async () => {
+    moderate.mockResolvedValue({
+      outcome: "blocked",
+      allowed: false,
+      provider: "typesafe",
+      model: "jev-latest",
+      threshold: 0.5,
+      offLimitsThreshold: 0.5,
+      offLimitsScore: 0.02,
+      flags: [
+        {
+          category: "self_harm",
+          label: "Self-harm encouragement",
+          probability: 0.66,
+          explanation: "Synthetic test flag.",
+        },
+      ],
+      scores: { ...defaultScores(), self_harm: 0.66 },
+    });
+    const db = createDb({});
+    const result = await postMessage(db, player, { text: "synthetic masked example" });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.body).toMatchObject({ crisisNote: SELF_HARM_CRISIS_NOTE });
+    }
   });
 
   it("maps player daily cap check failures to 429", async () => {
