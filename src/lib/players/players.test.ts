@@ -120,18 +120,24 @@ describe("validateUsernameForClaim", () => {
     };
   }
 
-  it("fails closed on out-of-range Jev scores", async () => {
+  it.each([
+    { label: "negative", noul: -1, useJsonMock: false },
+    { label: "above one", noul: 1.01, useJsonMock: false },
+    { label: "nan", noul: Number.NaN, useJsonMock: true },
+    { label: "infinity", noul: Number.POSITIVE_INFINITY, useJsonMock: true },
+  ])("fails closed on invalid Jev score ($label)", async ({ noul, useJsonMock }) => {
+    const payload = {
+      model: "jev-test",
+      answers: { username_offensive: { type: "noul", noul } },
+    };
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () =>
-        new Response(
-          JSON.stringify({
-            model: "jev-test",
-            answers: { username_offensive: { type: "noul", noul: -1 } },
-          }),
-          { status: 200 },
-        ),
-      ),
+      vi.fn(async () => {
+        if (useJsonMock) {
+          return { ok: true, json: async () => payload } as Response;
+        }
+        return new Response(JSON.stringify(payload), { status: 200 });
+      }),
     );
     vi.stubEnv("TYPESAFE_API_KEY", "test-key");
     expect(await validateUsernameForClaim("puzzle_fan")).toMatchObject({
