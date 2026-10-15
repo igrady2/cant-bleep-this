@@ -2,6 +2,8 @@
 
 **Get it past the filter.** A chat game in development, currently built on a small moderated chat demo. Type a message and press **Enter** to send. Before it is added to the chat log, the server sends it to **Jev**, the flagship System One model from [TypeSafe AI](https://docs.typesafe.ai). Allowed messages are posted. Blocked messages are not posted; instead the author sees which categories were flagged and why.
 
+How this project is managed: [Process](docs/PROCESS.md).
+
 Stack: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and shadcn/ui. Fonts: Familjen Grotesk (headings) and Arimo (body).
 
 ## Run it locally

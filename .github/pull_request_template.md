@@ -2,15 +2,23 @@
 
 Closes #
 
-## Built by
+## Built by model
 
-Tool/model:
+Tool: Cursor / Codex / Claude Code / Grok Bot / Other
 
-## Reviewed by
+## Built by LLM
 
-Tool/model:
+Concrete model name.
 
-The reviewer must be a different tool or model from the builder.
+## Reviewed by model
+
+Tool: Cursor / Codex / Claude Code / Grok Bot / Other
+
+## Reviewed by LLM
+
+Concrete model name.
+
+The reviewer LLM must differ from the Built by LLM.
 
 ## Scope
 
@@ -24,3 +32,7 @@ Answer each item Yes or No.
 - Deviations from the PRD? Yes/No
 
 If Deviations from the PRD is Yes, describe each deviation:
+
+## What changed
+
+## Verification
