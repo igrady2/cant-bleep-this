@@ -90,7 +90,7 @@ Players are the judges. Anyone can judge any message at any time, and a player w
 1. **Enter the room.** Confirm you are 18 or older and pick a username. The MVP has one shared room, a chat feed showing the newest 50 messages.
 2. **Post.** Write up to 140 characters and send.
 3. **The filter checks it in context**, with the last 10 messages and the usernames in the room. Passed messages appear in the feed. Blocked messages don't, and the author sees which rule they hit. If the filter can't be reached, nothing is posted and the author sees an error.
-4. **Judge.** Tap **Judge** on any message in the feed, or take the next one from the queue. You see it with the 10 messages before it and their usernames, then choose **Fine** or **Not OK**. Not OK asks for a rule, the offending words (tap to mark them), and one line on how it breaks it ("'pro Al' is a sexual joke about the player Al").
+4. **Judge.** Tap **Judge** on any message in the feed, or take the next one from the queue. You see it with the 10 messages before it and their usernames, then choose **Fine** or **Not OK**. Not OK asks for a rule and one line on how it breaks it ("'pro Al' is a sexual joke about the player Al"). The reviewer may also tap the offending words or phrases. That tap is optional: an empty selection is still a valid Not OK review. Tapping ships in Build v1, with the vowel masking below.
 5. **Review requirement.** After a set number of posts without judging, the next post waits until you judge one message from the queue (see Review requirement below).
 6. **Players decide.** Every message, passed or blocked, collects 3 reviews from players other than its author. The first 2 that agree set the verdict.
 
@@ -167,11 +167,17 @@ The test set is the one thing kept past 90 days. Each case keeps the message, it
 
 ## Censoring and false positives
 
-**Censoring.** A message posts first and is censored once players confirm it as a slip. The feed keeps the message readable and masks only the flagged words or phrases by replacing their vowels with "\*" ("f\*ck"), and shows the rule name. The point of the game is seeing what gets through, so a censored slip should still be easy to read, just lightly censored. A flagged span with no vowels (such as "shh") has its middle character masked instead ("s\*h"). The flagged words are the ones the deciding Not OK reviewers marked (see Core loop step 4); if none were marked, the whole message is masked the same way.
+**Censoring.** A message posts first and is censored once players confirm it as a slip. Optional word tapping and this vowel masking are both Build v1 (milestone 3), not a later improvement. The feed keeps the message readable and masks only the flagged spans by replacing their vowels with "\*" ("f\*ck"), and shows the rule name. The point of the game is seeing what gets through, so a censored slip should still be easy to read, just lightly censored.
 
-- Reviewers see the original, because judging it is their job. Entering the room shows a one-time note: "You'll judge messages other players wrote. Some will be offensive. You can skip any of them."
-- Phone numbers, emails and long digit runs are masked before anyone sees a message, reviewers included.
-- Off-limits messages are removed on sight and never posted or reviewed.
+### Censoring edge cases
+
+- **Vowels.** A vowel is a, e, i, o, or u, in either case. y is not a vowel. "f\*ck" masks the u and leaves the other letters. "cry" has no vowel, so the no-vowel rule applies ("c\*y"), not "cr\*".
+- **No vowels.** Mask one character, at 1-based position floor(length / 2) + 1. That is the only character of a 1-character span, the true middle when the length is odd, and the second of the two central characters when the length is even. "z" becomes "\*", "hh" becomes "h\*", "shh" becomes "s\*h", and "shhh" becomes "sh\*h".
+- **Which spans.** The deciding Not OK reviews are the first two reviews that agreed on Not OK. Take the union of their spans and merge any that overlap, so a character marked by both is masked once. If one of them marked nothing, the other's spans still count. An empty selection never overrides marks from the other deciding review. Mask the whole message by the same vowel and no-vowel rules only when neither deciding reviewer marked a span. That whole message is one span.
+- **What is stored.** Each mark is a character span into the original message (start inclusive, end exclusive), which identifies that occurrence. It is not the word string alone, so marking the first "fuck" in "fuck this fuck" does not mark the second. Tapping is optional, and an empty selection is a valid Not OK review. Fine and Skip store no spans.
+- **Where it shows.** A slip used as context for another message is censored from its own spans. The uncensored wording is available only on an eligible judging path. Reviewers see the original, because judging it is their job, still with contact information masked. Entering the room shows a one-time note: "You'll judge messages other players wrote. Some will be offensive. You can skip any of them." A feed refresh or a cached feed response shows the censored text and omits a message the maintainer has removed.
+- **Contact information.** Phone numbers, emails and long digit runs are masked before anyone sees a message, reviewers included, including inside a flagged span.
+- **Off-limits.** Off-limits messages are removed on sight and never posted or reviewed.
 
 **False positives.** These are handled by the same queue rather than a report button. Blocked messages are reviewed like any other, and 2 of 3 "Fine" reviews make it a false positive. False positives never cost the author anything, and they count against the filter in the success measures.
 
@@ -196,11 +202,13 @@ The game lives in the cant-bleep-this repo deployed as its own Cloudflare Worker
 | --- | --- | --- |
 | players | name, normalized name (unique), token hash, created, last played, reviewer standing | Until 90 days without a post |
 | messages | author, text, masked text, ids of the 10 messages before it, filter score per rule, filter version, status (pending, slip, clean, caught, false positive), time | 90 days |
-| reviews | message, reviewer, Fine or Not OK, rule, flagged words, reason, skipped flag, time (one per reviewer per message) | 90 days |
+| reviews | message, reviewer, Fine or Not OK, rule, flagged spans, reason, skipped flag, time (one per reviewer per message) | 90 days |
 | scores | player, day, slips (one row per player per day) | 90 days |
 | test\_cases | message, context snapshot, expected verdict, rule, reasons, source (game or seed), version added | Permanently, as masked text with usernames replaced by stand-ins |
 
 The board is the sum of `scores` over the last 90 days, top 50, cached for 5 minutes. Summing daily rows keeps reads small no matter how many messages there are.
+
+Flagged spans on a review are character ranges in the original message (start inclusive, end exclusive). A span is the occurrence id: it names that one occurrence, not a bare word. The list is empty when the reviewer marked nothing. Fine and Skip reviews have no spans. The edge cases are under [Censoring edge cases](#censoring-edge-cases).
 
 **Free-plan fit** (limits from Cloudflare's [D1](https://developers.cloudflare.com/d1/platform/pricing/) and [KV](https://developers.cloudflare.com/kv/platform/pricing/) pricing pages; limits reset at 00:00 UTC)
 
@@ -237,7 +245,7 @@ The biggest risks come from players judging players: offensive content shown to 
 
 1. **Rules:** finalize our content rules and their wording, and write about 100 seed messages with known verdicts.
 2. **Filter in context:** change the demo's request to send the last 10 messages and the usernames in the room, swap in our rules, and test on the seed set.
-3. **Build v1:** Worker deploy for the cant-bleep-this repo with a D1 binding, username claim with Turnstile, room feed, review queue with context, posting, verdicts, censoring, board, admin view, test-set runner. Reviewed on a Cloudflare preview deploy.
+3. **Build v1:** Worker deploy for the cant-bleep-this repo with a D1 binding, username claim with Turnstile, room feed, review queue with context, posting, verdicts, censoring (optional word tapping on a Not OK review, and vowel masking of those spans in the feed, such as "f\*ck"), board, admin view, test-set runner. Reviewed on a Cloudflare preview deploy.
 4. **Private beta:** a few friends for a week; check reviewer agreement, slip rate and anything ugly. Before the public launch, add the 988 crisis line note for self-harm messages.
 5. **Launch:** point cantbleepthis.com at the Worker, add a project entry on indigogrady.com that links to it, then run the review, fix and test cycle weekly.
 
@@ -254,3 +262,4 @@ The biggest risks come from players judging players: offensive content shown to 
 | Model cost | About $0.0002 per check (95 checks cost $0.021); not a concern at this scale |
 | Domain | cantbleepthis.com |
 | Hosting | The cant-bleep-this repo deployed as its own Cloudflare Worker, linked from indigogrady.com |
+| Censoring | Build v1. Optional word tapping on Not OK reviews, and vowel masking of the union of spans from the deciding Not OK reviews ("f\*ck"). y is not a vowel. The whole message is vowel-masked only when neither deciding reviewer marked a span. Replaces whole-message "█████" (2026-10-15, PR #48). |
