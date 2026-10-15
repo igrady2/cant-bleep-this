@@ -12,7 +12,8 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "postinstall": "patch-package",
-    "test": "vitest run"
+    "test": "vitest run",
+    "evaluate:seeds": "npx --yes tsx --tsconfig tsconfig.evaluate.json scripts/evaluate-seeds.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

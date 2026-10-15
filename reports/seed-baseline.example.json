@@ -1,0 +1,26 @@
+{
+  "reportVersion": 1,
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "policyVersion": "v1",
+  "filterPolicyVersion": "v1",
+  "fixtureCount": 0,
+  "configuration": {
+    "reviewableThreshold": 0.5,
+    "offLimitsThreshold": 0.5,
+    "typesafeModelRequested": "jev-latest",
+    "typesafeModelResolved": null
+  },
+  "summary": {
+    "pass": 0,
+    "catch": 0,
+    "miss": 0,
+    "falsePositive": 0,
+    "wrongRule": 0,
+    "offLimitsUnexpected": 0,
+    "contextualFailures": 0,
+    "errors": 0
+  },
+  "byRule": {},
+  "failures": [],
+  "cases": []
+}
