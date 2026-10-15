@@ -90,13 +90,20 @@ describe("validateUsernameForClaim", () => {
     expect(fetch429).toHaveBeenCalledTimes(3);
   });
 
+  function sentBody(fetchMock: ReturnType<typeof vi.fn>) {
+    const init = fetchMock.mock.calls[0]?.[1];
+    if (!init || typeof init !== "object" || !("body" in init)) {
+      throw new Error("expected fetch to be called with a request body");
+    }
+    return JSON.parse(String((init as RequestInit).body)) as {
+      questions: Record<string, { instructions: string }>;
+    };
+  }
+
   it("uses PRD Jev wording at 0.5", async () => {
     const fetchMock = stubJev(0.49);
     const allowed = await validateUsernameForClaim("puzzle_fan");
-    const init = fetchMock.mock.calls[0]?.[1];
-    const body = JSON.parse(String((init as RequestInit).body)) as {
-      questions: Record<string, { instructions: string }>;
-    };
+    const body = sentBody(fetchMock);
     expect(body.questions.username_offensive.instructions).toBe(USERNAME_JEV_QUESTION.instructions);
     expect(allowed).toMatchObject({ ok: true, threshold: 0.5 });
     stubJev(0.5);

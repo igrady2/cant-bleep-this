@@ -3,77 +3,13 @@ const USERNAME_PATTERN = /^[A-Za-z0-9_]{3,20}$/;
 export const USERNAME_MIN_LENGTH = 3;
 export const USERNAME_MAX_LENGTH = 20;
 
-const RESERVED_RAW = [
-  "admin",
-  "administrator",
-  "cantbleepthis",
-  "cant_bleep_this",
-  "cloudflare",
-  "filter",
-  "indigo",
-  "indigogrady",
-  "jev",
-  "mod",
-  "moderator",
-  "official",
-  "staff",
-  "support",
-  "system",
-  "typesafe",
-  "typesafeai",
-] as const;
+const RESERVED_RAW = (
+  "admin,administrator,cantbleepthis,cant_bleep_this,cloudflare,filter,indigo,indigogrady,jev,mod,moderator,official,staff,support,system,typesafe,typesafeai"
+).split(",");
 
-const BLOCKED_RAW = [
-  "anal",
-  "anus",
-  "arse",
-  "ass",
-  "asshole",
-  "bastard",
-  "bitch",
-  "blowjob",
-  "bollock",
-  "boner",
-  "boob",
-  "butt",
-  "clit",
-  "cock",
-  "coon",
-  "crap",
-  "cum",
-  "cunt",
-  "dick",
-  "dildo",
-  "dyke",
-  "fag",
-  "fuck",
-  "handjob",
-  "hitler",
-  "horny",
-  "jizz",
-  "kike",
-  "milf",
-  "nazi",
-  "nigger",
-  "nude",
-  "penis",
-  "piss",
-  "porn",
-  "pussy",
-  "rape",
-  "retard",
-  "scrotum",
-  "sex",
-  "shit",
-  "slut",
-  "spic",
-  "tit",
-  "tits",
-  "twat",
-  "vagina",
-  "wank",
-  "whore",
-] as const;
+const BLOCKED_RAW = (
+  "anal,anus,arse,ass,asshole,bastard,bitch,blowjob,bollock,boner,boob,butt,clit,cock,coon,crap,cum,cunt,dick,dildo,dyke,fag,fuck,handjob,hitler,horny,jizz,kike,milf,nazi,nigger,nude,penis,piss,porn,pussy,rape,retard,scrotum,sex,shit,slut,spic,tit,tits,twat,vagina,wank,whore"
+).split(",");
 
 const BLOCKED_ALLOWLIST_RAW = ["assassin", "classic"] as const;
 
@@ -115,6 +51,5 @@ export function isReservedUsername(name: string): boolean {
 export function isBlockedWordUsername(name: string): boolean {
   const normalized = normalizeUsername(name);
   if (BLOCKED_ALLOWLIST.has(normalized)) return false;
-
   return BLOCKED_NORMALIZED.some((blocked) => normalized.includes(blocked));
 }
