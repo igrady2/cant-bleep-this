@@ -2,15 +2,15 @@
 
 Closes #
 
-## Built by
+## Built by model
 
-Tool/model:
+## Built by LLM
 
-## Reviewed by
+## Reviewed by model
 
-Tool/model:
+## Reviewed by LLM
 
-The reviewer must be a different tool or model from the builder.
+The reviewer LLM must differ from the Built by LLM.
 
 ## Scope
 
@@ -24,3 +24,7 @@ Answer each item Yes or No.
 - Deviations from the PRD? Yes/No
 
 If Deviations from the PRD is Yes, describe each deviation:
+
+## What changed
+
+## Verification
