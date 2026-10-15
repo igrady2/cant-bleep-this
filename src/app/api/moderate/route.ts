@@ -1,4 +1,5 @@
 import { buildModerationApiBody } from "@/lib/messages/moderation-response";
+import { parseModerationRoomContext } from "@/lib/moderation/context";
 import { moderate } from "@/lib/moderation";
 import { TypeSafeError } from "@/lib/moderation/typesafe";
 import { isRateLimited } from "@/lib/rate-limit";
@@ -32,8 +33,13 @@ export async function POST(request: Request) {
     );
   }
 
+  const parsedContext = parseModerationRoomContext(payload);
+  if (!parsedContext.ok) {
+    return Response.json({ error: parsedContext.error }, { status: 400 });
+  }
+
   try {
-    const result = await moderate(text);
+    const result = await moderate(text, parsedContext.roomContext);
     return Response.json(buildModerationApiBody(result, text));
   } catch (err) {
     console.error("[moderate]", err);

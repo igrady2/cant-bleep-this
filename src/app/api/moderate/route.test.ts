@@ -34,7 +34,7 @@ it.each([true, false])("returns masked presentation while moderating original te
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message }),
   }));
   expect(response.status).toBe(200);
-  expect(moderate).toHaveBeenCalledExactlyOnceWith(message);
+  expect(moderate).toHaveBeenCalledExactlyOnceWith(message, { context: [], roomUsernames: [] });
   const body = await response.json() as { allowed: boolean; message: string; flags: { explanation: string }[] };
   expect(body.allowed).toBe(allowed);
   expect(body.message).toBe("You are stupid. Call [redacted] or [redacted]");
@@ -102,6 +102,43 @@ it("returns a retryable error when Jev is unavailable", async () => {
   } finally {
     log.mockRestore();
   }
+});
+
+it("passes context and roomUsernames through to moderation", async () => {
+  moderate.mockResolvedValue({
+    outcome: "passed",
+    allowed: true,
+    provider: "typesafe",
+    model: "jev-latest",
+    threshold: 0.5,
+    offLimitsThreshold: 0.5,
+    offLimitsScore: 0.03,
+    flags: [],
+    scores: Object.fromEntries(CATEGORIES.map((c) => [c.id, 0.03])),
+  });
+  const context = [{ username: "Player B", text: "Stop making everything about sex" }];
+  const roomUsernames = ["Player A", "Player B", "Player E"];
+  const response = await POST(new Request("https://example.test/api/moderate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "Player E is pro Player B", context, roomUsernames }),
+  }));
+  expect(response.status).toBe(200);
+  expect(moderate).toHaveBeenCalledExactlyOnceWith("Player E is pro Player B", {
+    context,
+    roomUsernames,
+  });
+});
+
+it("rejects more than 10 context lines", async () => {
+  const context = Array.from({ length: 11 }, () => ({ username: "Player A", text: "hi" }));
+  const response = await POST(new Request("https://example.test/api/moderate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: "hello", context }),
+  }));
+  expect(response.status).toBe(400);
+  expect(moderate).not.toHaveBeenCalled();
 });
 
 it("fails closed when the masking setting is invalid", async () => {
