@@ -164,5 +164,14 @@ The review queue and permanent dataset exporter are not implemented yet and must
 use these helpers when added. The existing demo uses the masked API response for
 both its message list and blocked-message notice.
 
-Run `npm test` for the synthetic masking, serialization and API-boundary tests
-in the Cloudflare Workers runtime. No test calls the live Jev API.
+Run `npm test` for the synthetic masking, serialization, seed evaluation harness,
+and API-boundary tests in the Cloudflare Workers runtime. Tests mock Jev; they do
+not call the live API.
+
+### Seed filter baseline
+
+Labeled seeds in `fixtures/seeds.json` can be scored against the contextual filter
+with `npm run evaluate:seeds` (requires `TYPESAFE_API_KEY`, ~one Jev request per
+fixture). Output defaults to `reports/seed-baseline.json`. See
+[docs/SEED_EVALUATION.md](docs/SEED_EVALUATION.md). Do not run the live command in
+CI without explicit cost approval.

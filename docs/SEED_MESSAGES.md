@@ -36,7 +36,7 @@ The set spans all nine reviewable rules, clean `fine` messages, disguised profan
 
 1. **CI / local:** `npm test` runs [`src/lib/seeds/seeds.test.ts`](../src/lib/seeds/seeds.test.ts), which validates the JSON (counts, ids, rule coverage, masking, verdict/rule consistency, and the 140-character posting limit on message bodies).
 2. **Import in code:** `import { SEED_FIXTURES } from "@/lib/seeds"` after validation at module load.
-3. **Filter baseline ([#35](https://github.com/igrady2/cant-bleep-this/issues/35)):** Run each fixture through the game moderation request with its `context` and `roomUsernames`; compare outcomes to labels without checking credentials into git.
+3. **Filter baseline ([#35](https://github.com/igrady2/cant-bleep-this/issues/35)):** `npm run evaluate:seeds` (live, one Jev call per fixture) or `npm test` (mocked). See [`docs/SEED_EVALUATION.md`](SEED_EVALUATION.md) and [`reports/README.md`](../reports/README.md).
 4. **Queue seeds ([#19](https://github.com/igrady2/cant-bleep-this/issues/19)):** When inserting into D1, map to `test_cases` with masked text and anonymized stand-ins per the PRD; compare reviewer input to `expectedVerdict`, `rule`, and `reasons` for `seed_correct`.
 
 Do not treat these labels as live Jev accuracy claims; they encode policy intent for humans and regression tooling.
