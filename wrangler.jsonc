@@ -29,6 +29,16 @@
       "name": "MODERATE_GLOBAL_LIMITER",
       "namespace_id": "4318",
       "simple": { "limit": 120, "period": 60 }
+    },
+    {
+      "name": "REVIEW_PER_IP_LIMITER",
+      "namespace_id": "4319",
+      "simple": { "limit": 30, "period": 60 }
+    },
+    {
+      "name": "REVIEW_GLOBAL_LIMITER",
+      "namespace_id": "4320",
+      "simple": { "limit": 120, "period": 60 }
     }
   ],
   "observability": {
