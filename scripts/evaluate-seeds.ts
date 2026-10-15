@@ -1,5 +1,5 @@
 /**
- * Live seed baseline runner. Requires TYPESAFE_API_KEY (see docs/SEED_EVALUATION.md).
+ * Live seed baseline runner. Requires --live and TYPESAFE_API_KEY (see docs/SEED_EVALUATION.md).
  * CI and agents should not run this without explicit cost clearance.
  */
 import { mkdir, writeFile } from "node:fs/promises";
@@ -10,33 +10,56 @@ import { evaluateSeedFixtures, serializeSeedEvalReport } from "../src/lib/seeds/
 
 const DEFAULT_OUTPUT = path.join("reports", "seed-baseline.json");
 
-function parseArgs(argv: string[]): { output: string } {
+export interface EvaluateSeedsCliOptions {
+  output: string;
+  live: boolean;
+}
+
+export function parseEvaluateSeedsArgs(argv: string[]): EvaluateSeedsCliOptions {
   let output = DEFAULT_OUTPUT;
+  let live = false;
   for (let i = 2; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === "--output" || arg === "-o") {
+    if (arg === "--live") {
+      live = true;
+    } else if (arg === "--output" || arg === "-o") {
       const next = argv[i + 1];
       if (!next) throw new Error("Missing value for --output");
       output = next;
       i += 1;
     } else if (arg === "--help" || arg === "-h") {
-      console.log(`Usage: npm run evaluate:seeds [--output path]
-
-Runs all seed fixtures through contextual moderation (one Jev request per fixture).
-Writes a JSON baseline report (fixture ids only; no message bodies).
-
-Default output: ${DEFAULT_OUTPUT}
-`);
+      printUsage();
       process.exit(0);
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
   }
-  return { output };
+  return { output, live };
+}
+
+function printUsage(): void {
+  console.log(`Usage: npm run evaluate:seeds -- --live [--output path]
+
+Runs all seed fixtures through contextual moderation (one Jev request per fixture).
+Requires --live so accidental runs do not bill Jev. Also requires TYPESAFE_API_KEY.
+
+Writes a JSON baseline report (fixture ids only; no message bodies).
+
+Default output: ${DEFAULT_OUTPUT}
+`);
 }
 
 async function main(): Promise<void> {
-  const { output } = parseArgs(process.argv);
+  const { output, live } = parseEvaluateSeedsArgs(process.argv);
+
+  if (!live) {
+    console.error(
+      "Refusing to run without --live. This command bills one Jev request per seed fixture. Pass --live only when you intend to spend API quota.",
+    );
+    printUsage();
+    process.exit(1);
+  }
+
   if (!process.env.TYPESAFE_API_KEY?.trim()) {
     console.error(
       "TYPESAFE_API_KEY is not set. Add it to the environment or .dev.vars before running a live baseline.",
@@ -59,7 +82,12 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+const isCliEntry =
+  typeof process.argv[1] === "string" && process.argv[1].includes("evaluate-seeds");
+
+if (isCliEntry) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

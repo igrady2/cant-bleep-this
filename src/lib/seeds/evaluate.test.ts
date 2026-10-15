@@ -5,11 +5,14 @@ import { OFF_LIMITS_ID } from "@/lib/moderation/off-limits";
 import type { ModerationResult } from "@/lib/moderation/types";
 import { SEED_FIXTURES } from "@/lib/seeds";
 import type { SeedFixture } from "@/lib/seeds/types";
+import { TypeSafeError } from "@/lib/moderation/typesafe";
 import {
   classifySeedEvalCase,
   evaluateSeedFixtures,
+  sanitizeSeedEvalError,
   serializeSeedEvalReport,
 } from "@/lib/seeds/evaluate";
+import { parseEvaluateSeedsArgs } from "../../../scripts/evaluate-seeds";
 const IDS = CATEGORIES.map((c) => c.id);
 
 function moderationResult(
@@ -47,6 +50,26 @@ function jevResponse(scores: Partial<Record<CategoryId, number>>, offLimits = 0.
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
+});
+
+describe("sanitizeSeedEvalError", () => {
+  it("maps provider failures to redacted markers without leaking response text", () => {
+    const leaky = new TypeSafeError('TypeSafe responded 502: {"secret":"do-not-store"}', 502);
+    expect(sanitizeSeedEvalError(leaky)).toBe("jev_server_error");
+    expect(sanitizeSeedEvalError(leaky)).not.toContain("secret");
+    expect(sanitizeSeedEvalError(new TypeSafeError("x", 429))).toBe("jev_rate_limited");
+    expect(sanitizeSeedEvalError(new Error("raw message"))).toBe("moderation_error");
+  });
+});
+
+describe("parseEvaluateSeedsArgs", () => {
+  it("requires --live to be passed explicitly", () => {
+    expect(parseEvaluateSeedsArgs(["node", "script.ts"])).toEqual({
+      output: "reports/seed-baseline.json",
+      live: false,
+    });
+    expect(parseEvaluateSeedsArgs(["node", "script.ts", "--live"]).live).toBe(true);
+  });
 });
 
 describe("classifySeedEvalCase", () => {
@@ -127,6 +150,29 @@ describe("evaluateSeedFixtures", () => {
     expect(serialized).not.toContain("fine message");
     expect(serialized).not.toContain("bad word");
     expect(serialized).toContain("seed-fine-01");
+  });
+
+  it("stores redacted error markers on moderation failures", async () => {
+    const fixtures: SeedFixture[] = [
+      {
+        id: "seed-err-01",
+        author: "Player A",
+        text: "x",
+        context: [],
+        roomUsernames: ["Player A"],
+        expectedVerdict: "fine",
+        rule: null,
+        reasons: [],
+      },
+    ];
+    const report = await evaluateSeedFixtures(fixtures, async () => {
+      throw new TypeSafeError('TypeSafe responded 400: {"detail":"leak"}', 400);
+    });
+    expect(report.summary.errors).toBe(1);
+    expect(report.cases[0]?.error).toBe("jev_client_error");
+    const serialized = serializeSeedEvalReport(report);
+    expect(serialized).not.toContain("leak");
+    expect(serialized).not.toContain("detail");
   });
 
   it("runs every checked-in seed through moderate with mocked Jev (one request per fixture)", async () => {
