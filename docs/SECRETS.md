@@ -15,7 +15,7 @@ Player device tokens are not environment variables. The server stores only their
 
 Secrets do not move with a Worker rename. After the name change to `cant-bleep-this`, set them again on the new Worker ([#36](https://github.com/igrady2/cant-bleep-this/issues/36)).
 
-Next.js inlines every `NEXT_PUBLIC_` value into the client bundle when `next build` or `opennextjs-cloudflare build` runs. Set those on the build, including Workers Builds → Settings → Builds → Variables and secrets for that trigger. A Wrangler runtime var, a Worker secret, or a `.dev.vars` entry does not change a bundle that is already built. Runtime secrets and `vars` are for server code after deploy.
+Next.js inlines every `NEXT_PUBLIC_` value into the client bundle when `next build` or `opennextjs-cloudflare build` runs. Set those on the build, including Workers Builds > Settings > Builds > Variables and secrets for that trigger. A Wrangler runtime var, a Worker secret, or a `.dev.vars` entry does not change a bundle that is already built. Runtime secrets and `vars` are for server code after deploy.
 
 CI (`.github/workflows/ci.yml`) does not receive or need these values, and it does not deploy. Do not put them in GitHub Actions secrets for that workflow.
 
@@ -78,13 +78,13 @@ The app today reads only `MODERATION_THRESHOLD` and applies that one number to e
 
 | Name | Kind | Local | Preview | Production | Manual? |
 | --- | --- | --- | --- | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | Secret. Authenticates non-interactive Wrangler deploys. Workers Builds uses an API token to upload the Worker (Worker → Settings → Builds → API token). Cloudflare can generate that token. It is not a Worker runtime value: do not put it in wrangler `vars`, `wrangler secret put`, or `.dev.vars`. | Shell environment, or a gitignored `.env` file that Wrangler loads. `npx wrangler login` is the interactive alternative and stores nothing in the repo. | Workers Builds preview trigger → Settings → Builds → API token. | Workers Builds production trigger → Settings → Builds → API token. | Yes, when you supply your own token. Never commit it. GitHub Actions CI does not deploy and must not receive this token. |
+| `CLOUDFLARE_API_TOKEN` | Secret. Authenticates non-interactive Wrangler deploys. Workers Builds uses an API token to upload the Worker (Worker > Settings > Builds > API token). Cloudflare can generate that token. It is not a Worker runtime value: do not put it in wrangler `vars`, `wrangler secret put`, or `.dev.vars`. | Shell environment, or a gitignored `.env` file that Wrangler loads. `npx wrangler login` is the interactive alternative and stores nothing in the repo. | Workers Builds preview trigger > Settings > Builds > API token. | Workers Builds production trigger > Settings > Builds > API token. | Yes, when you supply your own token. Never commit it. GitHub Actions CI does not deploy and must not receive this token. |
 
 ## Worker bindings in `wrangler.jsonc` (not env secrets)
 
 | Binding | What it is | How it is set | Manual? |
 | --- | --- | --- | --- |
-| `DB` | D1 database `cant-bleep-this`. `database_id` in `wrangler.jsonc` is a local-only placeholder. | Local preview uses the placeholder and `.wrangler/state`. Before any remote preview or production use, replace `database_id` with the real D1 id from the Cloudflare account. A separate remote preview database uses `preview_database_id`. Apply migrations with `npx wrangler d1 migrations apply cant-bleep-this --local` or `--remote` only after you mean to. | Yes for any remote database. |
+| `DB` | D1 binding for database `cant-bleep-this`. The top-level `database_id` in `wrangler.jsonc` is a local-only placeholder. | Local preview (`npm run preview`, Wrangler dev) uses that placeholder and `.wrangler/state`. `preview_database_id` applies only to Wrangler dev. A separately deployed preview Worker does not read it. Give that deployment its own `database_id`, for example in an `env.preview` block, and keep that id different from the production database so preview never binds the production D1 ([D1 environments](https://developers.cloudflare.com/d1/configuration/environments/)). Set the top-level `database_id` to the production D1 id before a production deploy. Apply migrations with `npx wrangler d1 migrations apply cant-bleep-this --local`, or with `--remote` and `--env preview` when the target is the preview environment, only for the database you mean to change. | Yes for any remote database. |
 | `MODERATE_PER_IP_LIMITER` | Rate limit binding, 30 requests per 60 seconds per IP, namespace `4317`. | Declared in `wrangler.jsonc`. Not a secret. Absent under `npm run dev`. | No. Change the limit in config if you tune it. |
 | `MODERATE_GLOBAL_LIMITER` | Rate limit binding, 120 requests per 60 seconds for the whole Worker, namespace `4318`. | Declared in `wrangler.jsonc`. Not a secret. Absent under `npm run dev`. | No. Change the limit in config if you tune it. |
 
