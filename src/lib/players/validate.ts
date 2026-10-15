@@ -39,7 +39,7 @@ export function validateUsernameLocally(name: string): UsernameLocalValidationFa
     return {
       ok: false,
       code: "invalid_format",
-      error: `Usernames must be ${USERNAME_MIN_LENGTH}–${USERNAME_MAX_LENGTH} letters, numbers, or underscores.`,
+      error: `Usernames must be ${USERNAME_MIN_LENGTH}-${USERNAME_MAX_LENGTH} letters, numbers, or underscores.`,
     };
   }
   if (isReservedUsername(trimmed)) {

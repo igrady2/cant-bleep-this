@@ -51,7 +51,11 @@ export async function scoreUsernameWithJev(
       if (answer?.type !== "noul" || typeof answer.noul !== "number") {
         throw new TypeSafeError(`Missing Noul answer for "${QUESTION_ID}"`);
       }
-      return { model: data.model, score: answer.noul };
+      const score = answer.noul;
+      if (!Number.isFinite(score) || score < 0 || score > 1) {
+        throw new TypeSafeError(`Invalid Noul score for "${QUESTION_ID}"`);
+      }
+      return { model: data.model, score };
     }
     const detail = await res.text().catch(() => "");
     lastError = new TypeSafeError(
