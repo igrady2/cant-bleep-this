@@ -18,6 +18,7 @@ afterEach(() => {
 describe("username policy", () => {
   it.each([
     ["paul", "pau1"],
+    ["billy", "bil1y"],
     ["Indigo", "lndigo"],
     ["Indigo", "1ndig0"],
     ["modern", "modem"],
@@ -36,10 +37,26 @@ describe("username policy", () => {
     expect(isReservedUsername(name)).toBe(reserved);
   });
 
-  it("word list, allowlist, format, and trim", () => {
+  it.each([
+    "classic_fan",
+    "assist",
+    "pass",
+    "bass_player",
+    "title",
+    "document",
+    "button",
+    "raccoon",
+    "sussex",
+    "assassin",
+    "classic",
+  ])("word list allows innocent name %s", (name) => {
+    expect(isBlockedWordUsername(name)).toBe(false);
+  });
+
+  it("word list blocks whole names and segments only", () => {
     expect(isBlockedWordUsername("5h1t")).toBe(true);
-    expect(isBlockedWordUsername("classic")).toBe(false);
-    expect(isBlockedWordUsername("assassin")).toBe(false);
+    expect(isBlockedWordUsername("ass")).toBe(true);
+    expect(isBlockedWordUsername("cool_ass")).toBe(true);
     expect(isValidUsernameFormat("a".repeat(USERNAME_MAX_LENGTH))).toBe(true);
     expect(isValidUsernameFormat("a".repeat(USERNAME_MAX_LENGTH + 1))).toBe(false);
     expect(isValidUsernameFormat("аlex")).toBe(false);

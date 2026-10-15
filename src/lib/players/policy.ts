@@ -11,8 +11,6 @@ const BLOCKED_RAW = (
   "anal,anus,arse,ass,asshole,bastard,bitch,blowjob,bollock,boner,boob,butt,clit,cock,coon,crap,cum,cunt,dick,dildo,dyke,fag,fuck,handjob,hitler,horny,jizz,kike,milf,nazi,nigger,nude,penis,piss,porn,pussy,rape,retard,scrotum,sex,shit,slut,spic,tit,tits,twat,vagina,wank,whore"
 ).split(",");
 
-const BLOCKED_ALLOWLIST_RAW = ["assassin", "classic"] as const;
-
 function normalizeSegment(segment: string): string {
   return segment
     .toLowerCase()
@@ -32,7 +30,6 @@ export function isValidUsernameFormat(name: string): boolean {
 
 const RESERVED_NORMALIZED = RESERVED_RAW.map((entry) => normalizeUsername(entry));
 const BLOCKED_NORMALIZED = BLOCKED_RAW.map((entry) => normalizeUsername(entry));
-const BLOCKED_ALLOWLIST = new Set(BLOCKED_ALLOWLIST_RAW.map((entry) => normalizeUsername(entry)));
 
 const SHORT_RESERVED_MAX_LEN = 3;
 
@@ -48,8 +45,11 @@ export function isReservedUsername(name: string): boolean {
   return false;
 }
 
+/** Blocked terms match the whole name or a single underscore segment; joined-up words go to Jev. */
 export function isBlockedWordUsername(name: string): boolean {
   const normalized = normalizeUsername(name);
-  if (BLOCKED_ALLOWLIST.has(normalized)) return false;
-  return BLOCKED_NORMALIZED.some((blocked) => normalized.includes(blocked));
+  const segments = normalized.split("_").filter(Boolean);
+  return BLOCKED_NORMALIZED.some(
+    (blocked) => normalized === blocked || segments.includes(blocked),
+  );
 }
