@@ -64,6 +64,8 @@ Steward runs or routes the review. If review requests changes, the Builder fixes
 
 Tests and CI use mocks only. CI does not make a live paid API call. A paid API run outside CI, such as a live seed baseline, waits for Indigo's approval and a call count.
 
+Pull request CI (`.github/workflows/ci.yml`) runs lint, typecheck, and tests on every pull request, then optionally runs an automated different-model review when repository secrets are present. The review step uses the Claude Code or Codex **subscription CLI** (`CLAUDE_CODE_OAUTH_TOKEN` or `CODEX_AUTH_JSON`), not API-billed keys. The workflow reads **Built by LLM** from the pull request body and picks the other configured reviewer when both secrets exist; if no review secret is configured, or the only configured CLI matches the builder, the review job skips with a workflow notice and the lint or test result still gates the pull request.
+
 ## Pull request body
 
 Every pull request fills the fields in `.github/pull_request_template.md`, using these names:
