@@ -75,14 +75,17 @@ const BLOCKED_RAW = [
   "whore",
 ] as const;
 
+const BLOCKED_ALLOWLIST_RAW = ["assassin", "classic"] as const;
+
 function normalizeSegment(segment: string): string {
-  let normalized = segment.toLowerCase().replace(/rn/g, "m");
-  normalized = normalized.replace(/1/g, "i").replace(/0/g, "o").replace(/5/g, "s");
-  if (normalized.startsWith("l")) normalized = `i${normalized.slice(1)}`;
-  return normalized;
+  return segment
+    .toLowerCase()
+    .replace(/rn/g, "m")
+    .replace(/[1l]/g, "i")
+    .replace(/0/g, "o")
+    .replace(/5/g, "s");
 }
 
-/** Fold case and documented lookalikes (PRD usernames section). */
 export function normalizeUsername(name: string): string {
   return name.toLowerCase().split("_").map(normalizeSegment).join("_");
 }
@@ -91,19 +94,27 @@ export function isValidUsernameFormat(name: string): boolean {
   return USERNAME_PATTERN.test(name);
 }
 
-const RESERVED_NORMALIZED = new Set(RESERVED_RAW.map((entry) => normalizeUsername(entry)));
-const BLOCKED_NORMALIZED = new Set(BLOCKED_RAW.map((entry) => normalizeUsername(entry)));
+const RESERVED_NORMALIZED = RESERVED_RAW.map((entry) => normalizeUsername(entry));
+const BLOCKED_NORMALIZED = BLOCKED_RAW.map((entry) => normalizeUsername(entry));
+const BLOCKED_ALLOWLIST = new Set(BLOCKED_ALLOWLIST_RAW.map((entry) => normalizeUsername(entry)));
 
-function matchesNormalizedSet(name: string, entries: Set<string>): boolean {
-  const normalized = normalizeUsername(name);
-  if (entries.has(normalized)) return true;
-  return normalized.split("_").some((segment) => segment && entries.has(segment));
-}
+const SHORT_RESERVED_MAX_LEN = 3;
 
 export function isReservedUsername(name: string): boolean {
-  return matchesNormalizedSet(name, RESERVED_NORMALIZED);
+  const normalized = normalizeUsername(name);
+  const segments = normalized.split("_");
+
+  for (const reserved of RESERVED_NORMALIZED) {
+    if (normalized === reserved) return true;
+    if (segments.includes(reserved)) return true;
+    if (reserved.length > SHORT_RESERVED_MAX_LEN && normalized.includes(reserved)) return true;
+  }
+  return false;
 }
 
 export function isBlockedWordUsername(name: string): boolean {
-  return matchesNormalizedSet(name, BLOCKED_NORMALIZED);
+  const normalized = normalizeUsername(name);
+  if (BLOCKED_ALLOWLIST.has(normalized)) return false;
+
+  return BLOCKED_NORMALIZED.some((blocked) => normalized.includes(blocked));
 }

@@ -11,7 +11,7 @@ import {
 } from "./policy";
 
 const DEFAULT_MODEL = "jev-latest";
-const DEFAULT_THRESHOLD = 0.5;
+export const USERNAME_JEV_THRESHOLD = 0.5;
 
 export type UsernameRejectionCode =
   | "invalid_format"
@@ -32,11 +32,6 @@ export type UsernameValidationResult =
   | { ok: false; code: UsernameRejectionCode; error: string };
 
 export type UsernameLocalValidationFailure = Extract<UsernameValidationResult, { ok: false }>;
-
-function usernameThreshold(): number {
-  const parsed = Number(process.env.USERNAME_MODERATION_THRESHOLD);
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : DEFAULT_THRESHOLD;
-}
 
 export function validateUsernameLocally(name: string): UsernameLocalValidationFailure | null {
   const trimmed = name.trim();
@@ -71,14 +66,13 @@ export async function validateUsernameForClaim(name: string): Promise<UsernameVa
     };
   }
 
-  const threshold = usernameThreshold();
   try {
     const { model, score } = await scoreUsernameWithJev(
       trimmed,
       apiKey,
       process.env.TYPESAFE_MODEL?.trim() || DEFAULT_MODEL,
     );
-    if (score >= threshold) {
+    if (score >= USERNAME_JEV_THRESHOLD) {
       return { ok: false, code: "offensive", error: "That username is not allowed. Pick another one." };
     }
     return {
@@ -87,7 +81,7 @@ export async function validateUsernameForClaim(name: string): Promise<UsernameVa
       normalizedName: normalizeUsername(trimmed),
       jevScore: score,
       jevModel: model,
-      threshold,
+      threshold: USERNAME_JEV_THRESHOLD,
     };
   } catch (err) {
     console.error("[players]", err);
