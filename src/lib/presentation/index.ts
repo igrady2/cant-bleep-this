@@ -74,7 +74,8 @@ export function censorSlips(text: string, spans: readonly FlaggedSpan[] = []): s
   const masked = maskPersonalInformation(text);
   const sorted = spans.flatMap((span) => {
     const parsed = parseAndValidateFlaggedSpans([span], masked.length);
-    if (!parsed.ok) throw new Error(parsed.error);
+    // Stale stored offsets must fail closed for this message, not the feed.
+    if (!parsed.ok) return [{ start: 0, end: masked.length }];
     return parsed.spans;
   }).sort((a, b) => a.start - b.start || a.end - b.end);
   const union: FlaggedSpan[] = [];
@@ -96,8 +97,13 @@ export function censorSlips(text: string, spans: readonly FlaggedSpan[] = []): s
         if (/[aeiou]/i.test(masked[i]) && !protectedOffsets.has(i)) characters[i] = "*";
       }
     } else if (end > start) {
-      const middle = start + Math.floor((end - start) / 2);
-      if (!protectedOffsets.has(middle)) characters[middle] = "*";
+      const points = Array.from(selection);
+      const pointIndex = Math.floor(points.length / 2);
+      const middle = start + points.slice(0, pointIndex).join("").length;
+      if (!protectedOffsets.has(middle)) {
+        characters[middle] = "*";
+        for (let i = 1; i < points[pointIndex].length; i++) characters[middle + i] = "";
+      }
     }
   }
   return characters.join("");

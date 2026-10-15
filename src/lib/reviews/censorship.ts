@@ -30,6 +30,7 @@ export async function loadSlipCensorship(
       JOIN players p ON p.id = r.player_id
       WHERE r.message_id IN (${messageIds.map(() => "?").join(", ")})
         AND r.player_id <> m.author_id AND p.reviewer_standing = 'good'
+        AND r.seed_case_id IS NULL
         AND r.skipped = 0 AND r.verdict IN ('fine', 'not_ok')
     ), votes AS (
       SELECT *, ROW_NUMBER() OVER (PARTITION BY message_id ORDER BY created_at, sequence) AS vote_number

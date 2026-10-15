@@ -258,3 +258,28 @@ it("uses the configured rolling window, recovers, and checks the Not OK rule", a
   // A nonexistent review cannot change standing.
   await updateStanding(db, "a", "missing").run!();
 });
+
+
+it("keeps the feed available and masks the full slip when stored spans are out of range", async () => {
+  await d1.exec("UPDATE messages SET text = 'fuck this fuck', masked_text = 'fuck this fuck' WHERE id = 'm'");
+  await vote("a", "not_ok"); await vote("b", "not_ok");
+  await d1.prepare("UPDATE reviews SET rule = 'profanity', flagged_spans = ?")
+    .bind(JSON.stringify([{ start: 99, end: 100 }])).run();
+  await computeConsensus(db, "m");
+  await message("next");
+  const feed = await loadPublicFeed(db);
+  expect(feed.find((entry) => entry.id === "m")).toMatchObject({ text: "f*ck th*s f*ck", status: "slip" });
+  expect(feed.find((entry) => entry.id === "next")).toMatchObject({ text: "synthetic text" });
+});
+
+it("excludes seed reviews from the censor deciding set", async () => {
+  await d1.exec("UPDATE messages SET text = 'fuck this fuck', masked_text = 'fuck this fuck' WHERE id = 'm'");
+  await seedVote("a", "seed-profanity-01", "not_ok");
+  await d1.prepare("UPDATE reviews SET seed_case_id = ?, rule = 'hate', flagged_spans = ? WHERE player_id = 'a'")
+    .bind("seed-profanity-01", JSON.stringify([{ start: 10, end: 14 }])).run();
+  await vote("b", "not_ok"); await vote("c", "not_ok");
+  await d1.prepare("UPDATE reviews SET rule = 'profanity', flagged_spans = ? WHERE player_id IN ('b', 'c')")
+    .bind(JSON.stringify([{ start: 0, end: 4 }])).run();
+  await computeConsensus(db, "m");
+  expect((await loadPublicFeed(db))[0]).toMatchObject({ text: "f*ck this fuck", slipRule: "Profanity" });
+});
