@@ -1,7 +1,9 @@
 import "server-only";
 
-/** PRD posting limit for the game room (#13). */
-export const MESSAGE_MAX_LENGTH = 140;
+export {
+  FEED_MESSAGE_LIMIT,
+  MESSAGE_MAX_LENGTH,
+} from "./room-config";
 
 /** PRD daily cap per player (UTC day). */
 export const DAILY_POSTS_PER_PLAYER = 20;

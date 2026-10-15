@@ -5,9 +5,8 @@ import { ArrowUp, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { MESSAGE_MAX_LENGTH } from "@/lib/messages/room-config";
 import { cn } from "@/lib/utils";
-
-const MAX_LENGTH = 1000;
 
 export function Composer({
   value,
@@ -39,8 +38,10 @@ export function Composer({
     >
       <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
         <div className="min-h-6">{status}</div>
-        <span className={cn(value.length > MAX_LENGTH && "font-medium text-destructive")}>
-          {value.length}/{MAX_LENGTH}
+        <span
+          className={cn(value.length > MESSAGE_MAX_LENGTH && "font-medium text-destructive")}
+        >
+          {value.length}/{MESSAGE_MAX_LENGTH}
         </span>
       </div>
       <div className="flex items-end gap-2 rounded-2xl border border-input bg-background p-2 shadow-xs focus-within:border-brand-pink focus-within:ring-3 focus-within:ring-ring/25">
@@ -66,7 +67,7 @@ export function Composer({
         <Button
           type="submit"
           size="icon-lg"
-          disabled={busy || empty || value.length > MAX_LENGTH}
+          disabled={busy || empty || value.length > MESSAGE_MAX_LENGTH}
           className="size-10 shrink-0 rounded-xl"
           aria-label={busy ? "Checking message" : "Send message"}
         >
