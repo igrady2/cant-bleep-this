@@ -234,7 +234,7 @@
     {
       "id": "seed-hate_speech-04",
       "author": "Player D",
-      "text": "That Jewish players group deserves to be wiped out",
+      "text": "No Jewish players belong in this room",
       "context": [
         {
           "username": "Player B",
@@ -254,7 +254,7 @@
       "expectedVerdict": "not_ok",
       "rule": "hate_speech",
       "reasons": [
-        "Calls for violence against people because of their religion"
+        "Exclusionary attack on people because of their religion"
       ]
     },
     {
@@ -1332,7 +1332,7 @@
     {
       "id": "seed-impersonation-03",
       "author": "Player C",
-      "text": "I am celebrity Player N Swift and I approve this message",
+      "text": "I am celebrity Taylor Swift and I approve this message",
       "context": [],
       "roomUsernames": [
         "Player C",
@@ -1639,7 +1639,7 @@
     },
     {
       "id": "seed-sexual_content-09",
-      "author": "Player H",
+      "author": "Player K",
       "text": "Player H, that skin hugging every curve is turning me on",
       "context": [
         {

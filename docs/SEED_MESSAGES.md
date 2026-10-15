@@ -26,7 +26,7 @@ Room participants use neutral stand-ins (`Player A`, `Player B`, …) in authors
 
 ## Coverage
 
-The set spans all nine reviewable rules, clean `fine` messages, disguised profanity, and contextual cases (for example the "pro Al" sexual innuendo vs a neutral reading). Contact details in fixtures use `[redacted]` or fictional stand-ins; validation rejects unmasked emails and long digit runs.
+The set spans all nine reviewable rules, clean `fine` messages, disguised profanity, and contextual cases (for example `Player E is pro Player B` sexual innuendo vs a neutral reading). Contact details in fixtures use `[redacted]` or fictional stand-ins; validation rejects unmasked emails and long digit runs.
 
 ## Off-limits content
 
