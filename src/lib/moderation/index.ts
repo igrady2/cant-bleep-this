@@ -1,9 +1,13 @@
 import "server-only";
 
 import { CATEGORIES } from "./categories";
+import { normalizeRoomContext, type ModerationContextLine } from "./context";
 import { offLimitsThreshold, reviewableThreshold } from "./thresholds";
 import { TypeSafeError, scoreWithJev } from "./typesafe";
 import type { FilterOutcome, ModerationResult } from "./types";
+
+export type { ModerationContextLine, ModerationRoomContext } from "./context";
+export { MAX_CONTEXT_LINES, normalizeRoomContext, parseModerationRoomContext } from "./context";
 
 const DEFAULT_MODEL = "jev-latest";
 
@@ -15,14 +19,25 @@ function apiKey(): string {
   return key;
 }
 
-export async function moderate(message: string): Promise<ModerationResult> {
+export interface ModerateOptions {
+  /** Preceding chat lines, oldest first (up to 10). */
+  context?: readonly ModerationContextLine[];
+  roomUsernames?: readonly string[];
+}
+
+export async function moderate(
+  message: string,
+  options: ModerateOptions = {},
+): Promise<ModerationResult> {
   const limit = reviewableThreshold();
   const offLimit = offLimitsThreshold();
+  const roomContext = normalizeRoomContext(options.context ?? [], options.roomUsernames ?? []);
 
   const { model, scores, offLimitsScore } = await scoreWithJev(
     message,
     apiKey(),
     process.env.TYPESAFE_MODEL || DEFAULT_MODEL,
+    roomContext,
   );
 
   let outcome: FilterOutcome = "passed";

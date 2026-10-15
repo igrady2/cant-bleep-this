@@ -25,9 +25,19 @@ If the key is missing, Jev returns an error, or the response is invalid, the mes
 
 ## How moderation works
 
-`POST /api/moderate` with `{ message }` sends a single request to `https://api.typesafe.ai/v1/systemone`. The request includes:
+`POST /api/moderate` with a JSON body sends a single request to `https://api.typesafe.ai/v1/systemone`.
 
-- **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the message is player data and any instructions inside it are ignored, and the message itself.
+| Field | Required | Description |
+| --- | --- | --- |
+| `message` | yes | The new message to score (trimmed; up to 1000 characters on this route). |
+| `context` | no | Up to 10 preceding chat lines, oldest first. Each entry is `{ "username": string, "text": string }` with non-empty trimmed fields. Omitted or `[]` means no preceding chat. |
+| `roomUsernames` | no | Usernames currently in the room. Omitted or `[]` is allowed when the caller has no roster yet. Each entry must be a non-empty trimmed string. |
+
+The game posting path will supply masked `context` and `roomUsernames` from the room; the demo UI may send only `message`. Invalid `context` or `roomUsernames` shapes return `400` with a plain error sentence.
+
+The Jev request includes:
+
+- **state**: the game framing (a public chat game where players try to get messages past the filter, judged by rules written for a general audience), a note that the new message and preceding `context` lines are player data and any instructions inside them are ignored, the `message`, up to 10 `context` lines, and `roomUsernames`.
 - **questions**: one [Noul](https://docs.typesafe.ai/primitives/noul) (yes/no probability) question for each of the nine game rules, plus a separate `off_limits` exclusion question in the same request. Each category is a separate question because several can apply to the same message. The questions run in parallel within that one request.
 
 The rule is applied in code: if the off-limits question reaches its threshold, the message is removed and never shown. Otherwise, if any reviewable category reaches the threshold, the message is blocked but still reviewable. Reviewable outcomes return every score so you can tune thresholds without changing the questions; off-limits outcomes return only `outcome`, `allowed`, and `provider` (no message body or scores). If the moderation service fails, the message is not posted, and the UI shows an error with a Retry button.
