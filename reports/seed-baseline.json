@@ -1,0 +1,1199 @@
+{
+  "reportVersion": 1,
+  "generatedAt": "2026-10-15T17:05:14.707Z",
+  "policyVersion": "v1",
+  "filterPolicyVersion": "v1",
+  "fixtureCount": 100,
+  "configuration": {
+    "reviewableThreshold": 0.5,
+    "offLimitsThreshold": 0.5,
+    "typesafeModelRequested": "jev-latest",
+    "typesafeModelResolved": "jev-1.13.0"
+  },
+  "summary": {
+    "pass": 25,
+    "catch": 71,
+    "miss": 2,
+    "falsePositive": 1,
+    "wrongRule": 1,
+    "offLimitsUnexpected": 0,
+    "contextualFailures": 3,
+    "errors": 0
+  },
+  "byRule": {
+    "bullying_harassment": {
+      "expectedViolations": 10,
+      "catches": 10,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "hate_speech": {
+      "expectedViolations": 9,
+      "catches": 9,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "sexual_content": {
+      "expectedViolations": 9,
+      "catches": 9,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "violence_threats": {
+      "expectedViolations": 7,
+      "catches": 7,
+      "misses": 0,
+      "falsePositiveFlags": 1
+    },
+    "self_harm": {
+      "expectedViolations": 7,
+      "catches": 7,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "profanity": {
+      "expectedViolations": 9,
+      "catches": 9,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "personal_info": {
+      "expectedViolations": 8,
+      "catches": 7,
+      "misses": 1,
+      "falsePositiveFlags": 0
+    },
+    "spam": {
+      "expectedViolations": 8,
+      "catches": 8,
+      "misses": 0,
+      "falsePositiveFlags": 0
+    },
+    "impersonation": {
+      "expectedViolations": 7,
+      "catches": 5,
+      "misses": 1,
+      "falsePositiveFlags": 0
+    }
+  },
+  "failures": [
+    {
+      "id": "seed-impersonation-04",
+      "kind": "wrong_rule",
+      "contextual": true,
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ]
+    },
+    {
+      "id": "seed-impersonation-06",
+      "kind": "miss",
+      "contextual": true,
+      "expectedRule": "impersonation",
+      "outcome": "passed",
+      "flaggedRules": []
+    },
+    {
+      "id": "seed-personal_info-01",
+      "kind": "miss",
+      "contextual": false,
+      "expectedRule": "personal_info",
+      "outcome": "passed",
+      "flaggedRules": []
+    },
+    {
+      "id": "seed-violence_threats-09",
+      "kind": "false_positive",
+      "contextual": true,
+      "expectedRule": null,
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "id": "seed-bullying_harassment-01",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-02",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-03",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-04",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-05",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-06",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-08",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-09",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-10",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "bullying_harassment",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-bullying_harassment-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-01",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-02",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-03",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-04",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-05",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-06",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-07",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-08",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-09",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-10",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-11",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-fine-12",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-hate_speech-01",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-02",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-03",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-04",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-05",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-06",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-07",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-08",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-09",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "hate_speech",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "hate_speech",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-hate_speech-fine-01",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-impersonation-01",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "impersonation"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-impersonation-02",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "impersonation"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-impersonation-03",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "impersonation"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-impersonation-04",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment"
+      ],
+      "kind": "wrong_rule"
+    },
+    {
+      "id": "seed-impersonation-05",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "impersonation"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-impersonation-06",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "miss"
+    },
+    {
+      "id": "seed-impersonation-07",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "impersonation",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "impersonation",
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-impersonation-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-personal_info-01",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "miss"
+    },
+    {
+      "id": "seed-personal_info-02",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-03",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-04",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-05",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-06",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info",
+        "impersonation"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-07",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-08",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "personal_info",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "personal_info"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-personal_info-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-profanity-01",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-02",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-03",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-04",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-05",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-06",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-08",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-09",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "profanity",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "profanity",
+        "bullying_harassment",
+        "hate_speech"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-profanity-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-profanity-fine-02",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-self_harm-01",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment",
+        "self_harm",
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-02",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-03",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "bullying_harassment",
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-04",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "violence_threats",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-05",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "bullying_harassment",
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-06",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "bullying_harassment",
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "self_harm",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "self_harm",
+        "violence_threats",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-self_harm-fine-01",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-self_harm-fine-02",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-sexual_content-01",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-02",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-03",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-04",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-05",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment",
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-06",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-08",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "bullying_harassment",
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-09",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "sexual_content",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "sexual_content"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-sexual_content-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-sexual_content-fine-02",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-spam-01",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-02",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-03",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-04",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-05",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-06",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-08",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "spam",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "spam"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-spam-fine-01",
+      "contextual": false,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-violence_threats-01",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-02",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-03",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    },
+    {
+      "id": "seed-violence_threats-04",
+      "contextual": false,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-05",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-06",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-07",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-08",
+      "contextual": true,
+      "expectedVerdict": "not_ok",
+      "expectedRule": "violence_threats",
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats",
+        "bullying_harassment"
+      ],
+      "kind": "catch"
+    },
+    {
+      "id": "seed-violence_threats-09",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "blocked",
+      "flaggedRules": [
+        "violence_threats"
+      ],
+      "kind": "false_positive"
+    },
+    {
+      "id": "seed-violence_threats-fine-01",
+      "contextual": true,
+      "expectedVerdict": "fine",
+      "expectedRule": null,
+      "outcome": "passed",
+      "flaggedRules": [],
+      "kind": "pass"
+    }
+  ]
+}

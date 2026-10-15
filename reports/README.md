@@ -4,7 +4,7 @@
 
 | File | Description |
 | --- | --- |
-| `seed-baseline.json` | Latest **live** seed evaluation output from `npm run evaluate:seeds -- --live` (not committed until a cleared baseline run). |
+| `seed-baseline.json` | Latest **live** seed evaluation output from `npm run evaluate:seeds -- --live`. |
 | `seed-baseline.example.json` | Shape-only example with zero counts for tooling and docs. |
 
 ## Generating a baseline

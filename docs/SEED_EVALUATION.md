@@ -58,4 +58,4 @@ After a cleared live run, replace the “live run pending” note in the PR with
 
 ## Live run status
 
-**Live baseline pending cost clearance.** The harness and mocked tests are in place; a full seed pass requires **100** Jev requests (one per fixture in `fixtures/seeds.json`). No live results are checked in until that run is approved and executed locally or in a maintainer environment.
+**Baseline checked in** on PR [#57](https://github.com/igrady2/cant-bleep-this/pull/57) (`reports/seed-baseline.json`, `jev-1.13.0`, thresholds 0.5). Re-run with `npm run evaluate:seeds -- --live` after policy or model changes.
