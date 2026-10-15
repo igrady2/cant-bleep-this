@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import type { MaintainerRemovalDatabase, MaintainerRemovalStatement } from "./maintainer-removal";
 import {
@@ -12,8 +12,8 @@ describe("maintainer removal", () => {
   });
 
   it("hard-deletes the message and decrements a confirmed slip", async () => {
-    const batch = vi.fn(async () => []);
-    const db: MaintainerRemovalDatabase = {
+    let batched: MaintainerRemovalStatement[] = [];
+    const db = {
       prepare(sql: string) {
         return {
           bind: (...args: unknown[]) => {
@@ -31,26 +31,27 @@ describe("maintainer removal", () => {
           },
         };
       },
-      batch,
+      batch: async (statements) => {
+        batched = statements;
+        return [];
+      },
     } as MaintainerRemovalDatabase;
 
     const result = await removeMessageAsMaintainer(db, "msg-1");
     expect(result).toEqual({ slipPointRemoved: true });
-    expect(batch).toHaveBeenCalledOnce();
-    const statements = batch.mock.calls[0]![0]!;
-    expect(statements).toHaveLength(2);
-    expect(statements[0].sql).toContain("UPDATE scores");
-    expect(statements[0].args).toEqual(["player-1", "2023-11-14"]);
-    expect(statements[1].sql).toContain("DELETE FROM messages");
+    expect(batched).toHaveLength(2);
+    expect(batched[0]?.sql).toContain("UPDATE scores");
+    expect(batched[0]?.args).toEqual(["player-1", "2023-11-14"]);
+    expect(batched[1]?.sql).toContain("DELETE FROM messages");
   });
 
   it("returns not_found when the message is already gone", async () => {
-    const db: MaintainerRemovalDatabase = {
+    const db = {
       prepare: () => ({
         bind: () => ({ first: async () => null }),
       }),
       batch: async () => [],
-    };
+    } as MaintainerRemovalDatabase;
     expect(await removeMessageAsMaintainer(db, "missing")).toBe("not_found");
   });
 });
