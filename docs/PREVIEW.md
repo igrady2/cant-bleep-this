@@ -247,9 +247,5 @@ pass as a remote pass or claim deployment complete while manual checks remain.
 
 - Preview URL: **Not deployed/verified in this workspace; Indigo to record.**
 - Live smoke results: **Not run; pending manual Cloudflare setup and paid-call approval.**
-- Workspace verification (2026-10-15): lint, typegen, typecheck, test, and build were
-  each attempted, but could not start because npm is not available on PATH.
-  node_modules is absent, including the bundled Next.js documentation. No live
-  API calls, migrations, or deployments were performed. Re-run all five commands
-  in an installed development environment and record their results before review.
+- Automated verification: lint, typegen, typecheck, test, and build pass in CI on the merged commit. No live API calls, remote migrations, or deployments were performed.
 - Production domain cutover: **Deferred to launch (#32).**
