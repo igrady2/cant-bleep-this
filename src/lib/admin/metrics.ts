@@ -340,7 +340,7 @@ export async function loadSuccessMetrics(db: MessagesDatabase, options: MetricsO
       ? "D1 did not report rows read for this report."
       : `This report read ${reportRowsRead.toLocaleString("en-US")} D1 rows of ${FREE_PLAN_LIMITS.d1RowsReadPerDay.toLocaleString("en-US")} `
         + `a day (${percent(reportRowsRead, FREE_PLAN_LIMITS.d1RowsReadPerDay)}).`,
-    `The site-wide cap of ${DAILY_POSTS_SITE_WIDE.toLocaleString("en-US")} posts a day trips before any D1 limit.`,
+    `The site-wide cap bounds posting at ${DAILY_POSTS_SITE_WIDE.toLocaleString("en-US")} posts a day; reviews and other traffic also consume D1 quotas.`,
     `Worker requests are not stored in D1; check the Cloudflare dashboard against ${FREE_PLAN_LIMITS.workerRequestsPerDay.toLocaleString("en-US")} `
       + "a day, shared across the account. Feed refreshes (240 an hour per open tab) dominate.",
     `Jev is the only paid service: about $${projected30DayUsd.toFixed(2)} over 30 days at this window's pace `
