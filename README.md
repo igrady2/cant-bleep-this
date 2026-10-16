@@ -125,7 +125,7 @@ Schema conventions:
 - Permanent test cases have no foreign keys to expiring game rows. Their message,
   context and reasons must be masked and anonymized before insertion, using the
   shared masking helper when implemented. The schema does not perform masking.
-  No retention job or assignment reservations are implemented here.
+  The nightly retention cron is described in [docs/RETENTION.md](docs/RETENTION.md).
 
 `patches/@opennextjs+cloudflare+1.20.10.patch` (applied by `patch-package` on install) makes the adapter inline Next.js 16.4's `preview-props.json`. Without it every server-rendered request returns a 500. Remove the patch once [opennextjs-cloudflare#1356](https://github.com/opennextjs/opennextjs-cloudflare/pull/1356) is released.
 
