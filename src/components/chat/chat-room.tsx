@@ -31,6 +31,7 @@ function toChatMessages(feed: FeedMessage[]) {
     text: message.text,
     sentAt: message.createdAt * 1000,
     slipRule: message.slipRule,
+    patchedIn: message.patchedIn,
     status: message.status,
   }));
 }

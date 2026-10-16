@@ -108,9 +108,11 @@ export async function captureTestCase(
     .prepare(`
       INSERT INTO test_cases (
         id, message, context_snapshot, expected_verdict, rule, reasons, source,
-        version_added, source_message_id, filter_scores, filter_version, source_status
+        version_added, source_message_id, filter_scores, filter_version, source_status, confirmed_at
       )
-      SELECT ?, ?, ?, ?, ?, ?, 'game', ?, id, filter_scores, filter_version, status
+      -- Capture runs right after the deciding review, so its time is the confirmation time.
+      SELECT ?, ?, ?, ?, ?, ?, 'game', ?, id, filter_scores, filter_version, status,
+        (SELECT MAX(r.created_at) FROM reviews r WHERE r.message_id = messages.id AND r.skipped = 0)
       FROM messages
       WHERE id = ? AND status = ? AND filter_outcome IN ('passed', 'blocked')
       ON CONFLICT (source_message_id) DO NOTHING

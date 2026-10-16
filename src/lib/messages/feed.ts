@@ -1,5 +1,6 @@
 import "server-only";
 
+import { loadPatchedVersions } from "@/lib/filter-release/releases";
 import { databaseRows } from "@/lib/messages/db";
 import { loadSlipCensorship, type SlipCensorship } from "@/lib/reviews/censorship";
 import { filterMessagesForFeed } from "./delivery";
@@ -25,6 +26,8 @@ export interface PublicFeedMessage {
   createdAt: number;
   status: MessageStatus;
   slipRule?: string;
+  /** Released filter version that now catches this slip (#26). Points still stand. */
+  patchedIn?: string;
 }
 
 /** Allowed JSON keys on GET /api/feed items (author-only fields such as crisisNote are excluded). */
@@ -35,9 +38,14 @@ export const PUBLIC_FEED_MESSAGE_KEYS = [
   "createdAt",
   "status",
   "slipRule",
+  "patchedIn",
 ] as const satisfies readonly (keyof PublicFeedMessage)[];
 
-function serializeFeedRow(row: FeedRow, slips: Map<string, SlipCensorship>): PublicFeedMessage {
+function serializeFeedRow(
+  row: FeedRow,
+  slips: Map<string, SlipCensorship>,
+  patched: Map<string, string>,
+): PublicFeedMessage {
   const censorship = row.status === "slip" ? (slips.get(row.id) ?? { slipRule: "Slip", slipSpans: [] }) : {};
   const presented = serializePublicMessage({
     username: row.author_name,
@@ -56,6 +64,7 @@ function serializeFeedRow(row: FeedRow, slips: Map<string, SlipCensorship>): Pub
     createdAt: row.created_at,
     status: presented.status,
     ...(presented.slipRule === undefined ? {} : { slipRule: presented.slipRule }),
+    ...(row.status === "slip" && patched.has(row.id) ? { patchedIn: patched.get(row.id) } : {}),
   };
 }
 
@@ -87,7 +96,8 @@ export async function loadPublicFeed(
 
   const slipIds = eligible.filter((row) => row.status === "slip").map((row) => row.id);
   const slipRules = await loadSlipCensorship(db, slipIds);
+  const patched = await loadPatchedVersions(db, slipIds);
 
   const chronological = [...eligible].reverse();
-  return chronological.map((row) => serializeFeedRow(row, slipRules));
+  return chronological.map((row) => serializeFeedRow(row, slipRules, patched));
 }

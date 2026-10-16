@@ -22,6 +22,8 @@ export interface TriageItem {
   filterVersion: string | null;
   versionAdded: string;
   tags: TriageTag[];
+  /** First released filter version that catches this slip (#26); null if unpatched. */
+  patchedIn: string | null;
 }
 
 export interface TriageGroup {

@@ -15,6 +15,7 @@ const item = (id: string, overrides: Partial<TriageItem> = {}): TriageItem => ({
   filterVersion: "v1",
   versionAdded: "v1",
   tags: [],
+  patchedIn: null,
   ...overrides,
 });
 

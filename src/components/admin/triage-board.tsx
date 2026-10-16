@@ -53,6 +53,7 @@ function TriageCard({ item, onTags }: { item: TriageItem; onTags: (id: string, t
         </ol>
       )}
       <p className="text-base font-medium break-words">{item.message}</p>
+      {item.patchedIn && <Badge variant="secondary" className="mt-2">Patched in {item.patchedIn}</Badge>}
       {item.reasons.length > 0 && (
         <div className="mt-3">
           <h4 className="text-xs font-semibold uppercase text-muted-foreground">Reviewer reasons</h4>
