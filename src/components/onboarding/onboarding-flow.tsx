@@ -53,6 +53,7 @@ export function OnboardingFlow() {
   const [username, setUsername] = useState("");
   const [restoreToken, setRestoreToken] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [pendingPlayerId, setPendingPlayerId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -106,6 +107,7 @@ export function OnboardingFlow() {
     if (!result.ok) {
       setError(result.error);
       setTurnstileToken(null);
+      setTurnstileResetKey((key) => key + 1);
       return;
     }
     writeStoredSession({
@@ -267,7 +269,7 @@ export function OnboardingFlow() {
                     disabled={busy}
                   />
                 </label>
-                <TurnstileWidget onToken={setTurnstileToken} />
+                <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
                 {error && (
                   <Alert variant="destructive">
                     <AlertTitle>Could not claim name</AlertTitle>
