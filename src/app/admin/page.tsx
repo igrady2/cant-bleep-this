@@ -4,11 +4,12 @@ import { Suspense } from "react";
 
 import { ReleasesPanel } from "@/components/admin/releases-panel";
 import { MetricsPanel } from "@/components/admin/metrics-panel";
+import { ModerationPanel } from "@/components/admin/moderation-panel";
 import { TriageBoard } from "@/components/admin/triage-board";
 import { verifyAdminHeaders } from "@/lib/admin/access";
 
 export const metadata: Metadata = {
-  title: "Admin triage · Can't Bleep This",
+  title: "Admin triage Â· Can't Bleep This",
   robots: { index: false, follow: false },
 };
 
@@ -18,7 +19,7 @@ async function AdminGate() {
   if (!result.ok) {
     return <p role="alert" className="mt-8">Admin access denied. Sign in through Cloudflare Access.</p>;
   }
-  return <><TriageBoard /><MetricsPanel /><ReleasesPanel /></>;
+  return <><ModerationPanel /><TriageBoard /><MetricsPanel /><ReleasesPanel /></>;
 }
 
 export default function AdminPage() {
@@ -28,7 +29,7 @@ export default function AdminPage() {
       <p className="mt-2 text-muted-foreground">
         Slips and false positives from the anonymized test set, grouped by rule. Tag the trick each one uses.
       </p>
-      <Suspense fallback={<p role="status" className="mt-8">Checking access…</p>}>
+      <Suspense fallback={<p role="status" className="mt-8">Checking accessâ€¦</p>}>
         <AdminGate />
       </Suspense>
     </main>

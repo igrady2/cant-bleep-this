@@ -89,8 +89,8 @@ it("anonymizes usernames consistently across the message, context and reasons", 
   const [row] = await cases();
   // Context order: alfie (A), kai_music (B), then the author elon_m (C), then riley_reads (D).
   expect(JSON.parse(row.context_snapshot)).toEqual([
-    { username: "Player A", text: "anyone up for a round? call [redacted]" },
-    { username: "Player B", text: "Player C always says that about Player A" },
+    { sourceMessageId: "c1", username: "Player A", text: "anyone up for a round? call [redacted]" },
+    { sourceMessageId: "c2", username: "Player B", text: "Player C always says that about Player A" },
   ]);
   expect(row.message).toBe("I am pro Player A, ask Player D");
   expect(JSON.parse(row.reasons)).toEqual([
