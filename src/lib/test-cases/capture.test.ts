@@ -7,7 +7,7 @@ import { submitReview } from "@/lib/reviews/submit";
 import type { ReviewsDatabase } from "@/lib/reviews/db";
 import { captureTestCase } from "./capture";
 
-const { REVIEWS_TEST_DB: d1, CONSENSUS_SCHEMA: schema } = env as unknown as {
+const { REVIEWS_TEST_DB: d1, CONSENSUS_SCHEMA: schema, ADMIN_MODERATION_SCHEMA: adminSchema } = env as unknown as {
   REVIEWS_TEST_DB: {
     exec(sql: string): Promise<unknown>;
     prepare(sql: string): {
@@ -19,6 +19,7 @@ const { REVIEWS_TEST_DB: d1, CONSENSUS_SCHEMA: schema } = env as unknown as {
     };
   };
   CONSENSUS_SCHEMA: string;
+  ADMIN_MODERATION_SCHEMA: string;
 };
 const db = d1 as unknown as ReviewsDatabase;
 
@@ -41,9 +42,10 @@ const SCORES = JSON.stringify({ sexual_content: 0.42, profanity: 0.01, off_limit
 
 beforeAll(async () => {
   await d1.exec(schema.replace(/--[^\n]*/g, "").replace(/\s+/g, " "));
+  await d1.exec(adminSchema.replace(/--[^\n]*/g, "").replace(/\s+/g, " "));
 });
 beforeEach(async () => {
-  await d1.exec(`DELETE FROM test_cases WHERE source = 'game'; DELETE FROM review_assignments;
+  await d1.exec(`DELETE FROM moderation_actions; DELETE FROM test_cases WHERE source = 'game'; DELETE FROM review_assignments;
     DELETE FROM reviews; DELETE FROM messages; DELETE FROM scores; DELETE FROM players;`);
   for (const name of ["elon_m", "alfie", "kai_music", "riley_reads", "rev_one", "rev_two", "rev_three"]) {
     await d1.prepare(`INSERT INTO players (id, name, normalized_name, token_hash, created_at, last_played_at)
@@ -162,7 +164,7 @@ it("does not capture pending, off-limits or maintainer-excluded messages", async
 it("never captures a maintainer-deleted message", async () => {
   await vote("rev_one", "not_ok", "x"); await vote("rev_two", "not_ok", "x");
   await decide("slip");
-  expect(await removeMessageAsMaintainer(db as unknown as MaintainerRemovalDatabase, "m"))
+  expect(await removeMessageAsMaintainer(db as unknown as MaintainerRemovalDatabase, "m", "maintainer@example.test"))
     .toEqual({ slipPointRemoved: true });
   expect(await captureTestCase(db, "m")).toBe("not_found");
   expect(await cases()).toHaveLength(0);
