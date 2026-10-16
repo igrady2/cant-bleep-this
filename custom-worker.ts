@@ -10,7 +10,7 @@ import {
   type RetentionScheduledEnv,
 } from "./src/lib/retention/scheduled";
 
-export default {
+const worker = {
   fetch: handler.fetch,
   scheduled(
     controller: RetentionScheduledController,
@@ -20,3 +20,5 @@ export default {
     return handleRetentionCron(controller, env, ctx);
   },
 };
+
+export default worker;
