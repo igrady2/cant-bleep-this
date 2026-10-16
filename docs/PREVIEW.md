@@ -248,4 +248,6 @@ pass as a remote pass or claim deployment complete while manual checks remain.
 - Preview URL: **Not deployed/verified in this workspace; Indigo to record.**
 - Live smoke results: **Not run; pending manual Cloudflare setup and paid-call approval.**
 - Automated verification: lint, typegen, typecheck, test, and build pass in CI on the merged commit. No live API calls, remote migrations, or deployments were performed.
+- Preview build check (2026-10-16, main at 3dfacbc, Claude Code): `opennextjs-cloudflare build --env preview` and `wrangler deploy --env preview --dry-run` pass. Dry-run bindings: DB → cant-bleep-this-preview, the four rate limiters, ASSETS. Bundle 11.1 MB raw / 2.6 MB gzip. Nothing was deployed.
+- Preview D1: all 14 migrations applied remotely with none pending (reported by the Setup Guide agent on 2026-10-15; not re-checked from this workspace).
 - Production domain cutover: **Deferred to launch (#32).**
