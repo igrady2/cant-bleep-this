@@ -13,10 +13,11 @@ recovery tokens, Access JWTs, or private configuration into git, PRs, or logs.
 
 ## Independent preview Worker and configuration
 
-The checked-in wrangler.jsonc names Worker cant-bleep-this and has an all-zero,
-local-only D1 ID. It currently has no env.preview. Before remote setup, Indigo
-must add a named preview environment to that configuration (the following is a
-fragment to merge, not a replacement for the file):
+The checked-in wrangler.jsonc names the production Worker cant-bleep-this (with an
+all-zero, local-only D1 ID) and includes a named env.preview environment. The
+preview environment uses D1 database cant-bleep-this-preview with ID
+61ff85c7-06db-4f66-9301-e91e7e3011dc and rate-limit namespaces 4321–4324. The
+checked-in block is equivalent to:
 
 ~~~jsonc
 "env": {
@@ -26,22 +27,22 @@ fragment to merge, not a replacement for the file):
     "d1_databases": [{
       "binding": "DB",
       "database_name": "cant-bleep-this-preview",
-      "database_id": "<PREVIEW_D1_DATABASE_ID>",
+      "database_id": "61ff85c7-06db-4f66-9301-e91e7e3011dc",
       "migrations_dir": "migrations"
     }],
     "ratelimits": [
-      { "name": "MODERATE_PER_IP_LIMITER", "namespace_id": "<UNIQUE_PREVIEW_NAMESPACE_1>", "simple": { "limit": 30, "period": 60 } },
-      { "name": "MODERATE_GLOBAL_LIMITER", "namespace_id": "<UNIQUE_PREVIEW_NAMESPACE_2>", "simple": { "limit": 120, "period": 60 } },
-      { "name": "REVIEW_PER_IP_LIMITER", "namespace_id": "<UNIQUE_PREVIEW_NAMESPACE_3>", "simple": { "limit": 30, "period": 60 } },
-      { "name": "REVIEW_GLOBAL_LIMITER", "namespace_id": "<UNIQUE_PREVIEW_NAMESPACE_4>", "simple": { "limit": 120, "period": 60 } }
+      { "name": "MODERATE_PER_IP_LIMITER", "namespace_id": "4321", "simple": { "limit": 30, "period": 60 } },
+      { "name": "MODERATE_GLOBAL_LIMITER", "namespace_id": "4322", "simple": { "limit": 120, "period": 60 } },
+      { "name": "REVIEW_PER_IP_LIMITER", "namespace_id": "4323", "simple": { "limit": 30, "period": 60 } },
+      { "name": "REVIEW_GLOBAL_LIMITER", "namespace_id": "4324", "simple": { "limit": 120, "period": 60 } }
     ],
     "triggers": { "crons": ["0 4 * * *"] }
   }
 }
 ~~~
 
-Use unused integer strings for the four preview rate-limit namespace IDs; keep
-them distinct from production's 4317–4320. Redeclare bindings and any vars in the
+The preview rate-limit namespace IDs (4321–4324) are distinct from
+production's 4317–4320. Redeclare bindings and any vars in the
 named environment; do not assume they inherit. Preserve the top-level main
 custom-worker.ts, assets directory .open-next/assets with ASSETS binding,
 compatibility date and flags, and observability. The custom entry wraps OpenNext
@@ -61,7 +62,8 @@ npx wrangler login
 npx wrangler d1 create cant-bleep-this-preview
 ~~~
 
-Put the returned ID in env.preview.d1_databases[0].database_id and keep binding
+The created ID (61ff85c7-06db-4f66-9301-e91e7e3011dc) is already in
+env.preview.d1_databases[0].database_id; if recreated, update it and keep binding
 DB exactly. Confirm account, database name and ID differ from production before
 applying anything remotely. preview_database_id is for Wrangler dev; it does not
 select the database of a deployed preview Worker.
