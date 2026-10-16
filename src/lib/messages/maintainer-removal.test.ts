@@ -8,6 +8,8 @@ import { hashPlayerToken } from "@/lib/players/crypto";
 import type { PlayersDatabase } from "@/lib/players/db";
 import { loadMessageReviewPresentation } from "@/lib/reviews/context";
 import { captureTestCase } from "@/lib/test-cases/capture";
+import { listQueueCandidates } from "@/lib/reviews/queue";
+import { loadPublicFeed } from "./feed";
 import { removeMessageAsMaintainer } from "./maintainer-removal";
 import type { MessagesDatabase } from "./db";
 const bindings = env as unknown as {
@@ -53,6 +55,22 @@ it("deletes once, reverses its award, drops its case and scrubs other context", 
   expect(await d1.prepare("SELECT id FROM test_cases WHERE source_message_id = 'm'").first()).toBeNull();
   expect(await captureTestCase(db, "m")).toBe("not_found");
   expect(await loadMessageReviewPresentation(db, "m")).toBeNull();
+  expect((await loadPublicFeed(db)).map((message) => message.id)).toEqual(["other"]);
+});
+it("removes pending messages and outstanding assignments from the queue", async () => {
+  await d1.prepare(`INSERT INTO review_assignments (id, player_id, message_id, assignment, created_at, expires_at)
+    VALUES ('a', 'p', 'm', 'queue', 1, 9999999999)`).run();
+  await removeMessageAsMaintainer(db, "m", "maintainer");
+  expect(await d1.prepare("SELECT id FROM review_assignments WHERE id = 'a'").first()).toBeNull();
+  const candidates = await listQueueCandidates(db, { id: "reviewer", name: "reviewer", normalizedName: "reviewer" });
+  expect(candidates.map((message) => message.id)).toEqual(["other"]);
+});
+it("drops legacy context snapshots identified by a live source", async () => {
+  await d1.exec(`UPDATE messages SET status = 'clean', context_message_ids = '["m"]' WHERE id = 'other';`);
+  await captureTestCase(db, "other");
+  await d1.exec(`UPDATE test_cases SET context_snapshot = '[{"username":"Player A","text":"legacy text"}]' WHERE source_message_id = 'other';`);
+  await removeMessageAsMaintainer(db, "m", "maintainer");
+  expect(await d1.prepare("SELECT context_snapshot FROM test_cases WHERE source_message_id = 'other'").first()).toEqual({ context_snapshot: "[]" });
 });
 it.each(["pending", "clean", "caught", "false_positive"])("deleting %s preserves other points", async (status) => {
   await d1.exec("UPDATE messages SET status = 'slip' WHERE id = 'other'");
