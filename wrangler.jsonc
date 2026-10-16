@@ -48,6 +48,47 @@
   },
   "observability": {
     "enabled": true
+  },
+  // Independent preview Worker (docs/PREVIEW.md). Bindings do not inherit; redeclared here.
+  "env": {
+    "preview": {
+      "name": "cant-bleep-this-preview",
+      "workers_dev": true,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "cant-bleep-this-preview",
+          "database_id": "61ff85c7-06db-4f66-9301-e91e7e3011dc",
+          "migrations_dir": "migrations"
+        }
+      ],
+      // Distinct from production namespaces 4317-4320.
+      "ratelimits": [
+        {
+          "name": "MODERATE_PER_IP_LIMITER",
+          "namespace_id": "4321",
+          "simple": { "limit": 30, "period": 60 }
+        },
+        {
+          "name": "MODERATE_GLOBAL_LIMITER",
+          "namespace_id": "4322",
+          "simple": { "limit": 120, "period": 60 }
+        },
+        {
+          "name": "REVIEW_PER_IP_LIMITER",
+          "namespace_id": "4323",
+          "simple": { "limit": 30, "period": 60 }
+        },
+        {
+          "name": "REVIEW_GLOBAL_LIMITER",
+          "namespace_id": "4324",
+          "simple": { "limit": 120, "period": 60 }
+        }
+      ],
+      "triggers": {
+        "crons": ["0 4 * * *"]
+      }
+    }
   }
   // TYPESAFE_API_KEY is a secret: `npx wrangler secret put TYPESAFE_API_KEY`.
   // TURNSTILE_SECRET_KEY and IP_HASH_SALT are secrets for POST /api/claim.

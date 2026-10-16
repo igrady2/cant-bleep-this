@@ -4,6 +4,9 @@ Nothing in this file is a secret value. Committed templates (`.env.example`, `.d
 
 Player device tokens are not environment variables. The server stores only their SHA-256 hashes.
 
+For the independent preview deployment, manual setup, and verification checklist,
+see [PREVIEW.md](PREVIEW.md).
+
 ## Where each environment reads config
 
 | Environment | How it is configured |
