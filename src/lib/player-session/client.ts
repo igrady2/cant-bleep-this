@@ -49,6 +49,7 @@ export interface FeedMessage {
   createdAt: number;
   status: MessageStatus;
   slipRule?: string;
+  patchedIn?: string;
 }
 
 export type PostMessageApiBody =

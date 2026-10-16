@@ -15,6 +15,7 @@ const item = (id: string, overrides: Partial<TriageItem> = {}): TriageItem => ({
   filterVersion: "v1",
   versionAdded: "v1",
   tags: [],
+  patchedIn: null,
   ...overrides,
 });
 
@@ -22,7 +23,7 @@ const slips: TriageView = {
   kind: "slip",
   counts: { slip: 2, false_positive: 1 },
   groups: [
-    { rule: "profanity", label: "Profanity", items: [item("s1"), item("s2", { tags: ["spelling"] })] },
+    { rule: "profanity", label: "Profanity", items: [item("s1"), item("s2", { tags: ["spelling"], patchedIn: "v2" })] },
   ],
 };
 const falsePositives: TriageView = {
@@ -95,4 +96,12 @@ it("shows an error when the API denies access", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status: 403 })));
   render(<TriageBoard />);
   expect((await screen.findByRole("alert")).textContent).toContain("unavailable");
+});
+
+it("marks slips a released version now catches", async () => {
+  stubApi();
+  render(<TriageBoard />);
+  const cards = await screen.findAllByTestId("triage-item");
+  expect(cards[0].textContent).not.toContain("Patched in");
+  expect(cards[1].textContent).toContain("Patched in v2");
 });

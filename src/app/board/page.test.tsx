@@ -30,3 +30,27 @@ it("shows an error when the API is unavailable", async () => {
   render(<BoardPage />);
   expect((await screen.findByRole("alert")).textContent).toContain("unavailable");
 });
+it("lists released versions and the slips they patched", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({
+    players: [{ name: "Alice", slips: 3 }],
+    releases: [
+      { version: "v3", releasedAt: Date.UTC(2026, 10, 2) / 1000, patchedSlips: 1 },
+      { version: "v2", releasedAt: Date.UTC(2026, 9, 20) / 1000, patchedSlips: 4 },
+    ],
+  })));
+  render(<BoardPage />);
+  await screen.findByRole("table");
+  const items = screen.getAllByRole("listitem");
+  expect(items.map((item) => item.textContent)).toEqual([
+    "Patched in v31 slip · released 2026-11-02 UTC",
+    "Patched in v24 slips · released 2026-10-20 UTC",
+  ]);
+  expect(screen.getByText(/players keep their points/)).toBeTruthy();
+  expect(screen.getAllByRole("row")[1].textContent).toBe("1Alice3");
+});
+it("hides the patched section before any release", async () => {
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ players: [], releases: [] })));
+  render(<BoardPage />);
+  await screen.findByText(/No confirmed slips/);
+  expect(screen.queryByText("Patched tricks")).toBeNull();
+});

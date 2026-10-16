@@ -23,7 +23,7 @@ beforeAll(async () => {
   await d1.exec(schema.replace(/--[^\n]*/g, "").replace(/\s+/g, " "));
 });
 beforeEach(async () => {
-  await d1.exec("DELETE FROM triage_tags; DELETE FROM test_cases WHERE source = 'game';");
+  await d1.exec("DELETE FROM triage_tags; DELETE FROM patched_slips; DELETE FROM filter_releases; DELETE FROM test_cases WHERE source = 'game';");
 });
 
 interface CaseInput {
@@ -96,11 +96,11 @@ it("returns only safe, re-masked fields with filter version and reasons", async 
     reasons: ["Player B shared a@b.example"],
   });
   const [item] = (await loadTriage(db, "slip")).groups[0].items;
-  expect(Object.keys(item).sort()).toEqual(["context", "filterVersion", "id", "message", "reasons", "scores", "tags", "versionAdded"]);
+  expect(Object.keys(item).sort()).toEqual(["context", "filterVersion", "id", "message", "patchedIn", "reasons", "scores", "tags", "versionAdded"]);
   expect(item.message).toBe("mail me at [redacted] or [redacted]");
   expect(item.context).toEqual([{ username: "Player A", text: "call [redacted]" }]);
   expect(item.reasons).toEqual(["Player B shared [redacted]"]);
-  expect(item).toMatchObject({ filterVersion: "v1", versionAdded: "v1", tags: [] });
+  expect(item).toMatchObject({ filterVersion: "v1", versionAdded: "v1", tags: [], patchedIn: null });
   expect(JSON.stringify(item)).not.toContain("msg-s1");
 });
 

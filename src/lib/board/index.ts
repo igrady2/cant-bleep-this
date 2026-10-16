@@ -1,5 +1,9 @@
 import "server-only";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { loadPublicReleases, type PublicFilterRelease } from "@/lib/filter-release/releases";
+import type { MessagesDatabase } from "@/lib/messages/db";
+
+export type { PublicFilterRelease } from "@/lib/filter-release/releases";
 
 export interface BoardEntry { name: string; slips: number }
 export interface BoardDatabase {
@@ -38,4 +42,10 @@ export async function loadBoard(db: BoardDatabase, now = new Date()): Promise<Bo
   `).bind(start.toISOString().slice(0, 10), today).all<BoardEntry>();
   if (!result.success) throw new Error("Board query failed");
   return result.results;
+}
+
+/** Released filter versions and how many slips each patched (#26). Scores are untouched. */
+export function loadBoardReleases(db: BoardDatabase): Promise<PublicFilterRelease[]> {
+  // Same D1 binding; the release reader only needs prepare/bind/all.
+  return loadPublicReleases(db as unknown as MessagesDatabase);
 }

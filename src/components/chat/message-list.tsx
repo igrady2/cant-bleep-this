@@ -11,6 +11,8 @@ export interface ChatMessage {
   text: string;
   sentAt: number;
   slipRule?: string;
+  /** Released filter version that now catches this slip. */
+  patchedIn?: string;
   status?: MessageStatus;
 }
 
@@ -53,6 +55,11 @@ export function MessageList({
                 {m.slipRule ? (
                   <Badge variant="secondary" className="text-[10px] uppercase tracking-wide">
                     Slip · {m.slipRule}
+                  </Badge>
+                ) : null}
+                {m.slipRule && m.patchedIn ? (
+                  <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                    Patched in {m.patchedIn}
                   </Badge>
                 ) : null}
                 <time

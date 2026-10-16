@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { BoardEntry } from "@/lib/board";
+import type { BoardEntry, PublicFilterRelease } from "@/lib/board";
 
 export default function BoardPage() {
   const [players, setPlayers] = useState<BoardEntry[] | null>(null);
+  const [releases, setReleases] = useState<PublicFilterRelease[]>([]);
   const [error, setError] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/board", { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("Board unavailable");
-        const body = await response.json() as { players: BoardEntry[] };
+        const body = await response.json() as { players: BoardEntry[]; releases?: PublicFilterRelease[] };
         setPlayers(body.players);
+        setReleases(body.releases ?? []);
       })
       .catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
@@ -37,6 +39,18 @@ export default function BoardPage() {
           </tr>;
           })}</tbody>
         </table>}
+      {!error && releases.length > 0 && <section className="mt-10" aria-labelledby="patched-heading">
+        <h2 id="patched-heading" className="text-xl font-semibold">Patched tricks</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Each new filter version is tested before release. Slips it now catches are marked patched; players keep their points.</p>
+        <ul className="mt-4 space-y-2">{releases.map((release) => (
+          <li key={release.version} className="flex flex-wrap justify-between gap-x-4 border-t pt-2">
+            <span className="font-medium">Patched in {release.version}</span>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {release.patchedSlips} {release.patchedSlips === 1 ? "slip" : "slips"} · released {new Date(release.releasedAt * 1000).toISOString().slice(0, 10)} UTC
+            </span>
+          </li>
+        ))}</ul>
+      </section>}
     </main>
   );
 }

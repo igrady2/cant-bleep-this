@@ -29,6 +29,7 @@ interface CaseRow {
   filter_version: string | null;
   version_added: string;
   tags: string | null;
+  patched_in: string | null;
 }
 
 const UNKNOWN_RULE = "unknown";
@@ -99,6 +100,7 @@ function present(kind: TriageKind, row: CaseRow, scores: TriageScore[]): TriageI
     filterVersion: row.filter_version,
     versionAdded: row.version_added,
     tags: TRIAGE_TAGS.filter((tag) => tags.includes(tag)),
+    patchedIn: row.patched_in,
   };
 }
 
@@ -114,7 +116,8 @@ export async function loadTriage(db: MessagesDatabase, kind: TriageKind): Promis
   const rows = databaseRows(await db.prepare(`
     SELECT tc.id, tc.message, tc.context_snapshot, tc.rule, tc.reasons, tc.filter_scores,
       tc.filter_version, tc.version_added,
-      (SELECT json_group_array(tag) FROM triage_tags WHERE test_case_id = tc.id) AS tags
+      (SELECT json_group_array(tag) FROM triage_tags WHERE test_case_id = tc.id) AS tags,
+      (SELECT version FROM patched_slips WHERE test_case_id = tc.id) AS patched_in
     FROM test_cases tc
     WHERE tc.source = 'game' AND tc.source_status = ?
     ORDER BY tc.rowid DESC

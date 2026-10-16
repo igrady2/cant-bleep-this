@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Suspense } from "react";
 
+import { ReleasesPanel } from "@/components/admin/releases-panel";
 import { TriageBoard } from "@/components/admin/triage-board";
 import { verifyAdminHeaders } from "@/lib/admin/access";
 
@@ -16,7 +17,7 @@ async function AdminGate() {
   if (!result.ok) {
     return <p role="alert" className="mt-8">Admin access denied. Sign in through Cloudflare Access.</p>;
   }
-  return <TriageBoard />;
+  return <><TriageBoard /><ReleasesPanel /></>;
 }
 
 export default function AdminPage() {
