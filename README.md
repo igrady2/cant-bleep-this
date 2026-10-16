@@ -138,6 +138,14 @@ On Workers, `POST /api/moderate` is rate limited with Cloudflare's [Rate Limitin
 
 Over the limit, the API returns `429` with `Retry-After: 60`, and the chat shows "You're sending messages too quickly." Cloudflare counts these limits per location and they are approximate. Rate limiting is skipped under `npm run dev` and `npm start`.
 
+## Admin triage
+
+`/admin` lists slips and false positives from the anonymized test set, grouped
+by rule, with trick tags (spelling, sound, meaning, context). It sits behind
+Cloudflare Access, and the Worker also verifies the Access JWT on the page and
+every `/api/admin/*` call, failing closed without `CF_ACCESS_TEAM_DOMAIN` and
+`CF_ACCESS_AUD`. Setup: [docs/ADMIN_ACCESS.md](docs/ADMIN_ACCESS.md).
+
 ## Scripts
 
 - `npm run dev`: dev server on port 4317
