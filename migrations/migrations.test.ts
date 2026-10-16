@@ -59,3 +59,13 @@ it("adds idempotent, FK-free source tracking and filter results to test cases", 
   expect(sql).toContain("ADD COLUMN filter_version TEXT");
   expect(sql).not.toMatch(/REFERENCES/i);
 });
+
+it("records the deciding status on game cases and stores triage tags", () => {
+  const sql = readFileSync(join(import.meta.dirname, "0012_admin_triage.sql"), "utf8");
+  expect(sql).toContain("ADD COLUMN source_status TEXT");
+  expect(sql).toContain("source_status IN ('slip', 'caught', 'clean', 'false_positive')");
+  expect(sql).toContain("CREATE INDEX test_cases_triage");
+  expect(sql).toContain("CREATE TABLE triage_tags");
+  expect(sql).toContain("tag IN ('spelling', 'sound', 'meaning', 'context')");
+  expect(sql).toContain("REFERENCES test_cases(id) ON DELETE CASCADE");
+});
