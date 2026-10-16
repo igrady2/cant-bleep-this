@@ -2,6 +2,9 @@
 # Required for posting messages in preview.
 TYPESAFE_API_KEY=
 
+# Optional admin metrics estimate per stored Jev check (USD); defaults to 0.0002.
+# JEV_COST_PER_CHECK_USD=0.0002
+
 # Required for username claims in preview (`POST /api/claim`).
 TURNSTILE_SECRET_KEY=
 IP_HASH_SALT=
