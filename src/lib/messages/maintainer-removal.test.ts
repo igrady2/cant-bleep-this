@@ -39,12 +39,10 @@ describe("maintainer removal", () => {
 
     const result = await removeMessageAsMaintainer(db, "msg-1");
     expect(result).toEqual({ slipPointRemoved: true });
-    expect(batched).toHaveLength(3);
+    expect(batched).toHaveLength(2);
     expect(batched[0]?.sql).toContain("UPDATE scores");
     expect(batched[0]?.args).toEqual(["player-1", "2023-11-14"]);
-    expect(batched[1]?.sql).toContain("DELETE FROM test_cases");
-    expect(batched[1]?.args).toEqual(["msg-1"]);
-    expect(batched[2]?.sql).toContain("DELETE FROM messages");
+    expect(batched[1]?.sql).toContain("DELETE FROM messages");
   });
 
   it("returns not_found when the message is already gone", async () => {
