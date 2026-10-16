@@ -22,6 +22,9 @@ export function RoomHeader() {
             Judge
           </Link>
           <RulesLink />
+          <Link href="/board" className="text-primary underline-offset-4 hover:underline">
+            Board
+          </Link>
         </nav>
       </div>
     </header>
