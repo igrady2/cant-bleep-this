@@ -66,6 +66,10 @@ export async function removeMessageAsMaintainer(
         .bind(row.author_id, utcScoreDay(row.created_at)),
     );
   }
+  // A case captured at verdict time has no FK to its source, so drop it explicitly.
+  statements.push(
+    db.prepare("DELETE FROM test_cases WHERE source_message_id = ? AND source = 'game'").bind(messageId),
+  );
   statements.push(db.prepare("DELETE FROM messages WHERE id = ?").bind(messageId));
   await db.batch(statements);
 
