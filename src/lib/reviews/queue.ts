@@ -1,4 +1,5 @@
 import "server-only";
+import { databaseRows } from "@/lib/messages/db";
 
 import { CATEGORIES } from "@/lib/moderation/categories";
 import { mayEnterReviewQueue } from "@/lib/messages/disposition";
@@ -50,7 +51,7 @@ export async function listQueueCandidates(
       .bind(player.id, player.id, queueScanLimit()) as { all<T>(): Promise<T[]> }
   ).all<QueueCandidateRow>();
 
-  return rows.filter((row) => mayEnterReviewQueue(row.filter_outcome, row.status));
+  return databaseRows(rows).filter((row) => mayEnterReviewQueue(row.filter_outcome, row.status));
 }
 
 async function listSeedCandidates(

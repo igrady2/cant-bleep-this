@@ -115,18 +115,26 @@ export async function captureTestCase(
         (SELECT MAX(r.created_at) FROM reviews r WHERE r.message_id = messages.id AND r.skipped = 0)
       FROM messages
       WHERE id = ? AND status = ? AND filter_outcome IN ('passed', 'blocked')
+        AND NOT EXISTS (
+          SELECT 1 FROM json_each(?) j
+          WHERE NOT EXISTS (SELECT 1 FROM messages c WHERE c.id = j.value)
+        )
       ON CONFLICT (source_message_id) DO NOTHING
     `)
     .bind(
       crypto.randomUUID(),
       masked.text,
-      JSON.stringify(masked.context.map((entry) => ({ username: entry.username, text: entry.text }))),
+      JSON.stringify(masked.context.map((entry, index) => ({
+        username: entry.username, text: entry.text,
+        sourceMessageId: presentation.context[index].sourceMessageId,
+      }))),
       expectedVerdict,
       expectedVerdict === "not_ok" ? (deciding[0]?.rule ?? null) : null,
       JSON.stringify(masked.reasons),
       ACTIVE_FILTER_VERSION_ID,
       messageId,
       source.status,
+      JSON.stringify(presentation.context.flatMap((entry) => entry.sourceMessageId ? [entry.sourceMessageId] : [])),
     )
     .run!();
   return (result.meta?.changes ?? 0) > 0 ? "captured" : "already_captured";

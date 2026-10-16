@@ -90,6 +90,7 @@ export async function loadMessageReviewPresentation(
     status: row.status,
     reasons: [],
     context: contextRows.map((entry) => ({
+      sourceMessageId: entry.id,
       ...(entry.status === "slip" ? (slips.get(entry.id) ?? { slipRule: "Slip", slipSpans: [] }) : {}),
       username: entry.author_name,
       text: reviewerBody(entry),

@@ -35,6 +35,8 @@ export interface MessageText {
 }
 
 export interface DeliverableContextEntry extends MessageText {
+  /** Internal provenance for removing a predecessor from saved game cases. */
+  sourceMessageId?: string;
   filterOutcome: FilterOutcome;
   status: MessageStatus;
 }

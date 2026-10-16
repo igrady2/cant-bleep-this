@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { ReleasesPanel } from "@/components/admin/releases-panel";
 import { MetricsPanel } from "@/components/admin/metrics-panel";
+import { ModerationPanel } from "@/components/admin/moderation-panel";
 import { TriageBoard } from "@/components/admin/triage-board";
 import { verifyAdminHeaders } from "@/lib/admin/access";
 
@@ -18,7 +19,7 @@ async function AdminGate() {
   if (!result.ok) {
     return <p role="alert" className="mt-8">Admin access denied. Sign in through Cloudflare Access.</p>;
   }
-  return <><TriageBoard /><MetricsPanel /><ReleasesPanel /></>;
+  return <><ModerationPanel /><TriageBoard /><MetricsPanel /><ReleasesPanel /></>;
 }
 
 export default function AdminPage() {
