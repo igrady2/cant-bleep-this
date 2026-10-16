@@ -52,6 +52,8 @@ The nine rules (harassment, hate, sexual content, violence and threats, self-har
 
 ## Deploy to Cloudflare Workers
 
+For the independent v1 preview setup and smoke checklist, see [docs/PREVIEW.md](docs/PREVIEW.md).
+
 The app runs on Cloudflare Workers through the [OpenNext Cloudflare adapter](https://opennext.js.org/cloudflare). The Worker name is `cant-bleep-this`. Configuration is in `wrangler.jsonc` and `open-next.config.ts`.
 
 When deploying under the new name, confirm `cant-bleep-this` in your Cloudflare account and re-set `TYPESAFE_API_KEY` and any other existing Worker secrets on that Worker. Secrets do not transfer when the config name changes.
