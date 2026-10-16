@@ -152,7 +152,7 @@ The test set is the one thing kept past 90 days. Each case keeps the message, it
 - On claim, the server creates a random 32-byte token, stores only its SHA-256 hash, and returns the token to the browser, which keeps it in localStorage.
 - Every review and post sends the token. Nobody can play as a name without it, so a taken name cannot be reused or impersonated.
 - The claim screen shows the token once as a recovery code ("Save this to play from another device"). Lose it and you pick a new name.
-- A name with no posts for 90 days is released, which matches the board window and stops squatting.
+- A name with no posts for 90 days is released, which matches the board window and stops squatting. A name that never posts counts from its claim time, so it is released 90 days after the claim. See [RETENTION.md](RETENTION.md).
 - Cloudflare Turnstile (free, no puzzle for most people) runs on the claim step so bots can't reserve names in bulk.
 
 **Why not MAC or IP**

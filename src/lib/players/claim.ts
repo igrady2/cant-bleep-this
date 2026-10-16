@@ -59,6 +59,8 @@ export async function claimUsername(
   const tokenHash = await hashPlayerToken(token);
   const now = Math.floor(Date.now() / 1000);
 
+  // last_played_at starts at the claim time, so a name that never posts is
+  // released by the nightly retention cron 90 days after the claim (#27).
   const insertPlayer = db
     .prepare(
       `INSERT INTO players (
