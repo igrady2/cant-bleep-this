@@ -104,7 +104,9 @@ beforeEach(async () => {
 
 const patches = async () => (await d1.prepare(
   "SELECT test_case_id, version, confirmed_at, released_at, patch_seconds FROM patched_slips ORDER BY test_case_id",
-).bind().all()).results;
+).bind().all<{
+  test_case_id: string; version: string; confirmed_at: number | null; released_at: number; patch_seconds: number | null;
+}>()).results;
 
 describe("recordFilterRelease", () => {
   it("records a gate-passing release of the active version with its release time", async () => {

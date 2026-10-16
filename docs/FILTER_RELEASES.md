@@ -1,6 +1,6 @@
 # Filter versions and the release gate
 
-How a fix from the [slip loop](PRD.md#how-slips-improve-the-filter) becomes a new filter version. Recording releases and showing "Patched in v3" on the board is [#26](https://github.com/igrady2/cant-bleep-this/issues/26).
+How a fix from the [slip loop](PRD.md#how-slips-improve-the-filter) becomes a new filter version, and how its release is recorded so the board shows "Patched in v3".
 
 ## What a version is
 
@@ -37,6 +37,7 @@ A released version never changes in place: its id already sits on messages it ju
    ```
 
 4. Commit the report and open the pull request. If the gate passed, the same pull request points `ACTIVE_FILTER_VERSION_ID` at the candidate.
+5. After the pull request deploys, [record the release](#recording-a-release).
 
 ### Options
 
@@ -83,3 +84,27 @@ The report holds case ids, labels and outcomes only, never message text. It reco
 - **cases:** every case's result under both versions, sorted by id.
 
 To reproduce a report, check out its commit, export the same cases (compare `testSet.fingerprint`) and run the same command with the same `TYPESAFE_MODEL`.
+
+## Recording a release
+
+Once the new active version is live, open `/admin` (behind Cloudflare Access) and upload its report under **Filter releases**. The upload goes to `POST /api/admin/releases`, which records the release only if:
+
+- the report's candidate is the version this deployment runs (`ACTIVE_FILTER_VERSION_ID`),
+- the candidate's fingerprint matches that version's configuration, so the gated version is the shipped one,
+- the gate passes again when recomputed from the report's cases (the stored `gate.passed` is not trusted on its own), and
+- the version has not been recorded before.
+
+The release time is the moment of the upload, so upload right after the deploy. The row in `filter_releases` keeps the baseline, both fingerprints and the gate counts.
+
+### Patched slips
+
+Every game slip (a message that passed the filter and players confirmed Not OK) that the candidate catches in the report gets a row in `patched_slips` with the version. A slip keeps the first release that patched it. If a later release lets a patched slip through again, the mark is removed.
+
+Patched slips show "Patched in vN" next to the slip in the room feed and on the admin triage card. The board lists each release with the number of slips it patched.
+
+Recording a release never writes `scores` or `messages`. Players keep their points, and the board keeps counting slips they earned.
+
+### Patch time
+
+Each game case stores `confirmed_at`, the time of the deciding review, so patch time survives the 90-day deletion of reviews. Each patched slip stores `patch_seconds`: release time minus confirmation time (null for cases captured before confirmation times were kept). The admin panel shows, per release, the median patch time and how many patched slips shipped within the two-week target from the [PRD](PRD.md#goals-non-goals-and-success-measures).
+
