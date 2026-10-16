@@ -9,7 +9,7 @@ import { TriageBoard } from "@/components/admin/triage-board";
 import { verifyAdminHeaders } from "@/lib/admin/access";
 
 export const metadata: Metadata = {
-  title: "Admin triage Â· Can't Bleep This",
+  title: "Admin triage · Can't Bleep This",
   robots: { index: false, follow: false },
 };
 
@@ -29,7 +29,7 @@ export default function AdminPage() {
       <p className="mt-2 text-muted-foreground">
         Slips and false positives from the anonymized test set, grouped by rule. Tag the trick each one uses.
       </p>
-      <Suspense fallback={<p role="status" className="mt-8">Checking accessâ€¦</p>}>
+      <Suspense fallback={<p role="status" className="mt-8">Checking access…</p>}>
         <AdminGate />
       </Suspense>
     </main>
