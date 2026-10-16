@@ -250,7 +250,7 @@ it("uses the configured rolling window, recovers, and checks the Not OK rule", a
   const { updateStanding } = await import("./standing");
   for (let i = 0; i < 2; i++) {
     const seed = `clean-seed-${i}`;
-    await d1.prepare(`INSERT INTO test_cases VALUES (?, 'hello', '[]', 'fine', NULL, '[]', 'seed', 'v1')`).bind(seed).run();
+    await d1.prepare(`INSERT INTO test_cases (id, message, context_snapshot, expected_verdict, rule, reasons, source, version_added) VALUES (?, 'hello', '[]', 'fine', NULL, '[]', 'seed', 'v1')`).bind(seed).run();
     const saved = await seedVote("a", seed, "fine");
     expect(saved.result.ok).toBe(true);
   }

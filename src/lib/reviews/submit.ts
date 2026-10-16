@@ -10,6 +10,7 @@ import { loadMessageReviewPresentation, loadSeedReviewPresentation } from "./con
 import type { ReviewsDatabase } from "./db";
 import { updateStanding } from "./standing";
 import { consensusStatement } from "./verdicts";
+import { captureTestCase } from "@/lib/test-cases/capture";
 import { resetReviewRequirement } from "./review-requirement";
 import {
   parseAndValidateFlaggedSpans,
@@ -229,14 +230,19 @@ export async function submitReview(
     )
     .bind(now, assignment.id, player.id, now);
 
+  const decidesVerdict = Boolean(assignment.message_id) && skipped === 0;
+  let verdictCompleted = false;
   try {
-    await db.batch([
+    const results = await db.batch([
       insertReview, consumeAssignment,
       ...(assignment.seed_case_id && skipped === 0 ? [updateStanding(db, player.id, reviewId)] : []),
       resetReviewRequirement(db, player.id, reviewId),
-      ...(assignment.message_id && skipped === 0
-        ? [consensusStatement(db, assignment.message_id, reviewId)] : []),
+      ...(decidesVerdict ? [consensusStatement(db, assignment.message_id!, reviewId)] : []),
     ]);
+    // The consensus update is last; it changes a row only when this vote completed the verdict.
+    const consensus = decidesVerdict && Array.isArray(results)
+      ? (results[results.length - 1] as { meta?: { changes?: number } } | undefined) : undefined;
+    verdictCompleted = (consensus?.meta?.changes ?? 0) > 0;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     if (/UNIQUE|unique/i.test(message)) {
@@ -274,6 +280,15 @@ export async function submitReview(
       error: "That review assignment expired or was already used. Get a new one.",
       code: "assignment_unavailable",
     };
+  }
+
+  if (verdictCompleted) {
+    // The verdict stands even if capture fails; capture is idempotent and can be retried.
+    try {
+      await captureTestCase(db, assignment.message_id!);
+    } catch (err) {
+      console.error("[reviews.submit] test case capture", err);
+    }
   }
 
   return { ok: true, reviewId, skipped: skipped === 1 };

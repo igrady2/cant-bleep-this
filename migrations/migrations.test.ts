@@ -50,3 +50,12 @@ it("adds seed attempt uniqueness and loads the curated seed pool", () => {
   expect(sql).toContain("CREATE UNIQUE INDEX reviews_seed_once");
   expect(sql).toContain("seed-bullying_harassment-01");
 });
+
+it("adds idempotent, FK-free source tracking and filter results to test cases", () => {
+  const sql = readFileSync(join(import.meta.dirname, "0011_test_case_capture.sql"), "utf8");
+  expect(sql).toContain("ADD COLUMN source_message_id TEXT");
+  expect(sql).toContain("CREATE UNIQUE INDEX test_cases_source_message ON test_cases(source_message_id)");
+  expect(sql).toContain("json_type(filter_scores) = 'object'");
+  expect(sql).toContain("ADD COLUMN filter_version TEXT");
+  expect(sql).not.toMatch(/REFERENCES/i);
+});
