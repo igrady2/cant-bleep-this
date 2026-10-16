@@ -33,6 +33,7 @@ interface TestCaseRow {
   source_message_id: string;
   filter_scores: string;
   filter_version: string;
+  source_status: string | null;
 }
 
 const SCORES = JSON.stringify({ sexual_content: 0.42, profanity: 0.01, off_limits: 0.02 });
@@ -95,7 +96,7 @@ it("anonymizes usernames consistently across the message, context and reasons", 
   ]);
   expect(row).toMatchObject({
     expected_verdict: "not_ok", rule: "sexual_content", source: "game",
-    version_added: "v1", source_message_id: "m", filter_version: "v1",
+    version_added: "v1", source_message_id: "m", filter_version: "v1", source_status: "slip",
   });
   expect(JSON.parse(row.filter_scores)).toEqual(JSON.parse(SCORES));
   const stored = JSON.stringify(row);
@@ -115,6 +116,7 @@ it.each([
   const [row] = await cases();
   expect(row).toMatchObject({
     expected_verdict: expected, rule: expected === "fine" ? null : "sexual_content", message: "hi Player A",
+    source_status: status,
   });
   expect(JSON.parse(row.reasons)).toEqual(expected === "fine" ? [] : ["Bad", "Worse"]);
 });
@@ -176,7 +178,8 @@ it("survives 90-day deletion of the source message, its context, reviews and pla
 
 it("leaves seeds without a source message or filter results", async () => {
   const seed = await d1.prepare(`SELECT COUNT(*) AS n FROM test_cases
-    WHERE source = 'seed' AND source_message_id IS NULL AND filter_scores IS NULL AND filter_version IS NULL`)
+    WHERE source = 'seed' AND source_message_id IS NULL AND filter_scores IS NULL AND filter_version IS NULL
+      AND source_status IS NULL`)
     .bind().first<{ n: number }>();
   expect(seed!.n).toBeGreaterThan(0);
   await expect(d1.prepare(`INSERT INTO test_cases (id, message, context_snapshot, expected_verdict, reasons, source, version_added)
