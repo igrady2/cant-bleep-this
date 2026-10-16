@@ -20,8 +20,10 @@ npm run dev                  # http://localhost:4317
 | --- | --- |
 | `TYPESAFE_API_KEY` | **Required** to post messages. TypeSafe API key ([docs](https://docs.typesafe.ai/api)); every check goes to Jev. |
 | `TYPESAFE_MODEL` | Optional. Defaults to `jev-latest`. |
-| `MODERATION_THRESHOLD` | Optional. Probability at which a reviewable category blocks a message. Defaults to `0.5`. |
-| `MODERATION_THRESHOLD_OFF_LIMITS` | Optional. Independent threshold for the off-limits exclusion question. Defaults to `0.5`. |
+| `MODERATION_THRESHOLD` | Optional emergency override. Replaces the active filter version's nine rule thresholds (0.5 in v1). |
+| `MODERATION_THRESHOLD_OFF_LIMITS` | Optional emergency override. Replaces the active filter version's off-limits threshold (0.5 in v1). |
+
+Questions, examples, thresholds and normalization belong to a versioned filter configuration. See [docs/FILTER_RELEASES.md](docs/FILTER_RELEASES.md).
 
 If the key is missing, Jev returns an error, or the response is invalid, the message is **not** posted and the UI shows a retryable error. There is no offline keyword fallback.
 
@@ -177,3 +179,11 @@ with `npm run evaluate:seeds -- --live` (requires explicit `--live` and
 `TYPESAFE_API_KEY`, ~one Jev request per fixture). Output defaults to
 `reports/seed-baseline.json`. See [docs/SEED_EVALUATION.md](docs/SEED_EVALUATION.md).
 Do not run the live command in CI without explicit cost approval.
+
+### Filter release gate
+
+`npm run evaluate:filter -- --live --candidate <id> --game-cases <export.json>`
+runs every seed and game test case through the active filter version and a
+candidate, and passes only if catches rise and false positives don't. Reports go
+to `reports/filter-release-<baseline>-to-<candidate>.json`. See
+[docs/FILTER_RELEASES.md](docs/FILTER_RELEASES.md).

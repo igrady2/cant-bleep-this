@@ -9,5 +9,5 @@
       "server-only": ["./node_modules/server-only/empty.js"]
     }
   },
-  "include": ["scripts/**/*.ts", "src/lib/seeds/**/*.ts", "src/lib/moderation/**/*.ts"]
+  "include": ["scripts/**/*.ts", "src/lib/seeds/**/*.ts", "src/lib/moderation/**/*.ts", "src/lib/filter-release/**/*.ts"]
 }

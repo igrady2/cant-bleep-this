@@ -169,7 +169,9 @@ describe("evaluateSeedFixtures", () => {
       throw new TypeSafeError('TypeSafe responded 400: {"detail":"leak"}', 400);
     });
     expect(report.summary.errors).toBe(1);
-    expect(report.cases[0]?.error).toBe("jev_client_error");
+    expect(report.summary.pass).toBe(0);
+    expect(report.cases[0]).toMatchObject({ kind: "error", outcome: null, error: "jev_client_error" });
+    expect(report.failures[0]).toMatchObject({ kind: "error", outcome: null });
     const serialized = serializeSeedEvalReport(report);
     expect(serialized).not.toContain("leak");
     expect(serialized).not.toContain("detail");

@@ -2,7 +2,8 @@ import "server-only";
 
 import { CATEGORIES, type CategoryId } from "./categories";
 import type { ModerationRoomContext } from "./context";
-import { OFF_LIMITS_ID, OFF_LIMITS_QUESTION } from "./off-limits";
+import { activeFilterVersion, questionInstructions, type FilterConfig } from "./filter-versions";
+import { OFF_LIMITS_ID } from "./off-limits";
 
 const ENDPOINT = "https://api.typesafe.ai/v1/systemone";
 const RETRYABLE = new Set([429, 529]);
@@ -44,6 +45,7 @@ export async function scoreWithJev(
   apiKey: string,
   model: string,
   roomContext: ModerationRoomContext = { context: [], roomUsernames: [] },
+  questions: FilterConfig["questions"] = activeFilterVersion().questions,
 ): Promise<{ model: string; scores: Record<CategoryId, number>; offLimitsScore: number }> {
   const body = {
     model,
@@ -62,19 +64,16 @@ export async function scoreWithJev(
       context: roomContext.context,
       roomUsernames: roomContext.roomUsernames,
     },
-    questions: {
-      ...Object.fromEntries(
-        CATEGORIES.map((c) => [
-          c.id,
-          { type: "noul", instructions: c.question.instructions, criteria: c.question.criteria },
-        ]),
-      ),
-      [OFF_LIMITS_ID]: {
-        type: "noul",
-        instructions: OFF_LIMITS_QUESTION.instructions,
-        criteria: OFF_LIMITS_QUESTION.criteria,
-      },
-    },
+    questions: Object.fromEntries(
+      [...CATEGORIES.map((c) => c.id), OFF_LIMITS_ID].map((id) => [
+        id,
+        {
+          type: "noul",
+          instructions: questionInstructions(questions[id]),
+          criteria: questions[id].criteria,
+        },
+      ]),
+    ),
   };
 
   let lastError: TypeSafeError | undefined;

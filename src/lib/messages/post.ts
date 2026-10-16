@@ -18,10 +18,8 @@ import { utcClaimDay } from "@/lib/players/crypto";
 import { selfHarmCrisisNoteForScores } from "@/lib/moderation/self-harm-crisis";
 import { buildModerationApiBody, type ModerationApiBody } from "./moderation-response";
 import { findDailyPostCapBlock, parseDailyCapCheckError } from "./daily-caps";
-import {
-  ACTIVE_FILTER_VERSION_ID,
-  MESSAGE_MAX_LENGTH,
-} from "./limits";
+import { ACTIVE_FILTER_VERSION_ID } from "@/lib/moderation/filter-versions";
+import { MESSAGE_MAX_LENGTH } from "./limits";
 import { dispositionFromModeration, type MessageStatus } from "./disposition";
 import type { MessagesDatabase } from "./db";
 import { loadPostRoomContext } from "./room-context";

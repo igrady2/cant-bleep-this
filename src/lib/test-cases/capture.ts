@@ -2,7 +2,7 @@ import "server-only";
 
 import { databaseRows, type MessagesDatabase } from "@/lib/messages/db";
 import { mayEnterTestCase, type MessageStatus } from "@/lib/messages/disposition";
-import { ACTIVE_FILTER_VERSION_ID } from "@/lib/messages/limits";
+import { ACTIVE_FILTER_VERSION_ID } from "@/lib/moderation/filter-versions";
 import type { FilterOutcome } from "@/lib/moderation/types";
 import { normalizeUsername } from "@/lib/players/policy";
 import { serializeTestCase } from "@/lib/presentation";

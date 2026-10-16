@@ -1,7 +1,8 @@
 /**
  * The game's nine reviewable rules, worded as in docs/CONTENT_RULES.md
  * (policy v1). Identifiers are stable: they key filter scores, reviews and
- * test cases, so change wording freely but never rename an id.
+ * test cases, so never rename an id. The questions sent to Jev belong to a
+ * filter version (filter-versions.ts); v1 copies them from here.
  */
 export type CategoryId =
   | "bullying_harassment"

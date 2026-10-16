@@ -2,7 +2,7 @@
 
 Policy labels live in [`fixtures/seeds.json`](../fixtures/seeds.json) and [`docs/SEED_MESSAGES.md`](SEED_MESSAGES.md). This harness runs each fixture through the same contextual moderation path as the game (`moderate` with `context` and `roomUsernames`, one Jev request per check) and compares outcomes to those labels.
 
-The permanent D1 test-set runner and release gate are tracked in [#25](https://github.com/igrady2/cant-bleep-this/issues/25); this milestone only adds the seed baseline script, report path, and mocked tests ([#35](https://github.com/igrady2/cant-bleep-this/issues/35)).
+This milestone added the seed baseline script, report path, and mocked tests ([#35](https://github.com/igrady2/cant-bleep-this/issues/35)). The release gate over the whole permanent test set, seeds plus game cases, is [`npm run evaluate:filter`](FILTER_RELEASES.md) ([#25](https://github.com/igrady2/cant-bleep-this/issues/25)).
 
 ## Commands
 
@@ -40,6 +40,8 @@ Re-run the same command after policy or model changes and diff the JSON to track
 | Miss | `not_ok` | passed | `miss` |
 | Wrong rule | `not_ok` | blocked, expected rule not among flags | `wrong_rule` |
 | Off-limits on labeled violation | `not_ok` | off_limits | `off_limits_unexpected` |
+
+**Error:** the moderation call failed. The row has `kind: "error"`, `outcome: null` and a redacted `error` marker. It never counts as a pass.
 
 **Contextual failure:** any `miss`, `false_positive`, or `wrong_rule` on a fixture with non-empty `context`.
 

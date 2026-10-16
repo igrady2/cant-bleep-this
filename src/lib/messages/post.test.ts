@@ -5,7 +5,8 @@ import { CATEGORIES } from "@/lib/moderation/categories";
 import { TypeSafeError } from "@/lib/moderation/typesafe";
 import { postMessage } from "./post";
 import type { MessagesDatabase, MessagesStatement } from "./db";
-import { ACTIVE_FILTER_VERSION_ID, DAILY_POSTS_PER_PLAYER, MESSAGE_MAX_LENGTH } from "./limits";
+import { ACTIVE_FILTER_VERSION_ID } from "@/lib/moderation/filter-versions";
+import { DAILY_POSTS_PER_PLAYER, MESSAGE_MAX_LENGTH } from "./limits";
 
 const { moderate } = vi.hoisted(() => ({ moderate: vi.fn() }));
 vi.mock("@/lib/moderation", () => ({ moderate }));

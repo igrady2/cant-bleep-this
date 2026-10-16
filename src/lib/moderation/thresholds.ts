@@ -5,9 +5,14 @@ import { CATEGORIES } from "./categories";
 
 const DEFAULT_THRESHOLD = 0.5;
 
-function readThreshold(envName: string): number {
+/** A valid operator override from the environment, if one is set. */
+export function thresholdOverride(envName: string): number | undefined {
   const parsed = Number(process.env[envName]);
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : DEFAULT_THRESHOLD;
+  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : undefined;
+}
+
+function readThreshold(envName: string): number {
+  return thresholdOverride(envName) ?? DEFAULT_THRESHOLD;
 }
 
 /** Probability at or above which a reviewable rule blocks a message. */
