@@ -6,6 +6,7 @@
 | --- | --- |
 | `seed-baseline.json` | Latest **live** seed evaluation output from `npm run evaluate:seeds -- --live`. |
 | `seed-baseline.example.json` | Shape-only example with zero counts for tooling and docs. |
+| `filter-release-<baseline>-to-<candidate>.json` | Release gate output from `npm run evaluate:filter`. See [`docs/FILTER_RELEASES.md`](../docs/FILTER_RELEASES.md#the-report). |
 
 ## Generating a baseline
 

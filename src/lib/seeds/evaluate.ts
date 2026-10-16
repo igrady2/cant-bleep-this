@@ -21,16 +21,21 @@ export type SeedEvalOutcomeKind =
   | "off_limits_unexpected"
   | "error";
 
-export interface SeedEvalCaseResult {
+interface SeedEvalCaseBase {
   id: string;
   contextual: boolean;
   expectedVerdict: SeedFixture["expectedVerdict"];
   expectedRule: CategoryId | null;
-  outcome: FilterOutcome;
-  flaggedRules: CategoryId[];
-  kind: SeedEvalOutcomeKind;
-  error?: string;
 }
+
+/**
+ * A failed moderation call has no filter outcome, so an error row can never
+ * read as passed.
+ */
+export type SeedEvalCaseResult = SeedEvalCaseBase & (
+  | { outcome: FilterOutcome; flaggedRules: CategoryId[]; kind: Exclude<SeedEvalOutcomeKind, "error"> }
+  | { outcome: null; flaggedRules: []; kind: "error"; error: string }
+);
 
 export interface SeedEvalRuleStats {
   /** Fixtures labeled not_ok for this rule. */
@@ -48,7 +53,8 @@ export interface SeedEvalFailureRef {
   kind: SeedEvalOutcomeKind;
   contextual: boolean;
   expectedRule: CategoryId | null;
-  outcome: FilterOutcome;
+  /** Null for `kind: "error"`. */
+  outcome: FilterOutcome | null;
   flaggedRules: CategoryId[];
 }
 
@@ -112,9 +118,9 @@ function flaggedRuleIds(result: ModerationResult): CategoryId[] {
 }
 
 export function classifySeedEvalCase(
-  fixture: SeedFixture,
+  fixture: Pick<SeedFixture, "expectedVerdict" | "rule">,
   result: ModerationResult,
-): SeedEvalOutcomeKind {
+): Exclude<SeedEvalOutcomeKind, "error"> {
   const flagged = flaggedRuleIds(result);
 
   if (fixture.expectedVerdict === "fine") {
@@ -228,7 +234,7 @@ export async function evaluateSeedFixtures(
         contextual,
         expectedVerdict: fixture.expectedVerdict,
         expectedRule: fixture.rule,
-        outcome: "passed",
+        outcome: null,
         flaggedRules: [],
         kind: "error",
         error: sanitizeSeedEvalError(err),
@@ -238,7 +244,7 @@ export async function evaluateSeedFixtures(
         kind: "error",
         contextual,
         expectedRule: fixture.rule,
-        outcome: "passed",
+        outcome: null,
         flaggedRules: [],
       });
     }
