@@ -34,7 +34,7 @@ it("sums exactly 90 UTC dates, excluding expired, future, zero, and banned score
   await score("zero", "2026-10-15", 0);
   await score("banned", "2026-10-15", 100);
   await db.exec("UPDATE players SET banned_at = 1 WHERE id = 'banned';");
-  expect(await loadBoard(db, now)).toEqual([{ playerId: "a", name: "a", slips: 5 }]);
+  expect(await loadBoard(db, now)).toEqual([{ name: "a", slips: 5 }]);
 });
 it("limits after sorting by count, binary name, and id, including ties at rank 50", async () => {
   for (let i = 54; i >= 0; i--) {
@@ -46,7 +46,7 @@ it("limits after sorting by count, binary name, and id, including ties at rank 5
   await player("alpha", "Alpha"); await score("alpha", "2026-10-15", 1);
   const board = await loadBoard(db, now);
   expect(board).toHaveLength(50);
-  expect(board.map(p => p.playerId)).toEqual(["winner", "alpha", ...Array.from({ length: 48 }, (_, i) => String(i).padStart(2, "0"))]);
+  expect(board).toEqual([{ name: "zzz", slips: 2 }, { name: "Alpha", slips: 1 }, ...Array.from({ length: 48 }, () => ({ name: "same", slips: 1 }))]);
 });
 it("returns an empty board without scores", async () => {
   expect(await loadBoard(db, now)).toEqual([]);
@@ -59,7 +59,7 @@ it("retains rule evidence and awarded points after a filter version patch", asyn
     VALUES ('r', 'm', 'judge', 'not_ok', 'profanity', 'synthetic reason', 'queue', 0);
     UPDATE messages SET status = 'slip' WHERE id = 'm';`.replace(/\s+/g, " "));
   const earned = await loadBoard(db);
-  expect(earned).toEqual([{ playerId: "author", name: "author", slips: 1 }]);
+  expect(earned).toEqual([{ name: "author", slips: 1 }]);
   await db.exec("UPDATE messages SET filter_version = 'v2' WHERE id = 'm';");
   expect(await loadBoard(db)).toEqual(earned);
   const evidence = await db.prepare("SELECT rule FROM reviews WHERE message_id = ?").bind("m").all<{ rule: string }>();
