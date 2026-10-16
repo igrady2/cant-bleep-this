@@ -23,6 +23,7 @@ const { REVIEWS_TEST_DB: d1, CONSENSUS_SCHEMA: schema } = env as unknown as {
 const db = d1 as unknown as ReviewsDatabase;
 
 interface TestCaseRow {
+  confirmed_at: number | null;
   message: string;
   context_snapshot: string;
   expected_verdict: string;
@@ -99,6 +100,8 @@ it("anonymizes usernames consistently across the message, context and reasons", 
     version_added: "v1", source_message_id: "m", filter_version: "v1", source_status: "slip",
   });
   expect(JSON.parse(row.filter_scores)).toEqual(JSON.parse(SCORES));
+  // The deciding (latest) review's time, kept for patch timing after reviews expire.
+  expect(row.confirmed_at).toBe(clock - 1);
   const stored = JSON.stringify(row);
   for (const name of ["elon", "alfie", "kai_music", "riley", "rev_", "555", "off limits"]) {
     expect(stored).not.toContain(name);

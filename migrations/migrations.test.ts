@@ -69,3 +69,16 @@ it("records the deciding status on game cases and stores triage tags", () => {
   expect(sql).toContain("tag IN ('spelling', 'sound', 'meaning', 'context')");
   expect(sql).toContain("REFERENCES test_cases(id) ON DELETE CASCADE");
 });
+
+it("records filter releases, patched slips and confirmation times without touching scores", () => {
+  const sql = readFileSync(join(import.meta.dirname, "0013_filter_releases.sql"), "utf8");
+  expect(sql).toContain("CREATE TABLE filter_releases");
+  expect(sql).toContain("released_at INTEGER NOT NULL");
+  expect(sql).toContain("CHECK (catches > baseline_catches)");
+  expect(sql).toContain("false_positives <= baseline_false_positives");
+  expect(sql).toContain("ADD COLUMN confirmed_at INTEGER");
+  expect(sql).toContain("CREATE TABLE patched_slips");
+  expect(sql).toContain("test_case_id TEXT PRIMARY KEY NOT NULL REFERENCES test_cases(id) ON DELETE CASCADE");
+  expect(sql).toContain("patch_seconds INTEGER");
+  expect(sql).not.toMatch(/(UPDATE|INSERT INTO|DELETE FROM)\s+scores/i);
+});

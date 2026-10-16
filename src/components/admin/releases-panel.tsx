@@ -71,7 +71,10 @@ export function ReleasesPanel() {
       } else {
         const release = body.release;
         setReleases((current) => [release, ...(current ?? [])]);
-        setStatus({ ok: true, text: `Recorded ${release.version}: ${release.patchedSlips} slips patched.` });
+        setStatus({
+          ok: true,
+          text: `Recorded ${release.version}: ${release.patchedSlips} ${release.patchedSlips === 1 ? "slip" : "slips"} patched.`,
+        });
       }
     } catch {
       setStatus({ ok: false, text: "Couldn't record the release. Try again." });

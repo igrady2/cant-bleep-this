@@ -110,6 +110,42 @@ describe("loadPublicFeed", () => {
     expect(messages[0]?.slipRule).toBe("Profanity");
   });
 
+  it("marks slips a released filter version now catches", async () => {
+    const lookups: unknown[][] = [];
+    const db = {
+      prepare(sql: string) {
+        return {
+          bind: (...args: unknown[]) => ({
+            all: async () => {
+              if (sql.includes("FROM messages m")) {
+                return [
+                  { id: "slip-1", masked_text: "bad", status: "slip", created_at: 5, filter_outcome: "passed", author_name: "a" },
+                  { id: "slip-2", masked_text: "bad", status: "slip", created_at: 4, filter_outcome: "passed", author_name: "a" },
+                  { id: "clean-1", masked_text: "ok", status: "clean", created_at: 3, filter_outcome: "passed", author_name: "a" },
+                ];
+              }
+              if (sql.includes("FROM patched_slips")) {
+                lookups.push(args);
+                return [{ message_id: "slip-1", version: "v2" }];
+              }
+              return [];
+            },
+          }),
+        };
+      },
+      batch: async () => [],
+    } as unknown as MessagesDatabase;
+
+    const messages = await loadPublicFeed(db);
+    expect(lookups).toEqual([["slip-1", "slip-2"]]);
+    expect(messages.map((m) => [m.id, m.patchedIn])).toEqual([
+      ["clean-1", undefined], ["slip-2", undefined], ["slip-1", "v2"],
+    ]);
+    for (const message of messages) {
+      for (const key of Object.keys(message)) expect(allowedFeedKeySet.has(key)).toBe(true);
+    }
+  });
+
   it("never exposes author-only crisisNote in feed payloads built from DB rows", async () => {
     const db = createDb([
       {

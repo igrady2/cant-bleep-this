@@ -15,3 +15,11 @@ it("hides Judge on the player's own pending message", () => {
   ]} />);
   expect(screen.queryByRole("link", { name: "Judge" })).toBeNull();
 });
+it("marks a patched slip with the release that caught it", () => {
+  render(<MessageList messages={[
+    { id: "a", author: "sam", text: "sh*t", sentAt: 0, status: "slip", slipRule: "Profanity", patchedIn: "v2" },
+    { id: "b", author: "sam", text: "h*ll", sentAt: 0, status: "slip", slipRule: "Profanity" },
+  ]} />);
+  expect(screen.getAllByText("Patched in v2")).toHaveLength(1);
+  expect(screen.getAllByText("Slip · Profanity")).toHaveLength(2);
+});
