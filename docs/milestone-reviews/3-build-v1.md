@@ -1,6 +1,6 @@
 # Milestone 3 review: Build v1
 
-Milestone 3 built the playable game on top of the M1 rules and the M2 filter: name claims, the shared room, posting with daily caps, peer review and consensus, censoring, the leaderboard, the permanent test set and release gate, admin triage and moderation, nightly retention, and the beta metrics report. 21 of 23 planned issues shipped as merged code in about 32 hours, and one was closed as superseded. The preview was deployed on Oct 16. Playtesting it surfaced two crashes, fixed in #91, and a Turnstile retry bug (#92, open). #29 (the live preview smoke checklist) and #90 (deploy review) are still open.
+Milestone 3 built the playable game on top of the M1 rules and the M2 filter: name claims, the shared room, posting with daily caps, peer review and consensus, censoring, the leaderboard, the permanent test set and release gate, admin triage and moderation, nightly retention, and the beta metrics report. 21 of 23 planned issues shipped as merged code in about 32 hours, and one was closed as superseded. The preview was deployed on Oct 16. Playtesting it surfaced two crashes, fixed in #91, and a Turnstile retry bug, fixed in #92. #29 (the live preview smoke checklist) and #90 (deploy review) are still open.
 
 **M4 (Private beta) does not start until Indigo signs off on the checklist at the end of this review.**
 
@@ -8,7 +8,7 @@ All times are BOT (America/La_Paz, UTC-4). Anything the GitHub record doesn't sh
 
 ## 1. Planned vs shipped
 
-GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The planned code was all merged by PR #88 on Oct 15 at 11:20 PM. Fixes from the preview deploy followed: PR #91 merged Oct 17 at 3:47 PM, and PR #92 is open. The milestone holds 24 issues (the 23 planned plus #90) and PRs #74, #91, #92 and this review, #89.
+GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The planned code was all merged by PR #88 on Oct 15 at 11:20 PM. Fixes from the preview deploy followed: PR #91 merged Oct 17 at 3:47 PM, and PR #92 merged Oct 17 at 7:09 PM. The milestone holds 24 issues (the 23 planned plus #90) and PRs #74, #91, #92 and this review, #89.
 
 | Issue | Planned | Shipped via | Closed |
 |---|---|---|---|
@@ -35,14 +35,14 @@ GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The planned 
 | #24 | Admin message deletion and username bans | PR #87 | Oct 15, 10:39 PM |
 | #49 | Vowel-mask censoring and word flagging | Superseded by #16 (PR #74) and #20 (PR #79) | Oct 15, 2:24 PM, not planned |
 | #29 | Document and verify the v1 preview deploy | PR #88 (docs + `env.preview`), "Refs #29" only | **Open** |
-| #90 | Review the first preview deploy (added Oct 16) | PR #91 (crash fixes), PR #92 (open) | **Open** |
+| #90 | Review the first preview deploy (added Oct 16) | PR #91 (crash fixes), PR #92 (Turnstile reset) | **Open** |
 
 - **Result:** 21 of 23 issues shipped as merged code. #49's work did ship, through #16 and #20, so nothing planned was dropped.
 - **Still open:** #29 and #90. Indigo set the five preview secrets with `--env preview` and deployed `cant-bleep-this-preview` on Oct 16 (version 81180c77, recorded in #90). Only the live smoke checklist remains for #29. #90's eight deploy review items still need decisions. See section 5.
-- **Preview fixes (Refs #29, #90):** PR #91 fixed a render loop that crashed every page on load (React #185) and a D1 result-shape bug that made every post return 500 and silently emptied the seed lane. PR #92 (open) resets Turnstile after a failed claim. With those fixes deployed from branches, Indigo claimed names, posted, judged and confirmed two slips across three accounts on Oct 16.
+- **Preview fixes (Refs #29, #90):** PR #91 fixed a render loop that crashed every page on load (React #185) and a D1 result-shape bug that made every post return 500 and silently emptied the seed lane. PR #92 resets Turnstile after a failed claim. With those fixes deployed from branches, Indigo claimed names, posted, judged and confirmed two slips across three accounts on Oct 16.
 - **Shipped alongside, not on the milestone:** PR #73 (exact dependency pins, Indigo's standing rule) and PR #75 (shorter agent guidance plus CLAUDE.md). Playtest fixes #93 (judge page scroll), #95 (reason hint) and #96 (README screenshot) are open, and playtest feedback is filed as #94 and #97 to #104.
 - **Scope changes after start:** unknown. GitHub keeps no history of milestone membership.
-- **Counter check:** on Oct 17 the milestone reports 24 closed and 4 open. That matches: 22 issues plus PRs #74 and #91 closed, and #29, #90, #92 and #89 open. The M2 counter quirk did not repeat.
+- **Counter check:** on Oct 17 the milestone reports 25 closed and 3 open. That matches: 22 issues plus PRs #74, #91 and #92 closed, and #29, #90 and #89 open. The M2 counter quirk did not repeat.
 
 ## 2. Changes and why
 
@@ -62,7 +62,7 @@ Each open issue and document touched by these changes is flagged **needs update*
 
 | Item | Flag | Reason |
 |---|---|---|
-| #29 Preview deploy | **Open work** | Deployed Oct 16. Needs a redeploy from main once #92 merges, then the full live smoke run recorded in `docs/PREVIEW.md`. |
+| #29 Preview deploy | **Open work** | Deployed Oct 16. Needs a redeploy from main at c664349 or later, then the full live smoke run recorded in `docs/PREVIEW.md`. |
 | #90 Preview deploy review | **Open work** | Eight items need a decision or fix, including the stray production Worker and Preview URLs (section 5). |
 | #30 Private-beta checklist | Not | Waits on a working preview. Nothing shipped contradicts it. |
 | #31 Beta results report | Not | Can use the #28 metrics report as its data source. |
@@ -79,7 +79,7 @@ Each open issue and document touched by these changes is flagged **needs update*
 
 - Issues closed: 22 (21 completed, 1 superseded)
 - PRs merged for M3 deliverables: 24 (#40, #42, #59, #64, #65, #67, #68, #70, #71, #72, #74, and #76 through #88), plus #73 and #75 alongside
-- Duration: about 32 hours from milestone creation (Oct 14, 3:05 PM) to the last code merge (Oct 15, 11:20 PM). Most of it landed in the 10 hours after 1:53 PM on Oct 15.
+- Duration: about 32 hours from milestone creation (Oct 14, 3:05 PM) to the last code merge (Oct 15, 11:20 PM). Most of it landed in the 10 hours after 1:53 PM on Oct 15. The preview fixes (#91, #92) followed on Oct 17.
 - Code size: about 15,600 lines added and 560 removed across the M3 PRs, not counting lockfiles and fixtures. That figure includes tests.
 
 **Checks on main at `3dfacbc`**, rerun for this review on Oct 16:
