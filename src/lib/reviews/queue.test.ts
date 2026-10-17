@@ -81,3 +81,19 @@ it("uses the default ten percent seed boundary and falls back when seeds are exh
   expect(await pickNextQueueTarget(db, player)).toEqual({kind: "message", messageId: "real"});
   vi.restoreAllMocks();
 });
+
+it("reads seed and message candidates from D1's { results } envelope", async () => {
+  const player = {id: "a", name: "a", normalizedName: "a"};
+  const db = { prepare: (sql: string) => ({bind: () => ({all: async () => ({success: true, results:
+    sql.includes("FROM test_cases") ? [{id: "seed"}] :
+    [{id: "real", filter_outcome: "passed", status: "pending", filter_scores: "{}", created_at: 0}],
+  })})}) } as unknown as import("./db").ReviewsDatabase;
+  const rng = vi.spyOn(crypto, "getRandomValues").mockImplementation(array => {
+    (array as Uint32Array)[0] = 0;
+    return array;
+  });
+  expect(await pickNextQueueTarget(db, player)).toEqual({kind: "seed", seedCaseId: "seed"});
+  rng.mockImplementation(array => { (array as Uint32Array)[0] = Math.ceil(0.1 * 2 ** 32); return array; });
+  expect(await pickNextQueueTarget(db, player)).toEqual({kind: "message", messageId: "real"});
+  vi.restoreAllMocks();
+});

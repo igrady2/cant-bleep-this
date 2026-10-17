@@ -58,7 +58,7 @@ async function listSeedCandidates(
   db: ReviewsDatabase,
   playerId: string,
 ): Promise<SeedCandidateRow[]> {
-  return (
+  const rows = await (
     db
       .prepare(
         `SELECT tc.id
@@ -71,8 +71,12 @@ async function listSeedCandidates(
            )
          LIMIT ?`,
       )
-      .bind(...CATEGORIES.map(c => c.id), playerId, queueScanLimit()) as { all<T>(): Promise<T[]> }
+      .bind(...CATEGORIES.map(c => c.id), playerId, queueScanLimit()) as {
+        all<T>(): Promise<T[] | { results: T[] }>;
+      }
   ).all<SeedCandidateRow>();
+
+  return databaseRows(rows);
 }
 
 export function pickUncertainCandidate(
