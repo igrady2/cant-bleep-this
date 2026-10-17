@@ -53,6 +53,7 @@ export function OnboardingFlow() {
   const [username, setUsername] = useState("");
   const [restoreToken, setRestoreToken] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [recoveryCode, setRecoveryCode] = useState<string | null>(null);
   const [pendingPlayerId, setPendingPlayerId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -101,11 +102,19 @@ export function OnboardingFlow() {
     }
     setBusy(true);
     setError(null);
-    const result = await claimUsernameRequest(username.trim(), turnstileToken);
-    setBusy(false);
+    let result: Awaited<ReturnType<typeof claimUsernameRequest>>;
+    try {
+      result = await claimUsernameRequest(username.trim(), turnstileToken);
+    } catch {
+      // The request may have reached the server and spent the token, so reset below too.
+      result = { ok: false, error: "We couldn't reach the server. Check your connection and try again." };
+    } finally {
+      setBusy(false);
+    }
     if (!result.ok) {
       setError(result.error);
       setTurnstileToken(null);
+      setTurnstileResetKey((key) => key + 1);
       return;
     }
     writeStoredSession({
@@ -267,7 +276,7 @@ export function OnboardingFlow() {
                     disabled={busy}
                   />
                 </label>
-                <TurnstileWidget onToken={setTurnstileToken} />
+                <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
                 {error && (
                   <Alert variant="destructive">
                     <AlertTitle>Could not claim name</AlertTitle>
