@@ -101,6 +101,7 @@ export function TurnstileWidget({
             onTokenRef.current(null);
             onErrorRef.current?.();
           },
+          // Turnstile's default refresh-expired: "auto" issues a new token after this.
           "expired-callback": () => onTokenRef.current(null),
         });
       })
