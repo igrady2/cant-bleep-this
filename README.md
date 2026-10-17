@@ -4,6 +4,10 @@
 
 How this project is managed: [Process](docs/PROCESS.md).
 
+![The chat room on the preview: two players' messages, two marked as slips](docs/images/room-slips.png)
+
+*The room during a preview playtest (2026-10-16). Every message can be judged. When two other players judge a message that got past the filter as Not OK, it becomes a slip: its vowels are masked and it shows the rule it broke (here harassment and sexual content). Slips count toward the board.*
+
 Stack: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, and shadcn/ui. Fonts: Familjen Grotesk (headings) and Arimo (body).
 
 ## Run it locally
