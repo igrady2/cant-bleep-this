@@ -1,6 +1,6 @@
 # Milestone 3 review: Build v1
 
-Milestone 3 built the playable game on top of the M1 rules and the M2 filter: name claims, the shared room, posting with daily caps, peer review and consensus, censoring, the leaderboard, the permanent test set and release gate, admin triage and moderation, nightly retention, and the beta metrics report. 21 of 23 issues shipped as merged code in about 32 hours. One issue was closed as superseded, and one (#29, the live preview smoke test) is still open because it needs Indigo's Cloudflare account and a paid Jev call budget.
+Milestone 3 built the playable game on top of the M1 rules and the M2 filter: name claims, the shared room, posting with daily caps, peer review and consensus, censoring, the leaderboard, the permanent test set and release gate, admin triage and moderation, nightly retention, and the beta metrics report. 21 of 23 planned issues shipped as merged code in about 32 hours, and one was closed as superseded. The preview was deployed on Oct 16. Playtesting it surfaced two crashes, fixed in #91, and a Turnstile retry bug (#92, open). #29 (the live preview smoke checklist) and #90 (deploy review) are still open.
 
 **M4 (Private beta) does not start until Indigo signs off on the checklist at the end of this review.**
 
@@ -8,7 +8,7 @@ All times are BOT (America/La_Paz, UTC-4). Anything the GitHub record doesn't sh
 
 ## 1. Planned vs shipped
 
-GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The last code merge was PR #88 on Oct 15 at 11:20 PM. The milestone holds 23 issues plus PR #74.
+GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The planned code was all merged by PR #88 on Oct 15 at 11:20 PM. Fixes from the preview deploy followed: PR #91 merged Oct 17 at 3:47 PM, and PR #92 is open. The milestone holds 24 issues (the 23 planned plus #90) and PRs #74, #91, #92 and this review, #89.
 
 | Issue | Planned | Shipped via | Closed |
 |---|---|---|---|
@@ -35,12 +35,14 @@ GitHub milestone #3, "3 - Build v1", was created Oct 14 at 3:05 PM. The last cod
 | #24 | Admin message deletion and username bans | PR #87 | Oct 15, 10:39 PM |
 | #49 | Vowel-mask censoring and word flagging | Superseded by #16 (PR #74) and #20 (PR #79) | Oct 15, 2:24 PM, not planned |
 | #29 | Document and verify the v1 preview deploy | PR #88 (docs + `env.preview`), "Refs #29" only | **Open** |
+| #90 | Review the first preview deploy (added Oct 16) | PR #91 (crash fixes), PR #92 (open) | **Open** |
 
 - **Result:** 21 of 23 issues shipped as merged code. #49's work did ship, through #16 and #20, so nothing planned was dropped.
-- **Still open:** #29. The guide and the `env.preview` Wrangler block are merged, and the preview D1 database has all 14 migrations applied (reported by the Setup Guide agent; not visible in GitHub). Secrets, the deploy and the live smoke checklist remain. See section 5.
-- **Shipped alongside, not on the milestone:** PR #73 (exact dependency pins, Indigo's standing rule) and PR #75 (shorter agent guidance plus CLAUDE.md).
+- **Still open:** #29 and #90. Indigo set the five preview secrets with `--env preview` and deployed `cant-bleep-this-preview` on Oct 16 (version 81180c77, recorded in #90). Only the live smoke checklist remains for #29. #90's eight deploy review items still need decisions. See section 5.
+- **Preview fixes (Refs #29, #90):** PR #91 fixed a render loop that crashed every page on load (React #185) and a D1 result-shape bug that made every post return 500 and silently emptied the seed lane. PR #92 (open) resets Turnstile after a failed claim. With those fixes deployed from branches, Indigo claimed names, posted, judged and confirmed two slips across three accounts on Oct 16.
+- **Shipped alongside, not on the milestone:** PR #73 (exact dependency pins, Indigo's standing rule) and PR #75 (shorter agent guidance plus CLAUDE.md). Playtest fixes #93 (judge page scroll), #95 (reason hint) and #96 (README screenshot) are open, and playtest feedback is filed as #94 and #97 to #104.
 - **Scope changes after start:** unknown. GitHub keeps no history of milestone membership.
-- **Counter check:** the milestone reports 23 closed and 1 open, which matches (22 issues plus PR #74 closed, #29 open). The M2 counter quirk did not repeat.
+- **Counter check:** on Oct 17 the milestone reports 24 closed and 4 open. That matches: 22 issues plus PRs #74 and #91 closed, and #29, #90, #92 and #89 open. The M2 counter quirk did not repeat.
 
 ## 2. Changes and why
 
@@ -50,7 +52,7 @@ Reasons come from PR and issue bodies and from the review comments on each PR.
 - **Peer review (#15, #16, #17, #18, #19).** #15 was too large for one PR, so it shipped as a three-part stack (#70 schema, #72 eligibility and rate limits, #71 queue and judge APIs). Reviewers tap words to flag spans; two matching reviews decide; points are awarded atomically, exactly once. The posts-between-reviews requirement tightens as the queue grows, and about 1 in 10 queue picks is a seed check that tracks reviewer standing.
 - **Censoring (#20, closing out #49).** A confirmed slip masks vowels only in the union of the deciding reviewers' spans, matching PRs #48 and #53. This is the delivery the M1 review said was missing: `presentText` no longer returns `█████` for slips.
 - **Board and test set (#21, #22, #25, #26).** The board counts slips over 90 UTC days, top 50. Each verdict saves an anonymized permanent test case with Player A/B stand-ins. The release gate refuses a filter release unless the test set passes, and only an admin can create one. Patched slips show the release that caught them without removing earned points.
-- **Admin (#23, #24, #28).** `/admin` and `/api/admin/*` sit behind Cloudflare Access, and the Worker verifies the Access JWT itself (RS256 only, fails closed). Delete removes a message, its point and its test case; ban hides the name from the board. The metrics report runs only on demand by an admin, because each run costs about 9% of the free daily D1 read limit per 10,000 posts.
+- **Admin (#23, #24, #28).** `/admin` and `/api/admin/*` sit behind Cloudflare Access, and the Worker verifies the Access JWT itself (RS256 only, fails closed). Delete removes a message, its point and its test case; ban hides the name from the board. The metrics report runs only on demand by an admin, because the #86 review measured a run at about 440,000 rows read, about 9% of the free daily D1 read limit.
 - **Retention (#27).** A 04:00 UTC cron deletes expired game rows, releases inactive unbanned names, keeps banned names and permanent test cases, and is safe to rerun. It runs through `custom-worker.ts`, so deploying the plain OpenNext worker would lose it.
 - **Preview (#29, PR #88).** Adds `docs/PREVIEW.md` and a separate `env.preview` (own Worker name, own D1, own rate-limit namespaces 4321-4324, same cron). Production is untouched.
 
@@ -60,7 +62,8 @@ Each open issue and document touched by these changes is flagged **needs update*
 
 | Item | Flag | Reason |
 |---|---|---|
-| #29 Preview deploy | **Open work** | Needs secrets, Turnstile, Access, deploy and the live smoke run. Code-side checks pass (section 4). |
+| #29 Preview deploy | **Open work** | Deployed Oct 16. Needs a redeploy from main once #92 merges, then the full live smoke run recorded in `docs/PREVIEW.md`. |
+| #90 Preview deploy review | **Open work** | Eight items need a decision or fix, including the stray production Worker and Preview URLs (section 5). |
 | #30 Private-beta checklist | Not | Waits on a working preview. Nothing shipped contradicts it. |
 | #31 Beta results report | Not | Can use the #28 metrics report as its data source. |
 | #32 cantbleepthis.com for the game Worker | **Needs update** | Production `database_id` in `wrangler.jsonc` is still the all-zero placeholder, and production needs its own Turnstile, Access app and secrets. #32 should list these explicitly. |
@@ -104,7 +107,10 @@ Reviews were posted as comments because every agent acts as the repo owner's acc
 
 **Risks**
 
-- **Nothing has run live yet.** Every check above uses mocks or a dry run. Turnstile, Access, Jev from the deployed Worker, and cron delivery are untested until the #29 smoke run.
+- **Live checks are partial.** The preview deployed on Oct 16, but every page crashed on load and every post returned 500, because CI fakes didn't match real Workers and D1. Both were fixed in #91. Claims, posting, judging and slips then worked across three accounts. The full smoke checklist (Access, the admin path, cron delivery) has not run yet.
+- **Test fakes hid real bugs.** Both #91 bugs passed CI because fakes returned bare arrays where D1 returns `{ results }`. Shared fakes should default to D1's real shape.
+- **Stray production Worker.** A `secret put` without `--env preview` created an empty production Worker, `cant-bleep-this`, which now holds the reused Jev key (#90 item 1). Keep it for #32 or delete it, but decide.
+- **Preview URLs are on.** `preview_urls` isn't set, so version URLs on workers.dev may serve gameplay outside Access (#90 item 4).
 - **Bundle headroom is thin.** 2.6 MB gzip against the Workers free plan's 3 MB limit. A new heavy dependency could block deploys.
 - **workers.dev and Access.** If Access is turned on for the workers.dev hostname, it covers the whole site, so beta testers would need to be on the allow policy. A custom preview hostname with path-based Access avoids this.
 - **The process record is thin.** "Built by LLM: Unknown" on many PRs and no formal approvals make the builder/reviewer split harder to audit later.
@@ -112,7 +118,8 @@ Reviews were posted as comments because every agent acts as the repo owner's acc
 
 **Adjustments**
 
-- Finish #29 before M4: set the preview secrets, deploy, run the smoke checklist with an approved Jev call budget, record the results in `docs/PREVIEW.md`, and close #29.
+- Finish #29 before M4: redeploy the preview from main after #91 and #92, run the smoke checklist with an approved Jev call budget, record the results in `docs/PREVIEW.md`, and close #29.
+- Work through #90's items, starting with the stray production Worker and `preview_urls`.
 - Update #32 with the production placeholder ID, Turnstile, Access and secrets steps.
 - Decide on draft PR #66.
 - Builders fill in "Built by LLM" with the concrete model, or "Unknown" with the tool's session link.
@@ -124,6 +131,7 @@ Indigo, check each box to approve M3 and start M4.
 - [ ] Section 1 matches what I expected Build v1 to deliver.
 - [ ] #49 is correctly closed as superseded by #16 and #20.
 - [ ] The #29 preview smoke test has passed and #29 is closed, or I accept starting M4 with it still open.
+- [ ] #90's deploy review items have decisions, or I accept starting M4 with them still open.
 - [ ] #32 gets the production setup steps from section 3.
 - [ ] I've decided what to do with draft PR #66.
 - [ ] M4 (Private beta) can start.
