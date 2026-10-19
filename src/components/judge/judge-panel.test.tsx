@@ -44,3 +44,16 @@ it.each(["assignment_unavailable", "already_reviewed", "message_unavailable"])("
   expect(mocks.queue).toHaveBeenCalledTimes(1);
   expect(mocks.hand).toHaveBeenCalledTimes(1);
 });
+it("starts the next review with an empty reason and no example text in the box", async () => {
+  render(<JudgePanel />);
+  fireEvent.click(await screen.findByRole("button", { name: "Not OK" }));
+  fireEvent.change(screen.getByRole("combobox", { name: "Rule" }), { target: { value: "profanity" } });
+  fireEvent.change(screen.getByRole("textbox", { name: "One-line reason" }), { target: { value: "first reason" } });
+  fireEvent.click(screen.getByRole("button", { name: "Submit review" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Judge next" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Not OK" }));
+  const reason = screen.getByRole("textbox", { name: "One-line reason" }) as HTMLTextAreaElement;
+  expect(reason.value).toBe("");
+  expect(reason.placeholder).not.toContain("pro Al");
+  expect(reason.getAttribute("autocomplete")).toBe("off");
+});

@@ -318,8 +318,12 @@ export function JudgePanel({ messageId, returnToDraft = false }: { messageId?: s
               onChange={(event) => setReason(event.target.value)}
               maxLength={280}
               rows={2}
-              placeholder='e.g. “pro Al” is a sexual joke about the player Al'
+              autoComplete="off"
+              placeholder="How does it break the rule?"
             />
+            <p className="text-xs text-muted-foreground">
+              Example: “pro Al” is a sexual joke about the player Al.
+            </p>
           </div>
         </div>
       ) : null}
