@@ -3,7 +3,7 @@ import "server-only";
 import type { ModerationContextLine } from "@/lib/moderation/context";
 import { MAX_CONTEXT_LINES } from "@/lib/moderation/context";
 import { mayAppearInContext } from "./disposition";
-import type { MessagesDatabase } from "./db";
+import { databaseRows, type MessagesDatabase } from "./db";
 import type { FilterOutcome } from "@/lib/moderation/types";
 import type { MessageStatus } from "./disposition";
 
@@ -36,11 +36,12 @@ export async function loadPostRoomContext(
          LIMIT ?`,
       )
       .bind(MAX_CONTEXT_LINES) as {
-      all<T>(): Promise<T[]>;
+      all<T>(): Promise<T[] | { results: T[] }>;
     }
   ).all<ContextRow>();
 
-  const deliverable = contextRows.filter((row) =>
+  // D1 returns { results }; test fakes may return a bare array.
+  const deliverable = databaseRows(contextRows).filter((row) =>
     mayAppearInContext(row.filter_outcome, row.status),
   );
 
@@ -54,10 +55,10 @@ export async function loadPostRoomContext(
   const usernameRows = await (
     db
       .prepare("SELECT name FROM players ORDER BY name ASC")
-      .bind() as { all<T>(): Promise<T[]> }
+      .bind() as { all<T>(): Promise<T[] | { results: T[] }> }
   ).all<{ name: string }>();
 
-  const roomUsernames = usernameRows.map((row) => row.name);
+  const roomUsernames = databaseRows(usernameRows).map((row) => row.name);
 
   return { contextMessageIds, context, roomUsernames };
 }
