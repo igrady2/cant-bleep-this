@@ -1,6 +1,6 @@
 # Process
 
-Indigo Grady owns the product. She approves the PRD, and she clears a gated pull request once. The game is specified in the [PRD](PRD.md). This page is how a change reaches `main`.
+Indigo Grady owns the product. He approves the PRD, and he clears a gated pull request once. The game is specified in the [PRD](PRD.md). This page is how a change reaches `main`.
 
 ## Roles
 
