@@ -60,10 +60,13 @@ export function TurnstileWidget({
   onToken,
   onError,
   className,
+  resetKey = 0,
 }: {
   onToken: (token: string | null) => void;
   onError?: () => void;
   className?: string;
+  /** Change this to issue a fresh challenge, e.g. after the server spent the last token. */
+  resetKey?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
@@ -98,6 +101,7 @@ export function TurnstileWidget({
             onTokenRef.current(null);
             onErrorRef.current?.();
           },
+          // Turnstile's default refresh-expired: "auto" issues a new token after this.
           "expired-callback": () => onTokenRef.current(null),
         });
       })
@@ -115,6 +119,16 @@ export function TurnstileWidget({
       }
     };
   }, [siteKey]);
+
+  // Turnstile tokens are single-use. After a failed claim the server has
+  // already redeemed the token, so the widget must run a new challenge.
+  useEffect(() => {
+    if (resetKey === 0) return;
+    onTokenRef.current(null);
+    if (widgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(widgetIdRef.current);
+    }
+  }, [resetKey]);
 
   const displayError = configError ?? scriptError;
   if (displayError) {

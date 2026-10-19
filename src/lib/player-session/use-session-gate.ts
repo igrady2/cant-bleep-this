@@ -25,10 +25,28 @@ function readGateState(): SessionGateState {
 
 const serverGate: SessionGateState = { kind: "anonymous" };
 
+// useSyncExternalStore needs getSnapshot to return the same object until the
+// underlying values change; a fresh object every call loops (React error #185).
+let cachedKey: string | null = null;
+let cachedGate: SessionGateState = serverGate;
+
+function getGateSnapshot(): SessionGateState {
+  const next = readGateState();
+  const key =
+    next.kind === "anonymous"
+      ? next.kind
+      : `${next.kind}|${next.session.token}|${next.session.playerId}|${next.session.name}`;
+  if (key !== cachedKey) {
+    cachedKey = key;
+    cachedGate = next.kind === "anonymous" ? serverGate : next;
+  }
+  return cachedGate;
+}
+
 export function useSessionGate(): SessionGateState {
   return useSyncExternalStore(
     () => () => {},
-    readGateState,
+    getGateSnapshot,
     () => serverGate,
   );
 }

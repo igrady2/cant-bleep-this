@@ -24,6 +24,7 @@ checked-in block is equivalent to:
   "preview": {
     "name": "cant-bleep-this-preview",
     "workers_dev": true,
+    "preview_urls": false,
     "d1_databases": [{
       "binding": "DB",
       "database_name": "cant-bleep-this-preview",
